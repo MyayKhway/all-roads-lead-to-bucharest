@@ -1,33 +1,31 @@
 /**
  * ControlPanel — sidebar UI for selecting cities, algorithm, and heuristic.
- *
- * Props:
- *   cities        object   — city map
- *   startCity     string   — selected start city id
- *   goalCity      string   — selected goal city id
- *   algorithm     string   — 'astar'
- *   heuristic     string   — 'magnetic_field' | 'straight_line'
- *   isAnimating   bool
- *   pathResult    object|null
- *   exploredStep  number   — current exploration step index during search viz
- *   onStart       fn(id)
- *   onGoal        fn(id)
- *   onAlgorithm   fn(val)
- *   onHeuristic   fn(val)
- *   onFindPath    fn()
- *   onReset       fn()
  */
 
-import { cityList } from '../data/cities.js';
-import { HEURISTICS } from '../algorithms/astar.js';
+import { cityList } from '../data/cities';
+import { HEURISTICS } from '../algorithms/astar';
+import type { AstarResult, HeuristicName } from '../algorithms/astar';
 
-const ALGORITHMS = [
-  { value: 'astar', label: 'A*' },
-];
+interface ControlPanelProps {
+  startCity: string;
+  goalCity: string;
+  algorithm: string;
+  heuristic: HeuristicName;
+  isAnimating: boolean;
+  pathResult: AstarResult | null;
+  onStart: (id: string) => void;
+  onGoal: (id: string) => void;
+  onAlgorithm: (val: string) => void;
+  onHeuristic: (val: HeuristicName) => void;
+  onFindPath: () => void;
+  onReset: () => void;
+}
 
-const HEURISTIC_OPTIONS = [
+const ALGORITHMS = [{ value: 'astar', label: 'A*' }];
+
+const HEURISTIC_OPTIONS: { value: HeuristicName; label: string }[] = [
   { value: HEURISTICS.MAGNETIC_FIELD, label: 'Magnetic Field' },
-  { value: HEURISTICS.STRAIGHT_LINE,  label: 'Straight Line' },
+  { value: HEURISTICS.STRAIGHT_LINE,  label: 'Straight Line'  },
 ];
 
 export default function ControlPanel({
@@ -43,19 +41,19 @@ export default function ControlPanel({
   onHeuristic,
   onFindPath,
   onReset,
-}) {
+}: ControlPanelProps) {
   const canFind = startCity && goalCity && startCity !== goalCity && !isAnimating;
 
   return (
     <div className="control-panel">
-      {/* ---- Header ---- */}
+      {/* Header */}
       <div className="panel-header">
         <div className="panel-logo">📍</div>
         <h1 className="panel-title">Romania 3D Map</h1>
         <p className="panel-subtitle">Pathfinding Visualizer</p>
       </div>
 
-      {/* ---- Controls ---- */}
+      {/* Start city */}
       <div className="panel-section">
         <label className="field-label">Start City</label>
         <select
@@ -73,6 +71,7 @@ export default function ControlPanel({
         </select>
       </div>
 
+      {/* Destination */}
       <div className="panel-section">
         <label className="field-label">Destination</label>
         <select
@@ -90,6 +89,7 @@ export default function ControlPanel({
         </select>
       </div>
 
+      {/* Algorithm */}
       <div className="panel-section">
         <label className="field-label">Algorithm</label>
         <select
@@ -104,12 +104,13 @@ export default function ControlPanel({
         </select>
       </div>
 
+      {/* Heuristic */}
       <div className="panel-section">
         <label className="field-label">Heuristic</label>
         <select
           className="field-select"
           value={heuristic}
-          onChange={e => onHeuristic(e.target.value)}
+          onChange={e => onHeuristic(e.target.value as HeuristicName)}
           disabled={isAnimating}
         >
           {HEURISTIC_OPTIONS.map(h => (
@@ -118,45 +119,32 @@ export default function ControlPanel({
         </select>
       </div>
 
-      {/* ---- Action buttons ---- */}
+      {/* Buttons */}
       <div className="panel-actions">
-        <button
-          className="btn btn-primary"
-          onClick={onFindPath}
-          disabled={!canFind}
-        >
+        <button className="btn btn-primary" onClick={onFindPath} disabled={!canFind}>
           {isAnimating ? '⏳ Navigating…' : '▶ Find Path'}
         </button>
-        <button
-          className="btn btn-secondary"
-          onClick={onReset}
-          disabled={isAnimating}
-        >
+        <button className="btn btn-secondary" onClick={onReset} disabled={isAnimating}>
           ↺ Reset
         </button>
       </div>
 
-      {/* ---- Legend ---- */}
+      {/* Legend */}
       <div className="legend">
-        <div className="legend-item">
-          <span className="legend-dot" style={{ background: '#66BB6A' }} />
-          <span>Start city</span>
-        </div>
-        <div className="legend-item">
-          <span className="legend-dot" style={{ background: '#EF5350' }} />
-          <span>Destination</span>
-        </div>
-        <div className="legend-item">
-          <span className="legend-dot" style={{ background: '#43A047' }} />
-          <span>Route</span>
-        </div>
-        <div className="legend-item">
-          <span className="legend-dot" style={{ background: '#78909C' }} />
-          <span>Explored</span>
-        </div>
+        {[
+          { color: '#66BB6A', label: 'Start city'   },
+          { color: '#EF5350', label: 'Destination'  },
+          { color: '#43A047', label: 'Route'        },
+          { color: '#78909C', label: 'Explored'     },
+        ].map(({ color, label }) => (
+          <div key={label} className="legend-item">
+            <span className="legend-dot" style={{ background: color }} />
+            <span>{label}</span>
+          </div>
+        ))}
       </div>
 
-      {/* ---- Result card ---- */}
+      {/* Result card */}
       {pathResult && !isAnimating && (
         <ResultCard pathResult={pathResult} algorithm={algorithm} heuristic={heuristic} />
       )}
@@ -164,11 +152,16 @@ export default function ControlPanel({
   );
 }
 
-// ---- Sub-component: result card ----
+// ─── Result card ──────────────────────────────────────────────────────────────
 
-function ResultCard({ pathResult, algorithm, heuristic }) {
+interface ResultCardProps {
+  pathResult: AstarResult;
+  algorithm: string;
+  heuristic: HeuristicName;
+}
+
+function ResultCard({ pathResult, algorithm, heuristic }: ResultCardProps) {
   const { path, totalDistance, exploredOrder } = pathResult;
-
   const algoLabel      = algorithm === 'astar' ? 'A*' : algorithm;
   const heuristicLabel = heuristic === HEURISTICS.MAGNETIC_FIELD ? 'Magnetic Field' : 'Straight Line';
 
@@ -178,11 +171,10 @@ function ResultCard({ pathResult, algorithm, heuristic }) {
         <span className="result-badge">✓ Route Found</span>
       </div>
 
-      {/* Path steps */}
       <div className="result-path">
         {path.map((cityId, i) => (
           <div key={cityId} className="path-step">
-            <div className={`path-node ${i === 0 ? 'path-node--start' : i === path.length - 1 ? 'path-node--goal' : ''}`}>
+            <div className={`path-node${i === 0 ? ' path-node--start' : i === path.length - 1 ? ' path-node--goal' : ''}`}>
               {cityId.charAt(0).toUpperCase() + cityId.slice(1)}
             </div>
             {i < path.length - 1 && <div className="path-arrow">↓</div>}
@@ -190,28 +182,19 @@ function ResultCard({ pathResult, algorithm, heuristic }) {
         ))}
       </div>
 
-      {/* Stats */}
       <div className="result-stats">
-        <div className="stat-row">
-          <span className="stat-label">Total Distance</span>
-          <span className="stat-value">{totalDistance} km</span>
-        </div>
-        <div className="stat-row">
-          <span className="stat-label">Cities in Route</span>
-          <span className="stat-value">{path.length}</span>
-        </div>
-        <div className="stat-row">
-          <span className="stat-label">Nodes Explored</span>
-          <span className="stat-value">{exploredOrder?.length ?? '—'}</span>
-        </div>
-        <div className="stat-row">
-          <span className="stat-label">Algorithm</span>
-          <span className="stat-value">{algoLabel}</span>
-        </div>
-        <div className="stat-row">
-          <span className="stat-label">Heuristic</span>
-          <span className="stat-value">{heuristicLabel}</span>
-        </div>
+        {[
+          { label: 'Total Distance', value: `${totalDistance} km` },
+          { label: 'Cities in Route', value: String(path.length) },
+          { label: 'Nodes Explored',  value: String(exploredOrder?.length ?? '—') },
+          { label: 'Algorithm',       value: algoLabel },
+          { label: 'Heuristic',       value: heuristicLabel },
+        ].map(({ label, value }) => (
+          <div key={label} className="stat-row">
+            <span className="stat-label">{label}</span>
+            <span className="stat-value">{value}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
