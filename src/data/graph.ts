@@ -1,7 +1,20 @@
 // Romanian road network represented as a weighted undirected graph.
 // Weights are approximate road distances in km (classic AI textbook values).
 
-export const edges = [
+export interface Edge {
+  from: string;
+  to: string;
+  distance: number;
+}
+
+export interface AdjacencyEntry {
+  city: string;
+  distance: number;
+}
+
+export type AdjacencyMap = Record<string, AdjacencyEntry[]>;
+
+export const edges: Edge[] = [
   { from: 'arad',      to: 'zerind',    distance: 75  },
   { from: 'arad',      to: 'sibiu',     distance: 140 },
   { from: 'arad',      to: 'timisoara', distance: 118 },
@@ -44,8 +57,8 @@ export const edges = [
 ];
 
 // Build adjacency map: city -> [{ city, distance }]
-export function buildAdjacency() {
-  const adj = {};
+export function buildAdjacency(): AdjacencyMap {
+  const adj: AdjacencyMap = {};
   for (const e of edges) {
     if (!adj[e.from]) adj[e.from] = [];
     if (!adj[e.to])   adj[e.to]   = [];

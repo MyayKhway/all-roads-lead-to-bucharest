@@ -2,7 +2,20 @@
 // Positions are laid out to approximate Romania's geography on the XZ plane.
 // Y is always 0 (ground level); landmarks sit on top.
 
-export const cities = {
+export type Position3D = [number, number, number];
+
+export interface City {
+  id: string;
+  name: string;
+  landmark: string;
+  position: Position3D;
+  model: string;
+  color: string;
+}
+
+export type CityMap = Record<string, City>;
+
+export const cities: CityMap = {
   arad: {
     id: 'arad',
     name: 'Arad',
@@ -165,4 +178,4 @@ export const cities = {
   },
 };
 
-export const cityList = Object.values(cities);
+export const cityList: City[] = Object.values(cities);

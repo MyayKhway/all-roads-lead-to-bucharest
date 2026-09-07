@@ -1,19 +1,25 @@
 /**
  * CityNode — renders a city as a base platform + landmark + label.
- *
- * Props:
- *   city          {object}  — city data from cities.js
- *   status        {string}  — 'normal' | 'start' | 'goal' | 'explored' | 'path'
- *   onClick       {fn}      — called with city id when clicked
- *   onPointerOver {fn}
- *   onPointerOut  {fn}
  */
 
 import { useRef, useState } from 'react';
+import { ThreeEvent } from '@react-three/fiber';
 import { Text, Billboard } from '@react-three/drei';
-import Landmark from './Landmark.jsx';
+import * as THREE from 'three';
+import type { City } from '../data/cities';
+import Landmark from './Landmark';
 
-const STATUS_COLORS = {
+export type CityStatus = 'normal' | 'start' | 'goal' | 'explored' | 'path';
+
+interface CityNodeProps {
+  city: City;
+  status?: CityStatus;
+  onClick?: (cityId: string) => void;
+  onPointerOver?: (cityId: string) => void;
+  onPointerOut?: (cityId: string) => void;
+}
+
+const STATUS_COLORS: Record<CityStatus | 'hover', string> = {
   normal:   '#E8E0C8',
   start:    '#66BB6A',
   goal:     '#EF5350',
@@ -24,31 +30,37 @@ const STATUS_COLORS = {
 
 const BASE_HEIGHT = 0.06;
 
-export default function CityNode({ city, status = 'normal', onClick, onPointerOver, onPointerOut }) {
+export default function CityNode({
+  city,
+  status = 'normal',
+  onClick,
+  onPointerOver,
+  onPointerOut,
+}: CityNodeProps) {
   const [hovered, setHovered] = useState(false);
-  const groupRef = useRef();
+  const groupRef = useRef<THREE.Group>(null);
 
   const isHighlighted = status === 'start' || status === 'goal' || status === 'path';
   const isExplored    = status === 'explored';
-  const platformColor = hovered ? STATUS_COLORS.hover : STATUS_COLORS[status] ?? STATUS_COLORS.normal;
+  const platformColor = hovered ? STATUS_COLORS.hover : STATUS_COLORS[status];
 
-  function handlePointerOver(e) {
+  function handlePointerOver(e: ThreeEvent<PointerEvent>) {
     e.stopPropagation();
     setHovered(true);
     document.body.style.cursor = 'pointer';
-    onPointerOver && onPointerOver(city.id);
+    onPointerOver?.(city.id);
   }
 
-  function handlePointerOut(e) {
+  function handlePointerOut(e: ThreeEvent<PointerEvent>) {
     e.stopPropagation();
     setHovered(false);
     document.body.style.cursor = 'default';
-    onPointerOut && onPointerOut(city.id);
+    onPointerOut?.(city.id);
   }
 
-  function handleClick(e) {
+  function handleClick(e: ThreeEvent<MouseEvent>) {
     e.stopPropagation();
-    onClick && onClick(city.id);
+    onClick?.(city.id);
   }
 
   const [px, py, pz] = city.position;
@@ -61,13 +73,13 @@ export default function CityNode({ city, status = 'normal', onClick, onPointerOv
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
     >
-      {/* Circular base platform */}
+      {/* Base platform */}
       <mesh position={[0, BASE_HEIGHT / 2, 0]} receiveShadow castShadow>
         <cylinderGeometry args={[0.45, 0.48, BASE_HEIGHT, 16]} />
         <meshStandardMaterial color={platformColor} roughness={0.8} metalness={0.05} />
       </mesh>
 
-      {/* Glow ring for start / goal / path */}
+      {/* Glow ring for highlighted cities */}
       {isHighlighted && (
         <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[0.48, 0.58, 32]} />
@@ -77,18 +89,14 @@ export default function CityNode({ city, status = 'normal', onClick, onPointerOv
             emissiveIntensity={0.8}
             transparent
             opacity={0.7}
-            side={2}
+            side={THREE.DoubleSide}
           />
         </mesh>
       )}
 
-      {/* Landmark model (procedural) */}
+      {/* Landmark */}
       <group position={[0, BASE_HEIGHT, 0]}>
-        <Landmark
-          cityId={city.id}
-          highlight={isHighlighted}
-          explored={isExplored}
-        />
+        <Landmark cityId={city.id} highlight={isHighlighted} explored={isExplored} />
       </group>
 
       {/* City label — always faces camera */}
@@ -100,7 +108,6 @@ export default function CityNode({ city, status = 'normal', onClick, onPointerOv
           anchorY="middle"
           outlineWidth={0.02}
           outlineColor="#FCF0AF"
-          font={undefined}
         >
           {city.name}
         </Text>

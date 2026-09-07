@@ -1,42 +1,38 @@
 /**
  * RomaniaMap — the main 3D scene.
- *
- * Renders:
- *   - Ground plane
- *   - All road edges
- *   - All city nodes
- *   - The animated navigation path
- *   - Lighting
- *
- * Props:
- *   cities        object   — city map from cities.js
- *   edges         array    — edge list from graph.js
- *   pathResult    object   — { path, exploredOrder } from astar
- *   animProgress  number   — 0..path.length-1
- *   isAnimating   bool
- *   onCityClick   fn(cityId)
- *   hoveredCity   string|null
  */
 
-import CityNode        from './CityNode.jsx';
-import Road            from './Road.jsx';
-import NavigationPath  from './NavigationPath.jsx';
-import NavigationCamera from './NavigationCamera.jsx';
+import type { CityMap } from '../data/cities';
+import type { Edge } from '../data/graph';
+import type { AstarResult } from '../algorithms/astar';
+import type { CityStatus } from './CityNode';
 
-// Derive city status
-function getCityStatus(cityId, pathResult, currentAnimCityIdx) {
+import CityNode         from './CityNode';
+import Road             from './Road';
+import type { RoadStatus } from './Road';
+import NavigationPath   from './NavigationPath';
+import NavigationCamera from './NavigationCamera';
+
+interface RomaniaMapProps {
+  cities: CityMap;
+  edges: Edge[];
+  pathResult: AstarResult | null;
+  animProgress: number;
+  isAnimating: boolean;
+  onCityClick: (cityId: string) => void;
+}
+
+function getCityStatus(cityId: string, pathResult: AstarResult | null): CityStatus {
   if (!pathResult) return 'normal';
   const { path, exploredOrder } = pathResult;
-
-  if (cityId === path[0])                  return 'start';
-  if (cityId === path[path.length - 1])    return 'goal';
-  if (path.includes(cityId))               return 'path';
-  if (exploredOrder && exploredOrder.includes(cityId)) return 'explored';
+  if (cityId === path[0])               return 'start';
+  if (cityId === path[path.length - 1]) return 'goal';
+  if (path.includes(cityId))            return 'path';
+  if (exploredOrder.includes(cityId))   return 'explored';
   return 'normal';
 }
 
-// Derive edge status
-function getEdgeStatus(fromId, toId, pathResult) {
+function getEdgeStatus(fromId: string, toId: string, pathResult: AstarResult | null): RoadStatus {
   if (!pathResult) return 'normal';
   const { path } = pathResult;
   for (let i = 0; i < path.length - 1; i++) {
@@ -55,11 +51,10 @@ export default function RomaniaMap({
   animProgress,
   isAnimating,
   onCityClick,
-  hoveredCity,
-}) {
+}: RomaniaMapProps) {
   return (
     <>
-      {/* ---- Lighting ---- */}
+      {/* Lighting */}
       <ambientLight intensity={0.7} color="#FFF8E7" />
       <directionalLight
         position={[8, 14, 6]}
@@ -77,19 +72,17 @@ export default function RomaniaMap({
       />
       <directionalLight position={[-5, 8, -4]} intensity={0.35} color="#D4E8FF" />
 
-      {/* ---- Ground plane ---- */}
+      {/* Ground */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow>
         <planeGeometry args={[40, 40]} />
         <meshStandardMaterial color="#FCF0AF" roughness={0.95} metalness={0} />
       </mesh>
-
-      {/* Slightly raised Romania "territory" shape */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
         <planeGeometry args={[20, 14]} />
         <meshStandardMaterial color="#F5E88A" roughness={0.9} metalness={0} />
       </mesh>
 
-      {/* ---- Roads ---- */}
+      {/* Roads */}
       {edges.map(({ from, to }) => (
         <Road
           key={`${from}-${to}`}
@@ -99,7 +92,7 @@ export default function RomaniaMap({
         />
       ))}
 
-      {/* ---- City nodes ---- */}
+      {/* City nodes */}
       {Object.values(cities).map(city => (
         <CityNode
           key={city.id}
@@ -109,7 +102,7 @@ export default function RomaniaMap({
         />
       ))}
 
-      {/* ---- Animated navigation path ---- */}
+      {/* Animated navigation path */}
       {pathResult && (
         <NavigationPath
           path={pathResult.path}
@@ -118,7 +111,7 @@ export default function RomaniaMap({
         />
       )}
 
-      {/* ---- Camera ---- */}
+      {/* Camera */}
       <NavigationCamera
         path={pathResult?.path ?? null}
         cities={cities}
