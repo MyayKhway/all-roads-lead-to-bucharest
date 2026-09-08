@@ -124,6 +124,14 @@ heuristics.
 
 ---
 
+## Planned work
+
+- **[Performance metrics module](docs/performance-metrics-plan.md)** — proposed
+  design for measuring CPU and memory cost of the search, with a Dijkstra
+  baseline to compare against. Not yet implemented; comments welcome.
+
+---
+
 ## Contributing
 
 See **[CONTRIBUTING.md](CONTRIBUTING.md)** for branch naming, commit
