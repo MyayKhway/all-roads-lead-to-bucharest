@@ -1,0 +1,63 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "dev",
+      "detail": "Start the Vite dev server on http://localhost:5173",
+      "type": "npm",
+      "script": "dev",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*VITE.*",
+          "endsPattern": ".*ready in.*"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "lint",
+      "detail": "Biome — formatting and lint rules. Must pass before pushing.",
+      "type": "npm",
+      "script": "lint",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "format",
+      "detail": "Biome — rewrite files to the project format",
+      "type": "npm",
+      "script": "format",
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent", "panel": "shared" }
+    },
+    {
+      "label": "typecheck",
+      "detail": "TypeScript only, no bundle",
+      "type": "npm",
+      "script": "typecheck",
+      "problemMatcher": ["$tsc"],
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "build",
+      "detail": "Typecheck, then produce a production bundle in dist/",
+      "type": "npm",
+      "script": "build",
+      "problemMatcher": ["$tsc"],
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "pre-push check",
+      "detail": "Runs lint and build, the two things CONTRIBUTING.md requires",
+      "dependsOrder": "sequence",
+      "dependsOn": ["lint", "build"],
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared" }
+    }
+  ]
+}
