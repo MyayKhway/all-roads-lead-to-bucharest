@@ -17,6 +17,29 @@ npm run dev
 
 If that doesn't work, fix that before writing code — don't work around it.
 
+### Editor setup
+
+The repo ships its VS Code configuration, so most of this document is enforced
+for you rather than remembered.
+
+Open the folder in VS Code and accept the recommended extensions when prompted —
+**Biome** is the one that matters. From then on, saving a file formats it and
+organises its imports. Prettier and ESLint are explicitly disabled in the
+workspace, so an extension you installed globally won't fight the project.
+
+Every npm script is in the command palette under **Tasks: Run Task**, including
+a **pre-push check** that runs lint and build together.
+
+Set up the commit message template once, so the conventions below are in front
+of you while you write:
+
+```bash
+git config commit.template .gitmessage
+```
+
+Not on VS Code? `.editorconfig` covers the basics, and `npm run format` does the
+rest — just run it before you commit.
+
 ---
 
 ## Branch names describe the work, not the person
@@ -106,10 +129,8 @@ npm run format      # rewrite files to the project format
 npm run lint        # check formatting and lint rules
 ```
 
-[Biome](https://biomejs.dev) does both. Install the
-[VS Code extension](https://marketplace.visualstudio.com/items?itemName=biomejs.biome)
-and the workspace settings in `.vscode/` will format on save for you. There is
-no ESLint or Prettier in this project — don't add one.
+[Biome](https://biomejs.dev) does both, and with the editor setup above it runs
+on save. There is no ESLint or Prettier in this project — don't add one.
 
 A few conventions the tooling can't enforce:
 
@@ -153,7 +174,8 @@ npm run lint && npm run build
 git push -u origin descriptive-branch-name
 ```
 
-Then open a PR into `main`.
+Then open a PR into `main`. GitHub will fill in a template with the checklist
+below — work through it rather than deleting it.
 
 - **Say what changed and why** in the description. Link an issue if there is one.
 - **Include a screenshot or short clip** for anything that changes the UI.
