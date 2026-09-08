@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug in Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMaps": true,
+      "preLaunchTask": "dev",
+      "presentation": {
+        "group": "app",
+        "order": 1
+      }
+    },
+    {
+      "name": "Attach to running Chrome",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "url": "http://localhost:5173/*",
+      "webRoot": "${workspaceFolder}/src",
+      "presentation": {
+        "group": "app",
+        "order": 2
+      }
+    }
+  ]
+}
