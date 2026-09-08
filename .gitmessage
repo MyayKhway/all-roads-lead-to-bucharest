@@ -1,0 +1,21 @@
+
+# ── Subject: imperative, under ~72 chars, no trailing period ──────────────
+# Add Dijkstra as a baseline algorithm
+# Fix camera jump when resetting mid-animation
+# Extract node-expansion counter from astar
+#
+# Not: "added dijkstra", "fixes", "wip", "update files"
+#
+# If the subject needs the word "and", this should be more than one commit.
+
+# ── Body (optional): why, not what — the diff already shows what ──────────
+# Wrap at ~72 chars. Leave a blank line above.
+#
+# The open set can hold the same city more than once, so counting pops
+# overstates the work done. Expansions only count cities actually closed,
+# which is what the textbook figures compare against.
+
+# ── Reminders ─────────────────────────────────────────────────────────────
+# One commit does one thing. Split refactors from behaviour changes.
+# Run: npm run lint && npm run build
+# Full conventions: CONTRIBUTING.md
