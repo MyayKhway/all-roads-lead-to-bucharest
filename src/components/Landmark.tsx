@@ -3,49 +3,57 @@
  * Each city gets a distinctive procedural shape.
  */
 
-import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber'
+import { useRef } from 'react'
+import type * as THREE from 'three'
 
-type ShapeVariant = 'castle' | 'church' | 'cathedral' | 'tower' | 'fort' | 'arch' | 'palace' | 'bridge';
+type ShapeVariant =
+  | 'castle'
+  | 'church'
+  | 'cathedral'
+  | 'tower'
+  | 'fort'
+  | 'arch'
+  | 'palace'
+  | 'bridge'
 
 const SHAPE_MAP: Record<string, ShapeVariant> = {
-  arad:      'castle',
-  zerind:    'church',
-  oradea:    'castle',
+  arad: 'castle',
+  zerind: 'church',
+  oradea: 'castle',
   timisoara: 'cathedral',
-  lugoj:     'tower',
-  mehadia:   'fort',
-  drobeta:   'arch',
-  craiova:   'palace',
-  sibiu:     'bridge',
-  rimnicu:   'tower',
-  pitesti:   'fort',
-  fagaras:   'castle',
+  lugoj: 'tower',
+  mehadia: 'fort',
+  drobeta: 'arch',
+  craiova: 'palace',
+  sibiu: 'bridge',
+  rimnicu: 'tower',
+  pitesti: 'fort',
+  fagaras: 'castle',
   bucharest: 'palace',
-  giurgiu:   'fort',
-  urziceni:  'church',
-  hirsova:   'castle',
-  eforie:    'tower',
-  vaslui:    'fort',
-  iasi:      'palace',
-  neamt:     'castle',
-};
+  giurgiu: 'fort',
+  urziceni: 'church',
+  hirsova: 'castle',
+  eforie: 'tower',
+  vaslui: 'fort',
+  iasi: 'palace',
+  neamt: 'castle',
+}
 
 const PASTEL: Record<ShapeVariant, string> = {
-  castle:    '#B5D5C5',
-  church:    '#D4B8E0',
+  castle: '#B5D5C5',
+  church: '#D4B8E0',
   cathedral: '#C8D8E8',
-  tower:     '#F5C6A0',
-  fort:      '#C4A882',
-  arch:      '#E8D5A3',
-  palace:    '#F2B5D4',
-  bridge:    '#A8D8EA',
-};
+  tower: '#F5C6A0',
+  fort: '#C4A882',
+  arch: '#E8D5A3',
+  palace: '#F2B5D4',
+  bridge: '#A8D8EA',
+}
 
 interface ShapeProps {
-  color: string;
-  scale: number;
+  color: string
+  scale: number
 }
 
 function CastleShape({ color, scale }: ShapeProps) {
@@ -55,7 +63,15 @@ function CastleShape({ color, scale }: ShapeProps) {
         <boxGeometry args={[0.4, 0.6, 0.4]} />
         <meshStandardMaterial color={color} roughness={0.7} />
       </mesh>
-      {([[-0.15, -0.15], [0.15, -0.15], [-0.15, 0.15], [0.15, 0.15]] as [number, number][]).map(([x, z], i) => (
+      {(
+        [
+          [-0.15, -0.15],
+          [0.15, -0.15],
+          [-0.15, 0.15],
+          [0.15, 0.15],
+        ] as [number, number][]
+      ).map(([x, z], i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: static geometry array, order is fixed
         <mesh key={i} position={[x, 0.7, z]} castShadow>
           <boxGeometry args={[0.1, 0.15, 0.1]} />
           <meshStandardMaterial color={color} roughness={0.7} />
@@ -66,7 +82,7 @@ function CastleShape({ color, scale }: ShapeProps) {
         <meshStandardMaterial color="#E87070" roughness={0.6} />
       </mesh>
     </group>
-  );
+  )
 }
 
 function ChurchShape({ color, scale }: ShapeProps) {
@@ -89,7 +105,7 @@ function ChurchShape({ color, scale }: ShapeProps) {
         <meshStandardMaterial color="#9B7EBD" roughness={0.6} />
       </mesh>
     </group>
-  );
+  )
 }
 
 function CathedralShape({ color, scale }: ShapeProps) {
@@ -103,7 +119,15 @@ function CathedralShape({ color, scale }: ShapeProps) {
         <sphereGeometry args={[0.22, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
         <meshStandardMaterial color="#A3C4BC" roughness={0.5} />
       </mesh>
-      {([[-0.2, 0.2], [0.2, 0.2], [-0.2, -0.2], [0.2, -0.2]] as [number, number][]).map(([x, z], i) => (
+      {(
+        [
+          [-0.2, 0.2],
+          [0.2, 0.2],
+          [-0.2, -0.2],
+          [0.2, -0.2],
+        ] as [number, number][]
+      ).map(([x, z], i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: static geometry array, order is fixed
         <group key={i} position={[x, 0, z]}>
           <mesh position={[0, 0.35, 0]} castShadow>
             <cylinderGeometry args={[0.06, 0.06, 0.45, 8]} />
@@ -116,7 +140,7 @@ function CathedralShape({ color, scale }: ShapeProps) {
         </group>
       ))}
     </group>
-  );
+  )
 }
 
 function TowerShape({ color, scale }: ShapeProps) {
@@ -132,6 +156,7 @@ function TowerShape({ color, scale }: ShapeProps) {
       </mesh>
       {[0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2].map((angle, i) => (
         <mesh
+          // biome-ignore lint/suspicious/noArrayIndexKey: static geometry array, order is fixed
           key={i}
           position={[Math.sin(angle) * 0.19, 0.4, Math.cos(angle) * 0.19]}
           rotation={[0, angle, 0]}
@@ -142,7 +167,7 @@ function TowerShape({ color, scale }: ShapeProps) {
         </mesh>
       ))}
     </group>
-  );
+  )
 }
 
 function FortShape({ color, scale }: ShapeProps) {
@@ -152,7 +177,15 @@ function FortShape({ color, scale }: ShapeProps) {
         <boxGeometry args={[0.6, 0.3, 0.6]} />
         <meshStandardMaterial color={color} roughness={0.8} />
       </mesh>
-      {([[-0.25, -0.25], [0.25, -0.25], [-0.25, 0.25], [0.25, 0.25]] as [number, number][]).map(([x, z], i) => (
+      {(
+        [
+          [-0.25, -0.25],
+          [0.25, -0.25],
+          [-0.25, 0.25],
+          [0.25, 0.25],
+        ] as [number, number][]
+      ).map(([x, z], i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: static geometry array, order is fixed
         <mesh key={i} position={[x, 0.3, z]} castShadow>
           <cylinderGeometry args={[0.08, 0.09, 0.35, 6]} />
           <meshStandardMaterial color={color} roughness={0.8} />
@@ -163,7 +196,7 @@ function FortShape({ color, scale }: ShapeProps) {
         <meshStandardMaterial color={color} roughness={0.7} />
       </mesh>
     </group>
-  );
+  )
 }
 
 function ArchShape({ color, scale }: ShapeProps) {
@@ -186,7 +219,7 @@ function ArchShape({ color, scale }: ShapeProps) {
         <meshStandardMaterial color="#C8B89A" roughness={0.8} />
       </mesh>
     </group>
-  );
+  )
 }
 
 function PalaceShape({ color, scale }: ShapeProps) {
@@ -201,6 +234,7 @@ function PalaceShape({ color, scale }: ShapeProps) {
         <meshStandardMaterial color="#D4A0B5" roughness={0.5} />
       </mesh>
       {[-0.25, -0.08, 0.08, 0.25].map((x, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: static geometry array, order is fixed
         <mesh key={i} position={[x, 0.2, 0.26]} castShadow>
           <cylinderGeometry args={[0.03, 0.035, 0.4, 6]} />
           <meshStandardMaterial color="#F0E8D8" roughness={0.4} />
@@ -215,7 +249,7 @@ function PalaceShape({ color, scale }: ShapeProps) {
         <meshStandardMaterial color={color} roughness={0.5} />
       </mesh>
     </group>
-  );
+  )
 }
 
 function BridgeShape({ color, scale }: ShapeProps) {
@@ -230,51 +264,48 @@ function BridgeShape({ color, scale }: ShapeProps) {
         <meshStandardMaterial color={color} roughness={0.8} />
       </mesh>
       {[-0.12, 0.12].map((z, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: static geometry array, order is fixed
         <mesh key={i} position={[0, 0.3, z]} castShadow>
           <boxGeometry args={[0.68, 0.06, 0.03]} />
           <meshStandardMaterial color="#D0C0A8" roughness={0.7} />
         </mesh>
       ))}
     </group>
-  );
+  )
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
 interface LandmarkProps {
-  cityId: string;
-  highlight: boolean;
-  explored: boolean;
+  cityId: string
+  highlight: boolean
+  explored: boolean
 }
 
 export default function Landmark({ cityId, highlight, explored }: LandmarkProps) {
-  const ref = useRef<THREE.Group>(null);
-  const variant: ShapeVariant = SHAPE_MAP[cityId] ?? 'tower';
-  const baseColor = PASTEL[variant];
+  const ref = useRef<THREE.Group>(null)
+  const variant: ShapeVariant = SHAPE_MAP[cityId] ?? 'tower'
+  const baseColor = PASTEL[variant]
 
-  const color = highlight ? '#FFE066'
-              : explored  ? '#B0B8C4'
-              : baseColor;
+  const color = highlight ? '#FFE066' : explored ? '#B0B8C4' : baseColor
 
   useFrame((state) => {
-    if (!ref.current) return;
-    ref.current.position.y = highlight
-      ? Math.sin(state.clock.elapsedTime * 2) * 0.05
-      : 0;
-  });
+    if (!ref.current) return
+    ref.current.position.y = highlight ? Math.sin(state.clock.elapsedTime * 2) * 0.05 : 0
+  })
 
-  const shapeProps: ShapeProps = { color, scale: highlight ? 1.25 : 1 };
+  const shapeProps: ShapeProps = { color, scale: highlight ? 1.25 : 1 }
 
   return (
     <group ref={ref}>
-      {variant === 'castle'    && <CastleShape   {...shapeProps} />}
-      {variant === 'church'    && <ChurchShape    {...shapeProps} />}
+      {variant === 'castle' && <CastleShape {...shapeProps} />}
+      {variant === 'church' && <ChurchShape {...shapeProps} />}
       {variant === 'cathedral' && <CathedralShape {...shapeProps} />}
-      {variant === 'tower'     && <TowerShape     {...shapeProps} />}
-      {variant === 'fort'      && <FortShape      {...shapeProps} />}
-      {variant === 'arch'      && <ArchShape      {...shapeProps} />}
-      {variant === 'palace'    && <PalaceShape    {...shapeProps} />}
-      {variant === 'bridge'    && <BridgeShape    {...shapeProps} />}
+      {variant === 'tower' && <TowerShape {...shapeProps} />}
+      {variant === 'fort' && <FortShape {...shapeProps} />}
+      {variant === 'arch' && <ArchShape {...shapeProps} />}
+      {variant === 'palace' && <PalaceShape {...shapeProps} />}
+      {variant === 'bridge' && <BridgeShape {...shapeProps} />}
     </group>
-  );
+  )
 }
