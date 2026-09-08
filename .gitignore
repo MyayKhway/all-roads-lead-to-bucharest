@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Obsidian vault config (docs/ is often opened as a vault)
+.obsidian
