@@ -1,4 +1,4 @@
-# Performance metrics module + VS Code convention support
+# Performance metrics module
 
 > **Status:** proposed — not yet implemented. Open to comment before work starts.
 >
@@ -38,7 +38,7 @@ with a CLI entry point.
 
 ---
 
-## Part A — Metrics module
+## Design
 
 Everything lives in `src/benchmark/`. Nothing in `src/algorithms/` or `src/data/`
 is modified.
@@ -87,13 +87,13 @@ const gCost     = probe.costTable<string, number>()          // counting map
 
 Use them and the metrics come out consistent and free:
 
-| Metric | Derived from |
-| --- | --- |
-| `nodesExpanded` | `closed` insertions |
-| `nodesGenerated` | `frontier` pushes |
-| `heapPops` | `frontier` pops (exceeds expansions when stale entries are popped) |
-| `peakFrontier` | `frontier` high-water mark |
-| `gCostEntries` | `costTable` size |
+| Metric           | Derived from                                                       |
+| ---------------- | ------------------------------------------------------------------ |
+| `nodesExpanded`  | `closed` insertions                                                |
+| `nodesGenerated` | `frontier` pushes                                                  |
+| `heapPops`       | `frontier` pops (exceeds expansions when stale entries are popped) |
+| `peakFrontier`   | `frontier` high-water mark                                         |
+| `gCostEntries`   | `costTable` size                                                   |
 
 This is the part that makes the comparison fair. If each author hand-counted
 their own expansions, two implementations could define "expanded" differently and
@@ -204,36 +204,9 @@ Reported output, shaped by constraint 2 above:
   functions, no I/O, so they work from a script or a future UI.
 - `scripts/bench.ts` — CLI: `--csv`, `--out <file>`, `--pairs <n>`, `--algo <id>`.
 - `package.json` — add `"bench": "tsx scripts/bench.ts"` plus `tsx` as a
-  devDependency. Native `node file.ts` type-stripping would avoid the dependency
+  devDependency. Add a matching `bench` entry to `.vscode/tasks.json`, which was
+  deliberately left out until the script exists. Native `node file.ts` type-stripping would avoid the dependency
   but is not reliable on the Node 20 floor the README states.
-
----
-
-## Part B — VS Code support files
-
-Everyone but Kent is on VS Code, so make the `CONTRIBUTING.md` conventions
-automatic rather than remembered.
-
-- **`.vscode/settings.json`** (extend) — per-language formatter overrides for
-  `[typescript]`, `[typescriptreact]`, `[json]`, `[jsonc]`, `[css]` pointing at
-  Biome; `"prettier.enable": false` and `"eslint.enable": false` so a globally
-  installed extension can't fight the project; `files.eol` /
-  `insertFinalNewline` / `trimTrailingWhitespace` mirroring `.editorconfig`;
-  `search.exclude` for `dist` and `node_modules`.
-- **`.vscode/extensions.json`** (extend) — keep the Biome and Tailwind
-  recommendations, add `unwantedRecommendations` for `esbenp.prettier-vscode` and
-  `dbaeumer.vscode-eslint` so VS Code actively warns against reintroducing them.
-- **`.vscode/tasks.json`** (new) — `dev`, `lint`, `typecheck`, `build`, `bench`
-  from the command palette; `build` as the default build task; `$tsc` problem
-  matcher so type errors land in the Problems panel.
-- **`.vscode/launch.json`** (new) — Chrome against the dev server for debugging
-  the app, plus a Node config for stepping through `npm run bench`.
-- **`.github/pull_request_template.md`** (new) — checklist mirroring
-  `CONTRIBUTING.md`: descriptive branch name, commits split small,
-  `npm run lint && npm run build` pass, screenshot if UI changed.
-- **`.gitmessage`** (new) + a line in `CONTRIBUTING.md` pointing at
-  `git config commit.template .gitmessage` — a commented template encoding the
-  imperative-subject / ~72-char / why-not-what rules.
 
 ---
 
@@ -242,20 +215,17 @@ automatic rather than remembered.
 **New:** `src/benchmark/contract.ts`, `src/benchmark/probe.ts`,
 `src/benchmark/instruments.ts`, `src/benchmark/metrics.ts`,
 `src/benchmark/reference.ts`, `src/benchmark/timer.ts`,
-`src/benchmark/suite.ts`, `src/benchmark/report.ts`, `scripts/bench.ts`,
-`.vscode/tasks.json`, `.vscode/launch.json`,
-`.github/pull_request_template.md`, `.gitmessage`
+`src/benchmark/suite.ts`, `src/benchmark/report.ts`, `scripts/bench.ts`
 
-**Modified:** `package.json` (bench script + `tsx`), `.vscode/settings.json`,
-`.vscode/extensions.json`, `CONTRIBUTING.md`
+**Modified:** `package.json` (bench script + `tsx`)
 
 **Untouched:** all of `src/algorithms/`, all of `src/data/`, `App.tsx`,
 `ControlPanel.tsx`, every component. The module has no dependency on code that
 is being replaced.
 
 Commits split per `CONTRIBUTING.md` — contract and metric types, instrumented
-structures, reference Dijkstra, timer, suite, reporting, CLI, and the VS Code
-files are each their own commit.
+structures, reference Dijkstra, timer, suite, reporting, and the CLI are each
+their own commit.
 
 ---
 
@@ -282,8 +252,6 @@ algorithm, which is not.
 7. **`npm run lint && npm run build`** pass clean.
 8. **App unaffected** — `npm run dev` still renders and routes, since nothing it
    imports was touched.
-9. **VS Code files** — open the folder, confirm the extension prompt appears,
-   format-on-save reformats via Biome, and the tasks appear in the palette.
 
 ---
 
