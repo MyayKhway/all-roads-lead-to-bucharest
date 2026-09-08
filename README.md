@@ -126,11 +126,48 @@ heuristics.
 
 ## Contributing
 
-Work on a branch named after yourself, then open a PR into `main`:
+### Branch names describe the work, not the person
+
+Name a branch after what it changes, so anyone can tell from `git branch -r`
+what is in flight. Lowercase, hyphen-separated, optionally with a type prefix.
 
 ```bash
-git checkout -b your-name
-# ... work ...
-npm run lint && npm run build
-git push -u origin your-name
+git checkout -b add-dijkstra-baseline
+git checkout -b fix/camera-jump-on-reset
+git checkout -b perf-metrics-panel
 ```
+
+Not `linn`, `kent`, `my-branch`, or `test2`.
+
+### Keep commits small
+
+One commit should do one thing, and its subject line should be able to say what
+that thing is without an "and". A reviewer should be able to read the diff in a
+sitting, and a bad commit should be revertable without taking unrelated work
+down with it.
+
+- Split refactors away from behaviour changes — mixing them hides the real
+  change inside the noise.
+- Commit as you finish each piece rather than saving it all for the end.
+- If the subject line needs "and", or the body turns into a bulleted list of
+  unrelated items, it should have been more than one commit.
+
+Write the subject in the imperative, under ~72 characters:
+
+```
+Add Dijkstra as a baseline algorithm
+Fix camera jump when resetting mid-animation
+Extract node-expansion counter from astar
+```
+
+### Workflow
+
+```bash
+git checkout main && git pull
+git checkout -b descriptive-branch-name
+# ... work, committing in small steps ...
+npm run lint && npm run build
+git push -u origin descriptive-branch-name
+```
+
+Then open a PR into `main`. Delete the branch once it's merged.
