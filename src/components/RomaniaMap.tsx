@@ -2,46 +2,47 @@
  * RomaniaMap — the main 3D scene.
  */
 
-import type { CityMap } from '../data/cities';
-import type { Edge } from '../data/graph';
-import type { AstarResult } from '../algorithms/astar';
-import type { CityStatus } from './CityNode';
+import type { AstarResult } from '../algorithms/astar'
+import type { CityMap } from '../data/cities'
+import type { Edge } from '../data/graph'
+import type { CityStatus } from './CityNode'
 
-import CityNode         from './CityNode';
-import Road             from './Road';
-import type { RoadStatus } from './Road';
-import NavigationPath   from './NavigationPath';
-import NavigationCamera from './NavigationCamera';
+import CityNode from './CityNode'
+import NavigationCamera from './NavigationCamera'
+import NavigationPath from './NavigationPath'
+import type { RoadStatus } from './Road'
+import Road from './Road'
 
 interface RomaniaMapProps {
-  cities: CityMap;
-  edges: Edge[];
-  pathResult: AstarResult | null;
-  animProgress: number;
-  isAnimating: boolean;
-  onCityClick: (cityId: string) => void;
+  cities: CityMap
+  edges: Edge[]
+  pathResult: AstarResult | null
+  animProgress: number
+  isAnimating: boolean
+  onCityClick: (cityId: string) => void
 }
 
 function getCityStatus(cityId: string, pathResult: AstarResult | null): CityStatus {
-  if (!pathResult) return 'normal';
-  const { path, exploredOrder } = pathResult;
-  if (cityId === path[0])               return 'start';
-  if (cityId === path[path.length - 1]) return 'goal';
-  if (path.includes(cityId))            return 'path';
-  if (exploredOrder.includes(cityId))   return 'explored';
-  return 'normal';
+  if (!pathResult) return 'normal'
+  const { path, exploredOrder } = pathResult
+  if (cityId === path[0]) return 'start'
+  if (cityId === path[path.length - 1]) return 'goal'
+  if (path.includes(cityId)) return 'path'
+  if (exploredOrder.includes(cityId)) return 'explored'
+  return 'normal'
 }
 
 function getEdgeStatus(fromId: string, toId: string, pathResult: AstarResult | null): RoadStatus {
-  if (!pathResult) return 'normal';
-  const { path } = pathResult;
+  if (!pathResult) return 'normal'
+  const { path } = pathResult
   for (let i = 0; i < path.length - 1; i++) {
     if (
       (path[i] === fromId && path[i + 1] === toId) ||
-      (path[i] === toId   && path[i + 1] === fromId)
-    ) return 'path';
+      (path[i] === toId && path[i + 1] === fromId)
+    )
+      return 'path'
   }
-  return 'normal';
+  return 'normal'
 }
 
 export default function RomaniaMap({
@@ -93,7 +94,7 @@ export default function RomaniaMap({
       ))}
 
       {/* City nodes */}
-      {Object.values(cities).map(city => (
+      {Object.values(cities).map((city) => (
         <CityNode
           key={city.id}
           city={city}
@@ -104,11 +105,7 @@ export default function RomaniaMap({
 
       {/* Animated navigation path */}
       {pathResult && (
-        <NavigationPath
-          path={pathResult.path}
-          cities={cities}
-          animProgress={animProgress}
-        />
+        <NavigationPath path={pathResult.path} cities={cities} animProgress={animProgress} />
       )}
 
       {/* Camera */}
@@ -119,5 +116,5 @@ export default function RomaniaMap({
         isAnimating={isAnimating}
       />
     </>
-  );
+  )
 }

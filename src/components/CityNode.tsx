@@ -2,33 +2,33 @@
  * CityNode — renders a city as a base platform + landmark + label.
  */
 
-import { useRef, useState } from 'react';
-import { ThreeEvent } from '@react-three/fiber';
-import { Text, Billboard } from '@react-three/drei';
-import * as THREE from 'three';
-import type { City } from '../data/cities';
-import Landmark from './Landmark';
+import { Billboard, Text } from '@react-three/drei'
+import type { ThreeEvent } from '@react-three/fiber'
+import { useRef, useState } from 'react'
+import * as THREE from 'three'
+import type { City } from '../data/cities'
+import Landmark from './Landmark'
 
-export type CityStatus = 'normal' | 'start' | 'goal' | 'explored' | 'path';
+export type CityStatus = 'normal' | 'start' | 'goal' | 'explored' | 'path'
 
 interface CityNodeProps {
-  city: City;
-  status?: CityStatus;
-  onClick?: (cityId: string) => void;
-  onPointerOver?: (cityId: string) => void;
-  onPointerOut?: (cityId: string) => void;
+  city: City
+  status?: CityStatus
+  onClick?: (cityId: string) => void
+  onPointerOver?: (cityId: string) => void
+  onPointerOut?: (cityId: string) => void
 }
 
 const STATUS_COLORS: Record<CityStatus | 'hover', string> = {
-  normal:   '#E8E0C8',
-  start:    '#66BB6A',
-  goal:     '#EF5350',
+  normal: '#E8E0C8',
+  start: '#66BB6A',
+  goal: '#EF5350',
   explored: '#78909C',
-  path:     '#43A047',
-  hover:    '#FFD54F',
-};
+  path: '#43A047',
+  hover: '#FFD54F',
+}
 
-const BASE_HEIGHT = 0.06;
+const BASE_HEIGHT = 0.06
 
 export default function CityNode({
   city,
@@ -37,35 +37,36 @@ export default function CityNode({
   onPointerOver,
   onPointerOut,
 }: CityNodeProps) {
-  const [hovered, setHovered] = useState(false);
-  const groupRef = useRef<THREE.Group>(null);
+  const [hovered, setHovered] = useState(false)
+  const groupRef = useRef<THREE.Group>(null)
 
-  const isHighlighted = status === 'start' || status === 'goal' || status === 'path';
-  const isExplored    = status === 'explored';
-  const platformColor = hovered ? STATUS_COLORS.hover : STATUS_COLORS[status];
+  const isHighlighted = status === 'start' || status === 'goal' || status === 'path'
+  const isExplored = status === 'explored'
+  const platformColor = hovered ? STATUS_COLORS.hover : STATUS_COLORS[status]
 
   function handlePointerOver(e: ThreeEvent<PointerEvent>) {
-    e.stopPropagation();
-    setHovered(true);
-    document.body.style.cursor = 'pointer';
-    onPointerOver?.(city.id);
+    e.stopPropagation()
+    setHovered(true)
+    document.body.style.cursor = 'pointer'
+    onPointerOver?.(city.id)
   }
 
   function handlePointerOut(e: ThreeEvent<PointerEvent>) {
-    e.stopPropagation();
-    setHovered(false);
-    document.body.style.cursor = 'default';
-    onPointerOut?.(city.id);
+    e.stopPropagation()
+    setHovered(false)
+    document.body.style.cursor = 'default'
+    onPointerOut?.(city.id)
   }
 
   function handleClick(e: ThreeEvent<MouseEvent>) {
-    e.stopPropagation();
-    onClick?.(city.id);
+    e.stopPropagation()
+    onClick?.(city.id)
   }
 
-  const [px, py, pz] = city.position;
+  const [px, py, pz] = city.position
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: <group> is a three.js object, not DOM
     <group
       ref={groupRef}
       position={[px, py, pz]}
@@ -113,5 +114,5 @@ export default function CityNode({
         </Text>
       </Billboard>
     </group>
-  );
+  )
 }

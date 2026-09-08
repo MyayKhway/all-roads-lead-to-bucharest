@@ -2,18 +2,18 @@
 // Positions are laid out to approximate Romania's geography on the XZ plane.
 // Y is always 0 (ground level); landmarks sit on top.
 
-export type Position3D = [number, number, number];
+export type Position3D = [number, number, number]
 
 export interface City {
-  id: string;
-  name: string;
-  landmark: string;
-  position: Position3D;
-  model: string;
-  color: string;
+  id: string
+  name: string
+  landmark: string
+  position: Position3D
+  model: string
+  color: string
 }
 
-export type CityMap = Record<string, City>;
+export type CityMap = Record<string, City>
 
 export const cities: CityMap = {
   arad: {
@@ -176,6 +176,14 @@ export const cities: CityMap = {
     model: '/models/neamt/neamt.glb',
     color: '#A8D5BA',
   },
-};
+}
 
-export const cityList: City[] = Object.values(cities);
+export const cityList: City[] = Object.values(cities)
+
+/**
+ * Look up a city's position, tolerating ids that aren't in the map.
+ * Keeps callers free of repeated undefined checks under `noUncheckedIndexedAccess`.
+ */
+export function positionOf(map: CityMap, id: string | undefined): Position3D | undefined {
+  return id === undefined ? undefined : map[id]?.position
+}
