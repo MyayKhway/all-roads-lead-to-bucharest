@@ -2,10 +2,12 @@
 // Positions are laid out to approximate Romania's geography on the XZ plane.
 // Y is always 0 (ground level); landmarks sit on top.
 
+import type { CityId } from './cityIds.js'
+
 export type Position3D = [number, number, number]
 
 export interface City {
-  id: string
+  id: CityId
   name: string
   landmark: string
   position: Position3D
@@ -13,7 +15,7 @@ export interface City {
   color: string
 }
 
-export type CityMap = Record<string, City>
+export type CityMap = Record<string, City> & Record<CityId, City>
 
 export const cities: CityMap = {
   arad: {

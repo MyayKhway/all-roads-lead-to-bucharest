@@ -1,18 +1,26 @@
-// Romanian road network represented as a weighted undirected graph.
-// Weights are approximate road distances in km (classic AI textbook values).
+// Canonical Romanian road network used by search, diagnostics, and presentation.
+// Weights are the road distances in km from the assignment map.
+
+import { CITY_IDS, type CityId } from './cityIds.js'
 
 export interface Edge {
-  from: string
-  to: string
-  distance: number
+  readonly from: CityId
+  readonly to: CityId
+  readonly distance: number
 }
 
 export interface AdjacencyEntry {
-  city: string
-  distance: number
+  readonly city: CityId
+  readonly distance: number
 }
 
-export type AdjacencyMap = Record<string, AdjacencyEntry[]>
+export type AdjacencyMap = Readonly<Record<string, readonly AdjacencyEntry[]>>
+
+export interface WeightedGraph {
+  readonly cityIds: readonly CityId[]
+  readonly edges: readonly Edge[]
+  readonly adjacency: AdjacencyMap
+}
 
 export const edges: Edge[] = [
   { from: 'arad', to: 'zerind', distance: 75 },
@@ -58,14 +66,25 @@ export const edges: Edge[] = [
 
 // Build adjacency map: city -> [{ city, distance }]
 export function buildAdjacency(): AdjacencyMap {
-  const adj: AdjacencyMap = {}
+  const adj: Record<string, AdjacencyEntry[]> = Object.fromEntries(
+    CITY_IDS.map((cityId) => [cityId, []]),
+  )
   for (const e of edges) {
-    const fromList = adj[e.from] ?? []
-    const toList = adj[e.to] ?? []
-    adj[e.from] = fromList
-    adj[e.to] = toList
+    const fromList = adj[e.from]
+    const toList = adj[e.to]
+    if (fromList === undefined || toList === undefined) {
+      throw new Error(`Road references an unknown city: ${e.from} - ${e.to}`)
+    }
     fromList.push({ city: e.to, distance: e.distance })
     toList.push({ city: e.from, distance: e.distance })
   }
   return adj
+}
+
+export const adjacency = buildAdjacency()
+
+export const romaniaGraph: WeightedGraph = {
+  cityIds: CITY_IDS,
+  edges,
+  adjacency,
 }
