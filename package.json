@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test": "tsc -p tsconfig.test.json && node --test ./.test-build/tests/data/mapDomain.test.js",
+    "test": "tsc -p tsconfig.test.json && tsx --tsconfig tsconfig.test.json --test",
     "typecheck": "tsc -b --noEmit",
     "lint": "biome check .",
     "format": "biome format --write ."
@@ -29,6 +29,7 @@
     "@types/three": "^0.185.4",
     "@vitejs/plugin-react": "^6.1.0",
     "tailwindcss": "^4.1.18",
+    "tsx": "^4.23.13",
     "typescript": "^7.0.2",
     "vite": "^8.2.2"
   }
