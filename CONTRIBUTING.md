@@ -185,6 +185,99 @@ below — work through it rather than deleting it.
 
 ---
 
+## Merging
+
+We rebase. On GitHub, **Rebase and merge** is the only button you'll see — squash
+and merge commits are turned off on the repo, so there is nothing to choose.
+
+The reason is the section above: commits here are meant to be small and to each
+do one thing. Squashing a branch throws that away the moment it lands, and takes
+per-commit `git revert` with it. Merge commits keep the commits but braid the
+graph and add a `Merge pull request #12` for every branch. Rebasing keeps your
+commits exactly as you wrote them and keeps `git log --oneline` readable as a
+single sequence.
+
+In the normal case this changes nothing about how you work: push the branch,
+open the PR, click the button.
+
+### When GitHub can't rebase for you
+
+If `main` has moved underneath you in a way that conflicts, GitHub greys the
+button out and you rebase locally:
+
+```bash
+git checkout main && git pull
+git checkout your-branch
+git rebase main
+# ... resolve conflicts, then `git rebase --continue` for each one ...
+npm run lint && npm run build
+git push --force-with-lease
+```
+
+Use `--force-with-lease`, not `--force`. It refuses to push if someone else has
+pushed to your branch in the meantime, which is the one case where a force-push
+actually destroys someone's work.
+
+### Tidying a branch before it lands
+
+Because nothing gets squashed for you, a messy branch stays messy in the
+history. If yours has a `fix typo` or a `wip` in it, clean it up before merging:
+
+```bash
+git rebase -i main     # squash, reword and reorder your own commits
+```
+
+Do this only on your own un-reviewed branch — rewriting commits someone has
+already reviewed makes their approval hard to trust.
+
+### After your PR merges
+
+GitHub deletes the remote branch for you once the PR lands. Delete your local
+copy too, and start anything new from a fresh `main`:
+
+```bash
+git checkout main
+git pull
+git branch -D add-dijkstra-baseline
+```
+
+That's `-D`, not `-d`, and it is not a warning you should worry about. Rebasing
+replays your commits onto `main` as *new* commits with different hashes, so the
+one sitting in your local branch is genuinely not an ancestor of `main` even
+though its changes are now in there. `git branch -d` only knows how to compare
+hashes, so it refuses. Check `git log origin/main` for your commit message
+first if you want the reassurance, then use `-D`.
+
+**Don't keep working on a branch that has already merged.** Your local copy
+still has the pre-rebase commits, and pushing it recreates the deleted remote
+branch without complaining — `git push` reports `* [new branch]`, not an error.
+The PR you open from it will replay the already-merged commits on top of the new
+work, and your reviewer gets to read them a second time. If the follow-up work
+belongs on the same branch name, delete the branch as above and cut a new one
+from `main`.
+
+It's also worth telling Git to drop remote-tracking refs for branches that no
+longer exist, so `git branch -r` reflects what's actually on GitHub:
+
+```bash
+git config fetch.prune true     # once, per clone
+```
+
+### Branches built on other branches
+
+If your branch starts from another branch that hasn't merged yet, let the base
+merge first, then move yours onto the updated `main`:
+
+```bash
+git checkout your-branch
+git rebase --onto main old-base-branch
+```
+
+Without `--onto`, the base branch's commits get replayed a second time and you
+end up reviewing them twice.
+
+---
+
 ## Reviewing
 
 - Anything that isn't a blocker, say so — mark it as a nit or a suggestion.
