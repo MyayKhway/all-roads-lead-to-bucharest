@@ -8,6 +8,8 @@ export interface SearchProblem {
   readonly goal: CityId
 }
 
+export type Heuristic = (current: CityId, problem: SearchProblem) => number
+
 export interface SearchSuccess {
   readonly status: 'success'
   readonly path: readonly CityId[]
