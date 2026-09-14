@@ -1,5 +1,5 @@
-import type { CityId } from '../data/cityIds.js'
-import type { WeightedGraph } from '../data/graph.js'
+import type { CityId } from '@/data/cityIds'
+import type { WeightedGraph } from '@/data/graph'
 
 /** Defines the graph, initial state, and goal state for one search. */
 export interface SearchProblem {
