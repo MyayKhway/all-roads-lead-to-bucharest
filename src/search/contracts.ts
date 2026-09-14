@@ -10,6 +10,10 @@ export interface SearchProblem {
 
 export type Heuristic = (current: CityId, problem: SearchProblem) => number
 
+export interface SearchAlgorithmContext {
+  readonly heuristic?: Heuristic
+}
+
 export interface SearchSuccess {
   readonly status: 'success'
   readonly path: readonly CityId[]
@@ -22,3 +26,8 @@ export interface SearchFailure {
 }
 
 export type SearchResult = SearchSuccess | SearchFailure
+
+export type SearchAlgorithm = (
+  problem: SearchProblem,
+  context: SearchAlgorithmContext,
+) => SearchResult
