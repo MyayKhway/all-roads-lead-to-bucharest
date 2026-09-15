@@ -80,7 +80,7 @@ counters map unambiguously onto standard search terminology no matter who wrote
 the algorithm.
 
 ```ts
-const frontier = probe.frontier<Node>((a, b) => a.f - b.f)  // counting min-heap
+const frontier = probe.frontier<Node>((a, b) => a.f - b.f)  // counting priority frontier
 const closed    = probe.closedSet<string>()                  // counting set
 const gCost     = probe.costTable<string, number>()          // counting map
 ```
@@ -91,16 +91,16 @@ Use them and the metrics come out consistent and free:
 | ---------------- | ------------------------------------------------------------------ |
 | `nodesExpanded`  | `closed` insertions                                                |
 | `nodesGenerated` | `frontier` pushes                                                  |
-| `heapPops`       | `frontier` pops (exceeds expansions when stale entries are popped) |
-| `peakFrontier`   | `frontier` high-water mark                                         |
-| `gCostEntries`   | `costTable` size                                                   |
+| `frontierPops`   | `frontier` pops (exceeds expansions when stale entries are popped) |
+| `peakFrontierEntries` | `frontier` high-water mark                                    |
+| `costTableEntries`    | `costTable` size                                              |
 
 This is the part that makes the comparison fair. If each author hand-counted
 their own expansions, two implementations could define "expanded" differently and
 the numbers wouldn't mean the same thing.
 
-**Escape hatch** for anything the structures can't see — `probe.countHeuristicEval()`,
-`probe.count('customName')` — so an algorithm that doesn't fit the heap/set/map
+**Escape hatch** for anything the structures can't see — `probe.countHeuristicEvaluation()`,
+`probe.count('customName')` — so an algorithm that doesn't fit the frontier/set/map
 shape (bidirectional, IDA\*, something iterative) is still measurable.
 
 ### A3. Metrics and the memory estimate
@@ -109,15 +109,15 @@ shape (bidirectional, IDA\*, something iterative) is still measurable.
 export interface SearchMetrics {
   nodesExpanded: number
   nodesGenerated: number
-  heapPushes: number
-  heapPops: number
-  edgesRelaxed: number
-  heuristicEvals: number     // 0 for uninformed search
-  peakFrontier: number       // structural memory: high-water mark
-  closedSize: number
-  gCostEntries: number
+  frontierPushes: number
+  frontierPops: number
+  edgesExamined: number
+  heuristicEvaluations: number // 0 for uninformed search
+  peakFrontierEntries: number // structural memory: high-water mark
+  closedSetEntries: number
+  costTableEntries: number
   estimatedBytes: number
-  custom: Record<string, number>
+  customCounts: Record<string, number>
   goalReached: boolean
   pathCost: number           // computed by the harness, not self-reported
   pathLength: number
@@ -129,7 +129,7 @@ export interface SearchMetrics {
 
 ```ts
 export const BYTE_ESTIMATES = {
-  heapEntry: 48,   // {id: ptr, f: double} + object header
+  frontierEntry: 48, // {id: ptr, priority: double} + object header
   setEntry: 32,
   mapEntry: 40,
 } as const
