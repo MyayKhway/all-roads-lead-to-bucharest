@@ -157,7 +157,7 @@ It also serves as the worked example of how to write against the contract.
 
 ### A5. Timing harness
 
-`src/benchmark/timer.ts` — `measure(fn, opts): TimingResult`.
+`src/benchmark/timer.ts` — `measureExecutionTime(fn, opts): TimingResult`.
 
 - **Warm up** (~50 ms) so the JIT has settled before calibrating.
 - **Auto-calibrate**: double the inner iteration count until a trial exceeds
@@ -243,7 +243,7 @@ algorithm, which is not.
 3. **Instruments count correctly** — hand-verify the probe's counters against a
    traced run on a small pair, so the derived metrics are known-good before
    anyone relies on them.
-4. **Timer is honest** — `measure()` on a function of known cost lands in the
+4. **Timer is honest** — `measureExecutionTime()` on a function of known cost lands in the
    right ballpark; `iterations` scales with calibration; removing the DCE sink
    changes the result, proving the sink is doing its job.
 5. **Determinism** — counts are identical across repeated runs. Only the timing
