@@ -26,8 +26,60 @@ export interface SearchFailure {
 
 export type SearchResult = SearchSuccess | SearchFailure
 
+/** Data structures whose operations can be counted consistently across algorithms. */
+export interface SearchFrontier<T> {
+  readonly size: number
+  push(value: T): void
+  pop(): T | undefined
+}
+
+export interface SearchClosedSet<T> {
+  readonly size: number
+  /** Returns true only when the value was not already present. */
+  add(value: T): boolean
+  has(value: T): boolean
+}
+
+export interface SearchCostTable<K, V> {
+  readonly size: number
+  get(key: K): V | undefined
+  has(key: K): boolean
+  set(key: K, value: V): void
+}
+
+/** Raw, implementation-independent observations collected during one search. */
+export interface SearchProbeSnapshot {
+  /** Frontier insertions, including repeated insertions of the same city. */
+  readonly nodesGenerated: number
+  /** Unique values successfully inserted into the closed set. */
+  readonly nodesExpanded: number
+  /** Equal to nodesGenerated for the current priority frontier. */
+  readonly frontierPushes: number
+  readonly frontierPops: number
+  /** Greatest number of entries held across the probe's frontiers at one time. */
+  readonly peakFrontierEntries: number
+  readonly closedSetEntries: number
+  readonly costTableEntries: number
+  /** Roads inspected while expanding cities, whether or not they improve a path. */
+  readonly edgesExamined: number
+  readonly heuristicEvaluations: number
+  readonly customCounts: Readonly<Record<string, number>>
+}
+
+export interface SearchProbe {
+  frontier<T>(compare: (left: T, right: T) => number): SearchFrontier<T>
+  closedSet<T>(): SearchClosedSet<T>
+  costTable<K, V>(): SearchCostTable<K, V>
+  countEdgeExamined(): void
+  countHeuristicEvaluation(): void
+  count(name: string, amount?: number): void
+  snapshot(): SearchProbeSnapshot
+}
+
 export interface SearchAlgorithmContext {
   readonly heuristic?: Heuristic
+  /** Supplies standardized data structures and counters when instrumentation is enabled. */
+  readonly probe?: SearchProbe
   /** Receives diagnostic events synchronously when observation is enabled. */
   readonly eventListener?: SearchEventListener
 }
