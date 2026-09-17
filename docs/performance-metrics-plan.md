@@ -176,6 +176,11 @@ module stays environment-agnostic.
 
 ### A6. Suite runner
 
+`src/benchmark/execution.ts` standardizes one candidate run, and
+`src/benchmark/comparison.ts` compares its validated cost with a precomputed
+reference result. Keeping reference execution separate lets the suite reuse one
+Dijkstra result across every candidate for the same city pair.
+
 `src/benchmark/suite.ts` — takes a list of registered algorithms and runs them
 over a set of city pairs.
 
@@ -212,9 +217,9 @@ Reported output, shaped by constraint 2 above:
 
 ## Files
 
-**New:** `src/benchmark/contract.ts`, `src/benchmark/probe.ts`,
-`src/benchmark/instruments.ts`, `src/benchmark/metrics.ts`,
+**New:** `src/benchmark/probe.ts`, `src/benchmark/metrics.ts`,
 `src/benchmark/reference.ts`, `src/benchmark/timer.ts`,
+`src/benchmark/execution.ts`, `src/benchmark/comparison.ts`,
 `src/benchmark/suite.ts`, `src/benchmark/report.ts`, `scripts/bench.ts`
 
 **Modified:** `package.json` (bench script + `tsx`)
