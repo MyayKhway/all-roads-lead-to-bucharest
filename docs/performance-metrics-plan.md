@@ -181,8 +181,10 @@ module stays environment-agnostic.
 reference result. Keeping reference execution separate lets the suite reuse one
 Dijkstra result across every candidate for the same city pair.
 
-`src/benchmark/suite.ts` — takes a list of registered algorithms and runs them
-over a set of city pairs.
+`src/search/registry.ts` defines one registry row as a named algorithm and
+optional heuristic combination with author metadata. `src/benchmark/suite.ts`
+takes selected rows, precomputes reference results, and runs them over a set of
+city pairs.
 
 Two kinds of measurement, separated because their costs differ by orders of
 magnitude:
@@ -217,7 +219,7 @@ Reported output, shaped by constraint 2 above:
 
 ## Files
 
-**New:** `src/benchmark/probe.ts`, `src/benchmark/metrics.ts`,
+**New:** `src/search/registry.ts`, `src/benchmark/probe.ts`, `src/benchmark/metrics.ts`,
 `src/benchmark/reference.ts`, `src/benchmark/timer.ts`,
 `src/benchmark/execution.ts`, `src/benchmark/comparison.ts`,
 `src/benchmark/suite.ts`, `src/benchmark/report.ts`, `scripts/bench.ts`
