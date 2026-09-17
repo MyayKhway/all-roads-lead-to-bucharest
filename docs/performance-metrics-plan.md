@@ -119,9 +119,9 @@ export interface SearchMetrics {
   estimatedBytes: number
   customCounts: Record<string, number>
   goalReached: boolean
-  pathCost: number           // computed by the harness, not self-reported
-  pathLength: number
-  pathValid: boolean
+  calculatedPathCost: number | null // computed by validation, not self-reported
+  pathEdgeCount: number             // number of roads, not cities
+  resultValid: boolean              // validity does not imply optimality
 }
 ```
 
@@ -130,8 +130,8 @@ export interface SearchMetrics {
 ```ts
 export const BYTE_ESTIMATES = {
   frontierEntry: 48, // {id: ptr, priority: double} + object header
-  setEntry: 32,
-  mapEntry: 40,
+  closedSetEntry: 32,
+  costTableEntry: 40,
 } as const
 ```
 
