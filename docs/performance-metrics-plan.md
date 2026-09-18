@@ -1,6 +1,6 @@
 # Performance metrics module
 
-> **Status:** proposed — not yet implemented. Open to comment before work starts.
+> **Status:** implementation in progress.
 >
 > **Scope note:** everything in `src/algorithms/` today is a placeholder and will
 > be replaced. This module is deliberately built *around a contract*, not around
@@ -30,7 +30,7 @@ placeholder:
 2. **The graph is small — 20 cities, 23 edges.** Any correct search will expand
    somewhere around half the nodes, so *averages* across algorithms will look
    close together. The reporting must therefore carry **per-pair distributions
-   and head-to-head counts**, not just means, or there will be nothing to see.
+   and focus-comparison counts**, not just means, or there will be nothing to see.
 
 Settled scope: structural memory (not `performance.memory`), repeated-run
 timing, the Romania graph stays fixed, and **no UI work** — this is a library
@@ -184,7 +184,9 @@ Dijkstra result across every candidate for the same city pair.
 `src/search/registry.ts` defines one registry row as a named algorithm and
 optional heuristic combination with author metadata. `src/benchmark/suite.ts`
 takes selected rows, precomputes reference results, and runs them over a set of
-city pairs.
+city pairs. `src/benchmark/aggregation.ts` summarizes the resulting records by
+variant and compares one author-selected focus variant against each selected
+alternative without rerunning any search.
 
 Two kinds of measurement, separated because their costs differ by orders of
 magnitude:
@@ -196,10 +198,9 @@ magnitude:
 
 Reported output, shaped by constraint 2 above:
 
-- per-algorithm aggregates: mean / median / min / max of each metric
-- **head-to-head**: for each metric and each pair of algorithms, the count of
-  city-pairs where A beats, ties, or loses to B — this is where a small
-  advantage actually becomes visible
+- per-variant aggregates: mean / median / min / max of each metric
+- **focus comparisons**: for each metric, count the city-pairs where the
+  author-selected variant beats, ties, or loses to each selected alternative
 - **optimality**: cost vs the reference Dijkstra — `suboptimalPairs` and
   `maxOvershootPct`
 - **validity**: any pair where an algorithm returned a disconnected or
@@ -222,7 +223,8 @@ Reported output, shaped by constraint 2 above:
 **New:** `src/search/registry.ts`, `src/benchmark/probe.ts`, `src/benchmark/metrics.ts`,
 `src/benchmark/reference.ts`, `src/benchmark/timer.ts`,
 `src/benchmark/execution.ts`, `src/benchmark/comparison.ts`,
-`src/benchmark/suite.ts`, `src/benchmark/report.ts`, `scripts/bench.ts`
+`src/benchmark/suite.ts`, `src/benchmark/aggregation.ts`,
+`src/benchmark/report.ts`, `scripts/bench.ts`
 
 **Modified:** `package.json` (bench script + `tsx`)
 
