@@ -152,6 +152,7 @@ test('summarizes each variant across valid city pairs', () => {
   const alpha = aggregation.variants.find((variant) => variant.variantId === 'alpha')
   assert.ok(alpha !== undefined)
 
+  assert.equal(aggregation.focusVariantId, 'alpha')
   assert.equal(alpha.totalPairs, 2)
   assert.equal(alpha.validPairs, 2)
   assert.equal(alpha.invalidPairs, 0)

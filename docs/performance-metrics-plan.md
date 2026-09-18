@@ -208,8 +208,12 @@ Reported output, shaped by constraint 2 above:
 
 ### A7. Reporting and CLI
 
-- `src/benchmark/report.ts` — `formatTable()`, `toCsv()`, `toJson()`. Pure string
-  functions, no I/O, so they work from a script or a future UI.
+- `src/benchmark/report.ts` — `formatBenchmarkReport()`,
+  `benchmarkRecordsToCsv()`, and `benchmarkReportToJson()`. These are pure
+  string functions with no I/O, so they work from a script or a future UI. The
+  human report contains correctness, workload summaries, focus comparisons,
+  warnings, and timing-methodology notes. CSV preserves flattened per-pair data;
+  JSON preserves both raw records and aggregation.
 - `scripts/bench.ts` — CLI: `--csv`, `--out <file>`, `--pairs <n>`, `--algo <id>`.
 - `package.json` — add `"bench": "tsx scripts/bench.ts"` plus `tsx` as a
   devDependency. Add a matching `bench` entry to `.vscode/tasks.json`, which was

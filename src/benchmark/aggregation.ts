@@ -62,6 +62,7 @@ export interface VariantComparisonResult {
 }
 
 export interface BenchmarkAggregation {
+  readonly focusVariantId: string
   readonly variants: readonly VariantBenchmarkSummary[]
   readonly variantComparisons: readonly VariantComparisonResult[]
 }
@@ -351,6 +352,7 @@ export function aggregateBenchmarkRecords(
   const groups = groupRecordsByVariant(records)
 
   return Object.freeze({
+    focusVariantId,
     variants: Object.freeze(groups.map(summarizeVariant)),
     variantComparisons: buildVariantComparisons(groups, records, focusVariantId),
   })
