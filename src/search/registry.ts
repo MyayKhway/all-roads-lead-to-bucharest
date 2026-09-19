@@ -1,16 +1,12 @@
-import type { Heuristic, SearchAlgorithm } from '@/search/contracts'
+import type { SearchVariant } from '@/search/variant'
+import { validateSearchVariants } from '@/search/variant'
 
-/** One named algorithm-and-heuristic configuration available to the application. */
-export interface SearchVariant {
-  /** Stable identifier used by benchmark options, reports, and future UI selection. */
-  readonly id: string
-  /** Author-chosen name for this complete algorithm-and-heuristic configuration. */
-  readonly name: string
-  readonly algorithmName: string
-  /** Null when the variant does not use a heuristic. */
-  readonly heuristicName: string | null
-  readonly author: string
-  readonly algorithm: SearchAlgorithm
-  /** Omitted for blind searches and other algorithms that do not use a heuristic. */
-  readonly heuristic?: Heuristic
-}
+/**
+ * Application-wide variant catalog shared by production, diagnosis, and benchmarking.
+ * Algorithm authors add contract-compatible variants to this array.
+ */
+const variants: SearchVariant[] = []
+
+validateSearchVariants(variants)
+
+export const searchVariantRegistry: readonly SearchVariant[] = Object.freeze(variants)
