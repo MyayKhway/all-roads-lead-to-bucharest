@@ -1,5 +1,8 @@
-import { parseDiagnosisCommandArgs, runDiagnosisCommand } from '@/cli/diagnosisCommand'
 import { romaniaGraph } from '@/data/graph'
+import {
+  parseDiagnosisCommandArgs,
+  runDiagnosisCommand,
+} from '@/search/evaluation/cli/diagnosisCommand'
 import { searchVariantRegistry } from '@/search/registry'
 
 try {

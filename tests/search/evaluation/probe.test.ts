@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { createSearchProbe } from '@/benchmark/probe'
+import { createSearchProbe } from '@/search/evaluation/probe'
 
 test('returns frontier entries in minimum-first order', () => {
   const probe = createSearchProbe()

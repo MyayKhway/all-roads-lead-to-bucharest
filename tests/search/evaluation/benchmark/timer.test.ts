@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { measureExecutionTime, type TimingOptions, timingSink } from '@/benchmark/timer'
+import {
+  measureExecutionTime,
+  type TimingOptions,
+  timingSink,
+} from '@/search/evaluation/benchmark/timer'
 
 const FAST_TEST_OPTIONS: TimingOptions = {
   warmupMs: 0,

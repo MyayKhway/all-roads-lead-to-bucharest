@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { referenceDijkstra } from '@/benchmark/reference'
 import { romaniaGraph } from '@/data/graph'
-import { diagnoseSearch } from '@/diagnosis/diagnoseSearch'
 import type { SearchAlgorithm } from '@/search/contracts'
+import { diagnoseSearch } from '@/search/evaluation/diagnosis/diagnoseSearch'
+import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
 import type { SearchVariant } from '@/search/variant'
 
 const observableDijkstra: SearchAlgorithm = (problem, context) => {

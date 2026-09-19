@@ -1,4 +1,4 @@
-import type { BenchmarkRecord } from '@/benchmark/suite'
+import type { BenchmarkRecord } from '@/search/evaluation/benchmark/suite'
 
 export interface NumericSummary {
   readonly sampleCount: number

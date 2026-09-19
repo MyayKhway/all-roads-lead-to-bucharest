@@ -1,9 +1,12 @@
-import { compareWithReference, type ReferenceComparisonResult } from '@/benchmark/comparison'
-import { executeSearch, type SearchExecution } from '@/benchmark/execution'
-import { referenceDijkstra } from '@/benchmark/reference'
 import type { CityId } from '@/data/cityIds'
 import type { WeightedGraph } from '@/data/graph'
 import type { SearchEvent, SearchProblem, SearchResult } from '@/search/contracts'
+import { executeSearch, type SearchExecution } from '@/search/evaluation/execution'
+import {
+  compareWithReference,
+  type ReferenceComparisonResult,
+} from '@/search/evaluation/referenceComparison'
+import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
 import { type SearchVariant, validateSearchVariants } from '@/search/variant'
 
 export interface DiagnoseSearchInput {

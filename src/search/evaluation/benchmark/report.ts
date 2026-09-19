@@ -3,8 +3,8 @@ import type {
   ComparisonMetric,
   NumericSummary,
   VariantBenchmarkSummary,
-} from '@/benchmark/aggregation'
-import type { BenchmarkRecord } from '@/benchmark/suite'
+} from '@/search/evaluation/benchmark/aggregation'
+import type { BenchmarkRecord } from '@/search/evaluation/benchmark/suite'
 
 export interface BenchmarkReportData {
   readonly records: readonly BenchmarkRecord[]

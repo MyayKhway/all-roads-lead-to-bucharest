@@ -1,8 +1,8 @@
-import { formatVariantList } from '@/cli/formatVariantList'
 import type { CityId } from '@/data/cityIds'
 import { isCityId } from '@/data/cityIds'
 import type { WeightedGraph } from '@/data/graph'
-import { diagnoseSearch, type SearchDiagnosis } from '@/diagnosis/diagnoseSearch'
+import { formatVariantList } from '@/search/evaluation/cli/formatVariantList'
+import { diagnoseSearch, type SearchDiagnosis } from '@/search/evaluation/diagnosis/diagnoseSearch'
 import { findSearchVariant, type SearchVariant } from '@/search/variant'
 
 export interface DiagnosisCommandOptions {

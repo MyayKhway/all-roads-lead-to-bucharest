@@ -1,5 +1,3 @@
-import { deriveSearchMetrics, type SearchMetrics } from '@/benchmark/metrics'
-import { createSearchProbe } from '@/benchmark/probe'
 import type {
   Heuristic,
   SearchAlgorithm,
@@ -9,6 +7,8 @@ import type {
   SearchProblem,
   SearchResult,
 } from '@/search/contracts'
+import { deriveSearchMetrics, type SearchMetrics } from '@/search/evaluation/metrics'
+import { createSearchProbe } from '@/search/evaluation/probe'
 import { type SearchResultValidation, validateSearchResult } from '@/search/validation'
 
 export interface ExecuteSearchInput {

@@ -1,13 +1,13 @@
-import { aggregateBenchmarkRecords } from '@/benchmark/aggregation'
+import { isCityId } from '@/data/cityIds'
+import type { WeightedGraph } from '@/data/graph'
+import { aggregateBenchmarkRecords } from '@/search/evaluation/benchmark/aggregation'
 import {
   benchmarkRecordsToCsv,
   benchmarkReportToJson,
   formatBenchmarkReport,
-} from '@/benchmark/report'
-import { type BenchmarkCityPair, runBenchmarkSuite } from '@/benchmark/suite'
-import { formatVariantList } from '@/cli/formatVariantList'
-import { isCityId } from '@/data/cityIds'
-import type { WeightedGraph } from '@/data/graph'
+} from '@/search/evaluation/benchmark/report'
+import { type BenchmarkCityPair, runBenchmarkSuite } from '@/search/evaluation/benchmark/suite'
+import { formatVariantList } from '@/search/evaluation/cli/formatVariantList'
 import { findSearchVariant, type SearchVariant } from '@/search/variant'
 
 export type BenchmarkOutputFormat = 'table' | 'csv' | 'json'
