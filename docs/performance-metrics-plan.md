@@ -1,5 +1,9 @@
 # Performance metrics module
 
+For current usage, vocabulary, and commands, see the
+[search evaluation guide](search-evaluation/README.md). For a code-level
+walkthrough, see the [implementation guide](search-evaluation/INTERNALS.md).
+
 > **Status:** implementation in progress.
 >
 > **Scope note:** everything in `src/algorithms/` today is a placeholder and will
