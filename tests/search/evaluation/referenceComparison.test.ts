@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-
-import { compareWithReference } from '@/benchmark/comparison'
-import { executeSearch } from '@/benchmark/execution'
-import { referenceDijkstra } from '@/benchmark/reference'
 import { romaniaGraph, type WeightedGraph } from '@/data/graph'
 import type { SearchProblem, SearchResult } from '@/search/contracts'
+import { executeSearch } from '@/search/evaluation/execution'
+import { compareWithReference } from '@/search/evaluation/referenceComparison'
+import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
 
 function executeResult(problem: SearchProblem, result: SearchResult) {
   return executeSearch({

@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-
-import { aggregateBenchmarkRecords, type ComparisonMetric } from '@/benchmark/aggregation'
-import type { BenchmarkRecord } from '@/benchmark/suite'
 import type { CityId } from '@/data/cityIds'
+import {
+  aggregateBenchmarkRecords,
+  type ComparisonMetric,
+} from '@/search/evaluation/benchmark/aggregation'
+import type { BenchmarkRecord } from '@/search/evaluation/benchmark/suite'
 
 interface RecordOptions {
   readonly variantId: string

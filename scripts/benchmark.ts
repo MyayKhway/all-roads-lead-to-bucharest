@@ -1,7 +1,9 @@
 import { writeFileSync } from 'node:fs'
-
-import { parseBenchmarkCommandArgs, runBenchmarkCommand } from '@/cli/benchmarkCommand'
 import { romaniaGraph } from '@/data/graph'
+import {
+  parseBenchmarkCommandArgs,
+  runBenchmarkCommand,
+} from '@/search/evaluation/cli/benchmarkCommand'
 import { searchVariantRegistry } from '@/search/registry'
 
 try {

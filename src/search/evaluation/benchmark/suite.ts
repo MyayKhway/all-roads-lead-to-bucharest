@@ -1,11 +1,18 @@
-import { compareWithReference, type ReferenceComparisonResult } from '@/benchmark/comparison'
-import { executeSearch, type SearchExecution } from '@/benchmark/execution'
-import { createSearchProbe } from '@/benchmark/probe'
-import { referenceDijkstra } from '@/benchmark/reference'
-import { measureExecutionTime, type TimingOptions, type TimingResult } from '@/benchmark/timer'
 import type { CityId } from '@/data/cityIds'
 import type { WeightedGraph } from '@/data/graph'
 import type { SearchAlgorithmContext, SearchProblem, SearchResult } from '@/search/contracts'
+import {
+  measureExecutionTime,
+  type TimingOptions,
+  type TimingResult,
+} from '@/search/evaluation/benchmark/timer'
+import { executeSearch, type SearchExecution } from '@/search/evaluation/execution'
+import { createSearchProbe } from '@/search/evaluation/probe'
+import {
+  compareWithReference,
+  type ReferenceComparisonResult,
+} from '@/search/evaluation/referenceComparison'
+import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
 import { type SearchVariant, validateSearchVariants } from '@/search/variant'
 
 export interface BenchmarkCityPair {

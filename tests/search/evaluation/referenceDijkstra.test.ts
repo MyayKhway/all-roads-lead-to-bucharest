@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { referenceDijkstra } from '@/benchmark/reference'
 import { romaniaGraph, type WeightedGraph } from '@/data/graph'
 import type { SearchProblem } from '@/search/contracts'
+import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
 import { validateSearchResult } from '@/search/validation'
 
 test('finds the textbook shortest path from Arad to Bucharest', () => {
