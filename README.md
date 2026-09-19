@@ -6,6 +6,10 @@ city while the camera flies along it.
 
 Built with React 19, TypeScript, Vite and three.js (via React Three Fiber).
 
+> **Current implementation note:** the algorithms in `src/algorithms/` are
+> frontend-development placeholders. Real algorithms and heuristics should use
+> the contracts and evaluation harness under `src/search/`.
+
 ---
 
 ## Running it
@@ -51,9 +55,16 @@ Then open **http://localhost:5173**. The page hot-reloads as you edit.
 | `npm run dev`       | Dev server with hot reload at http://localhost:5173        |
 | `npm run build`     | Typecheck, then produce a production bundle in `dist/`     |
 | `npm run preview`   | Serve the built `dist/` locally to check the real bundle   |
+| `npm test`          | Typecheck and run the Node test suite                       |
+| `npm run benchmark` | Compare registered search variants                          |
+| `npm run diagnosis` | Inspect one registered variant on one city pair             |
 | `npm run typecheck` | TypeScript only, no bundle                                 |
 | `npm run lint`      | Biome — formatting *and* lint rules                        |
 | `npm run format`    | Biome — rewrite files to the project's format              |
+
+`npm run benchmark` and `npm run diagnosis` can show help or list the registry
+at any time. Running an actual evaluation requires at least one real variant in
+`src/search/registry.ts`.
 
 Before pushing, `npm run lint && npm run build` should both pass clean.
 
@@ -81,9 +92,9 @@ One tool per job, so nothing conflicts:
 
 ```
 src/
-├── algorithms/
-│   ├── astar.ts           A* search + binary min-heap
-│   └── magneticField.ts   Heuristics: magnetic field, straight line
+├── algorithms/             Frontend-development placeholders
+│   ├── astar.ts
+│   └── magneticField.ts
 ├── components/
 │   ├── RomaniaMap.tsx     The 3D scene: lights, ground, roads, cities
 │   ├── CityNode.tsx       One city — platform, landmark, label
@@ -94,9 +105,28 @@ src/
 │   └── ControlPanel.tsx   Sidebar: pickers, legend, results
 ├── data/
 │   ├── cities.ts          20 cities, 3D positions, landmark metadata
+│   ├── cityIds.ts         Canonical city identifiers
 │   └── graph.ts           Weighted edges (km) + adjacency builder
+├── search/
+│   ├── contracts.ts       Algorithm, heuristic, probe, result, and event types
+│   ├── variant.ts         Variant definition, validation, and lookup
+│   ├── registry.ts        Shared variant catalog
+│   ├── validation.ts      Returned-path correctness checks
+│   └── evaluation/        Diagnosis and benchmarking harness
+│       ├── execution.ts   One instrumented and validated search
+│       ├── benchmark/     Timing, suites, aggregation, and reports
+│       ├── diagnosis/     Detailed inspection of one search
+│       └── cli/           Testable command parsing and output
 ├── App.tsx                State machine: idle → animating → done
 └── main.tsx               Entry point
+
+scripts/
+├── benchmark.ts           Benchmark command entry point
+└── diagnosis.ts           Diagnosis command entry point
+
+docs/search-evaluation/
+├── README.md              Usage, vocabulary, and examples
+└── INTERNALS.md           Implementation and reviewer walkthrough
 ```
 
 ### How the graph is defined
@@ -124,11 +154,14 @@ heuristics.
 
 ---
 
-## Planned work
+## Search evaluation harness
 
-- **[Performance metrics module](docs/performance-metrics-plan.md)** — proposed
-  design for measuring CPU and memory cost of the search, with a Dijkstra
-  baseline to compare against. Not yet implemented; comments welcome.
+- **[Usage and vocabulary](docs/search-evaluation/README.md)** — start here to
+  implement, register, diagnose, or benchmark a search variant.
+- **[Implementation walkthrough](docs/search-evaluation/INTERNALS.md)** — code-level
+  architecture and reviewer guide.
+- **[Performance metrics plan](docs/performance-metrics-plan.md)** — design history,
+  methodology, and remaining questions.
 
 ---
 
