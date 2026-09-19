@@ -214,11 +214,15 @@ Reported output, shaped by constraint 2 above:
   human report contains correctness, workload summaries, focus comparisons,
   warnings, and timing-methodology notes. CSV preserves flattened per-pair data;
   JSON preserves both raw records and aggregation.
-- `scripts/bench.ts` — CLI: `--csv`, `--out <file>`, `--pairs <n>`, `--algo <id>`.
-- `package.json` — add `"bench": "tsx scripts/bench.ts"` plus `tsx` as a
-  devDependency. Add a matching `bench` entry to `.vscode/tasks.json`, which was
-  deliberately left out until the script exists. Native `node file.ts` type-stripping would avoid the dependency
-  but is not reliable on the Node 20 floor the README states.
+- `src/cli/benchmarkCommand.ts` and `scripts/benchmark.ts` — select a focus,
+  variants, ordered city pairs, timing, and table/CSV/JSON output. The source
+  module is pure and testable; the script owns terminal and file I/O.
+- `src/diagnosis/diagnoseSearch.ts`, `src/cli/diagnosisCommand.ts`, and
+  `scripts/diagnosis.ts` — inspect one registered variant
+  and city pair through validation, reference optimality, structural metrics,
+  and diagnostic events without calibrated timing trials.
+- `package.json` — expose `npm run benchmark` and `npm run diagnosis`. Matching
+  VS Code tasks provide the same entry points from the command palette.
 
 ---
 
@@ -228,9 +232,11 @@ Reported output, shaped by constraint 2 above:
 `src/benchmark/reference.ts`, `src/benchmark/timer.ts`,
 `src/benchmark/execution.ts`, `src/benchmark/comparison.ts`,
 `src/benchmark/suite.ts`, `src/benchmark/aggregation.ts`,
-`src/benchmark/report.ts`, `scripts/bench.ts`
+`src/benchmark/report.ts`, `src/cli/benchmarkCommand.ts`,
+`src/cli/diagnosisCommand.ts`, `src/diagnosis/diagnoseSearch.ts`,
+`src/search/variant.ts`, `scripts/benchmark.ts`, `scripts/diagnosis.ts`
 
-**Modified:** `package.json` (bench script + `tsx`)
+**Modified:** `package.json`, `tsconfig.test.json`, and `.vscode/tasks.json`
 
 **Untouched:** all of `src/algorithms/`, all of `src/data/`, `App.tsx`,
 `ControlPanel.tsx`, every component. The module has no dependency on code that
@@ -261,7 +267,8 @@ algorithm, which is not.
    changes the result, proving the sink is doing its job.
 5. **Determinism** — counts are identical across repeated runs. Only the timing
    fields may vary.
-6. **`npm run bench`** produces the table and CSV.
+6. **`npm run benchmark`** produces table, CSV, or JSON output after variants
+   are registered; **`npm run diagnosis`** inspects one selected run.
 7. **`npm run lint && npm run build`** pass clean.
 8. **App unaffected** — `npm run dev` still renders and routes, since nothing it
    imports was touched.
