@@ -52,6 +52,22 @@
       "presentation": { "reveal": "always", "panel": "shared" }
     },
     {
+      "label": "benchmark",
+      "detail": "Compare registered search variants across selected city pairs",
+      "type": "npm",
+      "script": "benchmark",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "diagnosis",
+      "detail": "Inspect one registered search variant on one city pair",
+      "type": "npm",
+      "script": "diagnosis",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
       "label": "pre-push check",
       "detail": "Runs lint and build, the two things CONTRIBUTING.md requires",
       "dependsOrder": "sequence",
