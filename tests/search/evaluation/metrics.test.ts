@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-
-import { BYTE_ESTIMATES, deriveSearchMetrics } from '@/benchmark/metrics'
 import type { SearchProbeSnapshot, SearchResult } from '@/search/contracts'
+import { BYTE_ESTIMATES, deriveSearchMetrics } from '@/search/evaluation/metrics'
 import type { SearchResultValidation } from '@/search/validation'
 
 const PROBE_SNAPSHOT: SearchProbeSnapshot = {

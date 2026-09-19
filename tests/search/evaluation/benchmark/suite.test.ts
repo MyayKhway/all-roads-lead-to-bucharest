@@ -1,10 +1,9 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-
-import { referenceDijkstra } from '@/benchmark/reference'
-import { runBenchmarkSuite } from '@/benchmark/suite'
 import { romaniaGraph } from '@/data/graph'
 import type { SearchAlgorithm } from '@/search/contracts'
+import { runBenchmarkSuite } from '@/search/evaluation/benchmark/suite'
+import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
 import type { SearchVariant } from '@/search/variant'
 
 const instrumentedShortestPath: SearchAlgorithm = (problem, context) => {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { referenceDijkstra } from '@/benchmark/reference'
+import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
 import { findSearchVariant, type SearchVariant, validateSearchVariants } from '@/search/variant'
 
 const variant: SearchVariant = {

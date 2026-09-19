@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-
-import { executeSearch } from '@/benchmark/execution'
 import { romaniaGraph } from '@/data/graph'
 import type { SearchAlgorithm, SearchEvent, SearchProblem } from '@/search/contracts'
+import { executeSearch } from '@/search/evaluation/execution'
 
 const ARAD_TO_SIBIU: SearchProblem = {
   graph: romaniaGraph,

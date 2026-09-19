@@ -1,5 +1,5 @@
-import type { SearchExecution } from '@/benchmark/execution'
 import type { SearchResult } from '@/search/contracts'
+import type { SearchExecution } from '@/search/evaluation/execution'
 
 export interface ReferenceComparisonResult {
   readonly referencePathCost: number | null
