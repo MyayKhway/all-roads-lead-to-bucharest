@@ -40,8 +40,9 @@ with a CLI entry point.
 
 ## Design
 
-Everything lives in `src/benchmark/`. Nothing in `src/algorithms/` or `src/data/`
-is modified.
+The shared search contracts live in `src/search/`, while the evaluation harness is
+consolidated under `src/search/evaluation/`. Nothing in `src/algorithms/` or
+`src/data/` is modified.
 
 ### A1. The contract
 
@@ -142,9 +143,9 @@ and a search this size would read as 0.
 
 ### A4. Reference implementation
 
-`src/benchmark/reference.ts` — a plain, unoptimised Dijkstra written against the
-contract. It is owned by the benchmark module and is not going to be replaced.
-Three jobs:
+`src/search/evaluation/referenceDijkstra.ts` — a plain, unoptimised Dijkstra written
+against the contract. It is owned by the evaluation harness and is not going to be
+replaced. Three jobs:
 
 - **Correctness oracle.** Shortest path is shortest path. Any candidate algorithm
   claiming a cheaper route than the reference has a bug; any claiming a costlier
@@ -157,7 +158,8 @@ It also serves as the worked example of how to write against the contract.
 
 ### A5. Timing harness
 
-`src/benchmark/timer.ts` — `measureExecutionTime(fn, opts): TimingResult`.
+`src/search/evaluation/benchmark/timer.ts` —
+`measureExecutionTime(fn, opts): TimingResult`.
 
 - **Warm up** (~50 ms) so the JIT has settled before calibrating.
 - **Auto-calibrate**: double the inner iteration count until a trial exceeds
@@ -176,15 +178,16 @@ module stays environment-agnostic.
 
 ### A6. Suite runner
 
-`src/benchmark/execution.ts` standardizes one candidate run, and
-`src/benchmark/comparison.ts` compares its validated cost with a precomputed
-reference result. Keeping reference execution separate lets the suite reuse one
-Dijkstra result across every candidate for the same city pair.
+`src/search/evaluation/execution.ts` standardizes one candidate run, and
+`src/search/evaluation/referenceComparison.ts` compares its validated cost with a
+precomputed reference result. Keeping reference execution separate lets the suite
+reuse one Dijkstra result across every candidate for the same city pair.
 
-`src/search/registry.ts` defines one registry row as a named algorithm and
-optional heuristic combination with author metadata. `src/benchmark/suite.ts`
-takes selected rows, precomputes reference results, and runs them over a set of
-city pairs. `src/benchmark/aggregation.ts` summarizes the resulting records by
+`src/search/registry.ts` defines one registry row as a named algorithm and optional
+heuristic combination with author metadata.
+`src/search/evaluation/benchmark/suite.ts` takes selected rows, precomputes reference
+results, and runs them over a set of city pairs.
+`src/search/evaluation/benchmark/aggregation.ts` summarizes the resulting records by
 variant and compares one author-selected focus variant against each selected
 alternative without rerunning any search.
 
@@ -208,17 +211,17 @@ Reported output, shaped by constraint 2 above:
 
 ### A7. Reporting and CLI
 
-- `src/benchmark/report.ts` — `formatBenchmarkReport()`,
+- `src/search/evaluation/benchmark/report.ts` — `formatBenchmarkReport()`,
   `benchmarkRecordsToCsv()`, and `benchmarkReportToJson()`. These are pure
   string functions with no I/O, so they work from a script or a future UI. The
   human report contains correctness, workload summaries, focus comparisons,
   warnings, and timing-methodology notes. CSV preserves flattened per-pair data;
   JSON preserves both raw records and aggregation.
-- `src/cli/benchmarkCommand.ts` and `scripts/benchmark.ts` — select a focus,
+- `src/search/evaluation/cli/benchmarkCommand.ts` and `scripts/benchmark.ts` — select a focus,
   variants, ordered city pairs, timing, and table/CSV/JSON output. The source
   module is pure and testable; the script owns terminal and file I/O.
-- `src/diagnosis/diagnoseSearch.ts`, `src/cli/diagnosisCommand.ts`, and
-  `scripts/diagnosis.ts` — inspect one registered variant
+- `src/search/evaluation/diagnosis/diagnoseSearch.ts`,
+  `src/search/evaluation/cli/diagnosisCommand.ts`, and `scripts/diagnosis.ts` — inspect one registered variant
   and city pair through validation, reference optimality, structural metrics,
   and diagnostic events without calibrated timing trials.
 - `package.json` — expose `npm run benchmark` and `npm run diagnosis`. Matching
@@ -228,13 +231,9 @@ Reported output, shaped by constraint 2 above:
 
 ## Files
 
-**New:** `src/search/registry.ts`, `src/benchmark/probe.ts`, `src/benchmark/metrics.ts`,
-`src/benchmark/reference.ts`, `src/benchmark/timer.ts`,
-`src/benchmark/execution.ts`, `src/benchmark/comparison.ts`,
-`src/benchmark/suite.ts`, `src/benchmark/aggregation.ts`,
-`src/benchmark/report.ts`, `src/cli/benchmarkCommand.ts`,
-`src/cli/diagnosisCommand.ts`, `src/diagnosis/diagnoseSearch.ts`,
-`src/search/variant.ts`, `scripts/benchmark.ts`, `scripts/diagnosis.ts`
+**New:** `src/search/registry.ts`, `src/search/variant.ts`, the consolidated
+`src/search/evaluation/` harness, and the `scripts/benchmark.ts` and
+`scripts/diagnosis.ts` entry points.
 
 **Modified:** `package.json`, `tsconfig.test.json`, and `.vscode/tasks.json`
 

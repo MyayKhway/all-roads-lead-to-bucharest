@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { referenceDijkstra } from '@/benchmark/reference'
-import { parseBenchmarkCommandArgs, runBenchmarkCommand } from '@/cli/benchmarkCommand'
 import { romaniaGraph } from '@/data/graph'
+import {
+  parseBenchmarkCommandArgs,
+  runBenchmarkCommand,
+} from '@/search/evaluation/cli/benchmarkCommand'
+import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
 import type { SearchVariant } from '@/search/variant'
 
 const variants: readonly SearchVariant[] = [

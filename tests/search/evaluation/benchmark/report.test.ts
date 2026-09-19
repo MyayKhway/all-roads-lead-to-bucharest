@@ -1,17 +1,16 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-
-import { aggregateBenchmarkRecords } from '@/benchmark/aggregation'
-import { referenceDijkstra } from '@/benchmark/reference'
+import { romaniaGraph } from '@/data/graph'
+import type { SearchAlgorithm } from '@/search/contracts'
+import { aggregateBenchmarkRecords } from '@/search/evaluation/benchmark/aggregation'
 import {
   type BenchmarkReportData,
   benchmarkRecordsToCsv,
   benchmarkReportToJson,
   formatBenchmarkReport,
-} from '@/benchmark/report'
-import { type BenchmarkRecord, runBenchmarkSuite } from '@/benchmark/suite'
-import { romaniaGraph } from '@/data/graph'
-import type { SearchAlgorithm } from '@/search/contracts'
+} from '@/search/evaluation/benchmark/report'
+import { type BenchmarkRecord, runBenchmarkSuite } from '@/search/evaluation/benchmark/suite'
+import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
 import type { SearchVariant } from '@/search/variant'
 
 const shortestPathAlgorithm: SearchAlgorithm = (problem) => referenceDijkstra(problem, {})

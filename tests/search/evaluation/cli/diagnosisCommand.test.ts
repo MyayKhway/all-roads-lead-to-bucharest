@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { referenceDijkstra } from '@/benchmark/reference'
-import { parseDiagnosisCommandArgs, runDiagnosisCommand } from '@/cli/diagnosisCommand'
 import { romaniaGraph } from '@/data/graph'
+import {
+  parseDiagnosisCommandArgs,
+  runDiagnosisCommand,
+} from '@/search/evaluation/cli/diagnosisCommand'
+import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
 import type { SearchVariant } from '@/search/variant'
 
 const variant: SearchVariant = {
