@@ -5,7 +5,7 @@ import { referenceDijkstra } from '@/benchmark/reference'
 import { runBenchmarkSuite } from '@/benchmark/suite'
 import { romaniaGraph } from '@/data/graph'
 import type { SearchAlgorithm } from '@/search/contracts'
-import type { SearchVariant } from '@/search/registry'
+import type { SearchVariant } from '@/search/variant'
 
 const instrumentedShortestPath: SearchAlgorithm = (problem, context) => {
   const frontier = context.probe?.frontier<number>((left, right) => left - right)
