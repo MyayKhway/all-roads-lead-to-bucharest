@@ -12,7 +12,7 @@ import {
 import { type BenchmarkRecord, runBenchmarkSuite } from '@/benchmark/suite'
 import { romaniaGraph } from '@/data/graph'
 import type { SearchAlgorithm } from '@/search/contracts'
-import type { SearchVariant } from '@/search/registry'
+import type { SearchVariant } from '@/search/variant'
 
 const shortestPathAlgorithm: SearchAlgorithm = (problem) => referenceDijkstra(problem, {})
 const invalidAlgorithm: SearchAlgorithm = () => ({

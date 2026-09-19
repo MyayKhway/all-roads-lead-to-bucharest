@@ -6,7 +6,7 @@ import { measureExecutionTime, type TimingOptions, type TimingResult } from '@/b
 import type { CityId } from '@/data/cityIds'
 import type { WeightedGraph } from '@/data/graph'
 import type { SearchAlgorithmContext, SearchProblem, SearchResult } from '@/search/contracts'
-import type { SearchVariant } from '@/search/registry'
+import { type SearchVariant, validateSearchVariants } from '@/search/variant'
 
 export interface BenchmarkCityPair {
   readonly start: CityId
@@ -38,31 +38,6 @@ export interface BenchmarkRecord {
 
 function cityPairKey(start: CityId, goal: CityId): string {
   return `${start}->${goal}`
-}
-
-function validateVariants(variants: readonly SearchVariant[]): void {
-  const ids = new Set<string>()
-
-  for (const variant of variants) {
-    if (variant.id.trim().length === 0) {
-      throw new RangeError('Search variant IDs must not be empty')
-    }
-    if (ids.has(variant.id)) {
-      throw new RangeError(`Duplicate search variant ID: ${variant.id}`)
-    }
-    if (variant.name.trim().length === 0 || variant.algorithmName.trim().length === 0) {
-      throw new RangeError('Search variant and algorithm names must not be empty')
-    }
-    if (variant.heuristicName !== null && variant.heuristicName.trim().length === 0) {
-      throw new RangeError('Heuristic names must not be empty')
-    }
-    if ((variant.heuristicName === null) !== (variant.heuristic === undefined)) {
-      throw new RangeError(
-        'A heuristic name and function must either both be present or both be absent',
-      )
-    }
-    ids.add(variant.id)
-  }
 }
 
 function createProblem(graph: WeightedGraph, pair: BenchmarkCityPair): SearchProblem {
@@ -101,7 +76,7 @@ export function runBenchmarkSuite({
   cityPairs,
   timingOptions,
 }: BenchmarkSuiteInput): readonly BenchmarkRecord[] {
-  validateVariants(variants)
+  validateSearchVariants(variants)
 
   const preparedCases = cityPairs.map((pair) => ({ pair, problem: createProblem(graph, pair) }))
   const referenceByPair = new Map<string, SearchResult>()
