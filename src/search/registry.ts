@@ -6,7 +6,6 @@ import { ntbAstarVariant, ntbPlusAstarVariant } from '@/search/variants/ntbAstar
 // Import the blind uniform-cost baseline for comparison with A*.
 import { ucsVariant } from '@/search/variants/ucs' //aps
 
-
 /**
  * Application-wide variant catalog shared by production, diagnosis, and benchmarking.
  * Algorithm authors add contract-compatible variants to this array.
