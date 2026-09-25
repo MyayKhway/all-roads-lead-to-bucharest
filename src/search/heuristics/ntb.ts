@@ -88,19 +88,3 @@ export const ntbHeuristic: Heuristic = (current, problem) => {
 
   return estimate
 }
-
-/** Look ahead exactly one road, then reuse the unchanged core NTB calculation. */
-export const ntbPlusHeuristic: Heuristic = (current, problem) => {
-  if (current === problem.goal) return 0
-
-  let minimum = Number.POSITIVE_INFINITY
-
-  // Each candidate pays its real first-road cost plus NTB from that immediate neighbor.
-  for (const neighbor of problem.graph.adjacency[current] ?? []) {
-    const candidate = neighbor.distance + ntbHeuristic(neighbor.city, problem)
-    minimum = Math.min(minimum, candidate)
-  }
-
-  // An isolated city cannot reach the goal, so use the finite lower bound zero.
-  return Number.isFinite(minimum) ? minimum : 0
-}
