@@ -1,11 +1,15 @@
 import type { SearchVariant } from '@/search/variant'
 import { validateSearchVariants } from '@/search/variant'
 
+import { ntbAstarVariant } from '@/search/variants/ntbAstar'
+import { ucsVariant } from '@/search/variants/ucs'
+
 /**
  * Application-wide variant catalog shared by production, diagnosis, and benchmarking.
  * Algorithm authors add contract-compatible variants to this array.
  */
-const variants: SearchVariant[] = []
+
+const variants: SearchVariant[] = [ntbAstarVariant, ucsVariant]
 
 validateSearchVariants(variants)
 
