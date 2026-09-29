@@ -612,7 +612,7 @@ The benchmark vocabulary is:
 - **Aggregation** combines records into summaries and paired comparisons. It
   does not run the algorithms again.
 - The **focus variant** is the main variant being studied. The report compares
-  it with every other selected variant.
+  it with every alternative supplied through `--compare`.
 
 ### List registered variants
 
@@ -623,15 +623,18 @@ npm run benchmark -- --list
 ### Compare variants on one pair
 
 ```powershell
-npm run benchmark -- --focus astar-my-heuristic --variants astar-my-heuristic,uniform-cost --pairs arad:bucharest
+npm run benchmark -- --focus astar-my-heuristic --compare uniform-cost --pairs arad:bucharest
 ```
 
 Here:
 
 - `astar-my-heuristic` is the focus;
-- both listed variants are included;
+- `uniform-cost` is the alternative being compared with the focus;
+- the focus is included automatically and must not be repeated in `--compare`;
 - the suite evaluates Arad to Bucharest;
 - timing is enabled because `--no-timing` was not supplied.
+
+You can omit `--compare` to benchmark only the focus variant.
 
 ### Collect structural metrics for every ordered pair
 
@@ -639,7 +642,7 @@ There are 20 cities, so there are 380 ordered pairs where start and goal are
 different.
 
 ```powershell
-npm run benchmark -- --focus astar-my-heuristic --variants astar-my-heuristic,uniform-cost --pairs all --no-timing
+npm run benchmark -- --focus astar-my-heuristic --compare uniform-cost --pairs all --no-timing
 ```
 
 `--no-timing` is important here. Exact counters need one candidate execution per
@@ -649,7 +652,7 @@ an all-pairs run much slower.
 ### Save CSV output
 
 ```powershell
-npm run benchmark -- --focus astar-my-heuristic --variants astar-my-heuristic,uniform-cost --pairs arad:bucharest,oradea:eforie --format csv --out results.csv
+npm run benchmark -- --focus astar-my-heuristic --compare uniform-cost --pairs arad:bucharest,oradea:eforie --format csv --out results.csv
 ```
 
 CSV contains one flattened row for each raw benchmark record. It is convenient
@@ -658,7 +661,7 @@ for opening the results in spreadsheet software.
 ### Save JSON output
 
 ```powershell
-npm run benchmark -- --focus astar-my-heuristic --variants astar-my-heuristic,uniform-cost --pairs arad:bucharest --format json --out results.json
+npm run benchmark -- --focus astar-my-heuristic --compare uniform-cost --pairs arad:bucharest --format json --out results.json
 ```
 
 JSON keeps both the raw records and the calculated aggregation. It is convenient
