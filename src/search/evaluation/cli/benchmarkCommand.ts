@@ -16,7 +16,7 @@ export interface BenchmarkCommandOptions {
   readonly help: boolean
   readonly listVariants: boolean
   readonly focusVariantId: string | null
-  readonly variantIds: readonly string[] | null
+  readonly comparisonVariantIds: readonly string[]
   readonly cityPairs: readonly BenchmarkCityPair[] | 'all'
   readonly measureTiming: boolean
   readonly format: BenchmarkOutputFormat
@@ -49,7 +49,7 @@ export function parseBenchmarkCommandArgs(args: readonly string[]): BenchmarkCom
   let help = false
   let listVariants = false
   let focusVariantId: string | null = null
-  let variantIds: readonly string[] | null = null
+  let comparisonVariantIds: readonly string[] = []
   let cityPairs: readonly BenchmarkCityPair[] | 'all' = [{ start: 'arad', goal: 'bucharest' }]
   let measureTiming = true
   let format: BenchmarkOutputFormat = 'table'
@@ -66,11 +66,11 @@ export function parseBenchmarkCommandArgs(args: readonly string[]): BenchmarkCom
     } else if (argument === '--focus') {
       focusVariantId = requireValue(args, index, argument)
       index += 1
-    } else if (argument === '--variants') {
+    } else if (argument === '--compare') {
       const value = requireValue(args, index, argument)
-      variantIds = value.split(',').filter((id) => id.length > 0)
-      if (variantIds.length === 0) {
-        throw new RangeError('--variants requires at least one variant ID')
+      comparisonVariantIds = value.split(',').filter((id) => id.length > 0)
+      if (comparisonVariantIds.length === 0) {
+        throw new RangeError('--compare requires at least one variant ID')
       }
       index += 1
     } else if (argument === '--pairs') {
@@ -96,7 +96,7 @@ export function parseBenchmarkCommandArgs(args: readonly string[]): BenchmarkCom
     help,
     listVariants,
     focusVariantId,
-    variantIds,
+    comparisonVariantIds,
     cityPairs,
     measureTiming,
     format,
@@ -106,8 +106,8 @@ export function parseBenchmarkCommandArgs(args: readonly string[]): BenchmarkCom
 
 export function formatBenchmarkCommandHelp(): string {
   const options: readonly (readonly [string, string])[] = [
-    ['--focus <id>', 'Variant treated as the comparison focus'],
-    ['--variants <id,id>', 'Variants to include; defaults to every registered variant'],
+    ['--focus <id>', 'Variant to benchmark; defaults to the first registered variant'],
+    ['--compare <id,id>', 'Other variants to compare against the focus'],
     ['--pairs <a:b,c:d|all>', 'Ordered city pairs; defaults to arad:bucharest'],
     ['--format <table|csv|json>', 'Output format; defaults to table'],
     ['--out <file>', 'Write output to a file instead of stdout'],
@@ -146,18 +146,26 @@ export function runBenchmarkCommand(
     throw new RangeError('No search variants are registered; add a variant before benchmarking')
   }
 
-  const variants =
-    options.variantIds === null
-      ? registeredVariants
-      : options.variantIds.map((id) => findSearchVariant(registeredVariants, id))
-  const firstVariant = variants[0]
-  if (firstVariant === undefined) {
-    throw new RangeError('Benchmark selection contains no variants')
+  const defaultFocusVariant = registeredVariants[0]
+  if (defaultFocusVariant === undefined) {
+    throw new RangeError('No search variants are registered; add a variant before benchmarking')
   }
-  const focusVariantId = options.focusVariantId ?? firstVariant.id
-  if (!variants.some((variant) => variant.id === focusVariantId)) {
-    throw new RangeError(`Focus variant is not selected for this benchmark: ${focusVariantId}`)
+  const focusVariant =
+    options.focusVariantId === null
+      ? defaultFocusVariant
+      : findSearchVariant(registeredVariants, options.focusVariantId)
+  const uniqueComparisonIds = new Set(options.comparisonVariantIds)
+  if (uniqueComparisonIds.size !== options.comparisonVariantIds.length) {
+    throw new RangeError('--compare contains duplicate variant IDs')
   }
+  if (uniqueComparisonIds.has(focusVariant.id)) {
+    throw new RangeError(`Focus variant must not be included in --compare: ${focusVariant.id}`)
+  }
+  const comparisonVariants = options.comparisonVariantIds.map((id) =>
+    findSearchVariant(registeredVariants, id),
+  )
+  const variants = [focusVariant, ...comparisonVariants]
+  const focusVariantId = focusVariant.id
 
   const requestedPairs = options.cityPairs === 'all' ? createAllPairs(graph) : options.cityPairs
   const cityPairs = requestedPairs.map((pair) => ({

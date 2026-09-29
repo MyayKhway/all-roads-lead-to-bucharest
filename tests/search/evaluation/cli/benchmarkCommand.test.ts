@@ -32,8 +32,8 @@ test('parses benchmark selections and output options', () => {
   const options = parseBenchmarkCommandArgs([
     '--focus',
     'dijkstra-b',
-    '--variants',
-    'dijkstra-a,dijkstra-b',
+    '--compare',
+    'dijkstra-a',
     '--pairs',
     'arad:bucharest,oradea:eforie',
     '--format',
@@ -44,7 +44,7 @@ test('parses benchmark selections and output options', () => {
   ])
 
   assert.equal(options.focusVariantId, 'dijkstra-b')
-  assert.deepEqual(options.variantIds, ['dijkstra-a', 'dijkstra-b'])
+  assert.deepEqual(options.comparisonVariantIds, ['dijkstra-a'])
   assert.equal(options.cityPairs === 'all' ? 0 : options.cityPairs.length, 2)
   assert.equal(options.format, 'json')
   assert.equal(options.outputFile, 'results.json')
@@ -55,6 +55,8 @@ test('runs selected variants through the benchmark reporting pipeline', () => {
   const options = parseBenchmarkCommandArgs([
     '--focus',
     'dijkstra-a',
+    '--compare',
+    'dijkstra-b',
     '--pairs',
     'arad:bucharest',
     '--no-timing',
@@ -64,6 +66,20 @@ test('runs selected variants through the benchmark reporting pipeline', () => {
   assert.match(output, /BENCHMARK REPORT/)
   assert.match(output, /Focus variant: Dijkstra A/)
   assert.match(output, /Dijkstra B/)
+})
+
+test('benchmarks only the focus variant when no comparisons are requested', () => {
+  const options = parseBenchmarkCommandArgs([
+    '--focus',
+    'dijkstra-a',
+    '--pairs',
+    'arad:bucharest',
+    '--no-timing',
+  ])
+  const output = runBenchmarkCommand(options, variants, romaniaGraph)
+
+  assert.match(output, /Dijkstra A/)
+  assert.doesNotMatch(output, /Dijkstra B/)
 })
 
 test('supports help and registry listing without registered algorithms', () => {
@@ -84,5 +100,18 @@ test('rejects malformed benchmark arguments and an empty registry', () => {
   assert.throws(
     () => runBenchmarkCommand(parseBenchmarkCommandArgs([]), [], romaniaGraph),
     /No search variants are registered/,
+  )
+  assert.throws(
+    () =>
+      runBenchmarkCommand(
+        parseBenchmarkCommandArgs(['--focus', 'dijkstra-a', '--compare', 'dijkstra-a']),
+        variants,
+        romaniaGraph,
+      ),
+    /Focus variant must not be included in --compare/,
+  )
+  assert.throws(
+    () => parseBenchmarkCommandArgs(['--compare', ',']),
+    /--compare requires at least one variant ID/,
   )
 })
