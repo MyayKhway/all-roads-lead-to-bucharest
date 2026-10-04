@@ -6,6 +6,7 @@ import type { AstarResult, HeuristicName } from '../algorithms/astar'
 import { HEURISTICS } from '../algorithms/astar'
 import { cityList } from '../data/cities'
 import { COLOR } from '../lib/theme'
+import HeartMonitor from './HeartMonitor'
 import {
   IconCheckCircle,
   IconCompass,
@@ -38,7 +39,14 @@ const ALGORITHMS = [{ value: 'astar', label: 'A*' }]
 const HEURISTIC_OPTIONS: { value: HeuristicName; label: string }[] = [
   { value: HEURISTICS.MAGNETIC_FIELD, label: 'Magnetic Field' },
   { value: HEURISTICS.STRAIGHT_LINE, label: 'Straight Line' },
+  { value: HEURISTICS.HEARTBEAT, label: 'Heartbeat' },
 ]
+
+const HEURISTIC_LABEL: Record<HeuristicName, string> = {
+  [HEURISTICS.MAGNETIC_FIELD]: 'Magnetic Field',
+  [HEURISTICS.STRAIGHT_LINE]: 'Straight Line',
+  [HEURISTICS.HEARTBEAT]: 'Heartbeat',
+}
 
 export default function ControlPanel({
   startCity,
@@ -198,7 +206,10 @@ export default function ControlPanel({
 
       {/* Result card */}
       {pathResult && !isAnimating && (
-        <ResultCard pathResult={pathResult} algorithm={algorithm} heuristic={heuristic} />
+        <>
+          <ResultCard pathResult={pathResult} algorithm={algorithm} heuristic={heuristic} />
+          <HeartMonitor pathResult={pathResult} />
+        </>
       )}
     </div>
   )
@@ -215,8 +226,7 @@ interface ResultCardProps {
 function ResultCard({ pathResult, algorithm, heuristic }: ResultCardProps) {
   const { path, totalDistance, exploredOrder } = pathResult
   const algoLabel = algorithm === 'astar' ? 'A*' : algorithm
-  const heuristicLabel =
-    heuristic === HEURISTICS.MAGNETIC_FIELD ? 'Magnetic Field' : 'Straight Line'
+  const heuristicLabel = HEURISTIC_LABEL[heuristic]
 
   return (
     <div className="result-card">

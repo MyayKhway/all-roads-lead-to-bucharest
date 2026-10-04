@@ -6,10 +6,11 @@
  *   h(n) = heuristic estimate from current node to goal
  */
 
-import type { Position3D } from '../data/cities'
-import { cities } from '../data/cities'
-import { buildAdjacency } from '../data/graph'
-import { magneticFieldHeuristic, straightLineHeuristic } from './magneticField'
+import type { Position3D } from '../data/cities.js'
+import { cities } from '../data/cities.js'
+import { buildAdjacency } from '../data/graph.js'
+import { heartbeatHeuristic } from './heartbeat.js'
+import { magneticFieldHeuristic, straightLineHeuristic } from './magneticField.js'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,6 +24,7 @@ export interface AstarResult {
 export const HEURISTICS = {
   MAGNETIC_FIELD: 'magnetic_field',
   STRAIGHT_LINE: 'straight_line',
+  HEARTBEAT: 'heartbeat',
 } as const
 
 export type HeuristicName = (typeof HEURISTICS)[keyof typeof HEURISTICS]
@@ -114,6 +116,9 @@ function getHeuristic(
 ): number {
   if (name === HEURISTICS.MAGNETIC_FIELD) {
     return magneticFieldHeuristic(currentPos, neighborPos, goalPos, startPos)
+  }
+  if (name === HEURISTICS.HEARTBEAT) {
+    return heartbeatHeuristic(neighborPos, goalPos)
   }
   return straightLineHeuristic(neighborPos, goalPos)
 }

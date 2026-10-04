@@ -12,7 +12,7 @@
  *      + mu    * deviationPenalty
  */
 
-import type { Position3D } from '../data/cities'
+import type { Position3D } from '../data/cities.js'
 
 const EPSILON = 0.0001 // prevents division by zero
 const LAMBDA = 0.4 // directional penalty weight
