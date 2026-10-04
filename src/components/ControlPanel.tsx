@@ -5,6 +5,18 @@
 import type { AstarResult, HeuristicName } from '../algorithms/astar'
 import { HEURISTICS } from '../algorithms/astar'
 import { cityList } from '../data/cities'
+import { COLOR } from '../lib/theme'
+import {
+  IconCheckCircle,
+  IconCompass,
+  IconFlagGoal,
+  IconFlagStart,
+  IconLayers,
+  IconPlay,
+  IconRefresh,
+  IconRoute,
+  IconSpinner,
+} from './icons'
 
 interface ControlPanelProps {
   startCity: string
@@ -48,14 +60,19 @@ export default function ControlPanel({
     <div className="control-panel">
       {/* Header */}
       <div className="panel-header">
-        <div className="panel-logo">📍</div>
-        <h1 className="panel-title">Romania 3D Map</h1>
-        <p className="panel-subtitle">Pathfinding Visualizer</p>
+        <div className="panel-logo">
+          <IconRoute />
+        </div>
+        <div className="panel-header-text">
+          <h1 className="panel-title">Romania Atlas</h1>
+          <p className="panel-subtitle">AI Route Planner</p>
+        </div>
       </div>
 
       {/* Start city */}
       <div className="panel-section">
         <label className="field-label" htmlFor="start-city">
+          <IconFlagStart />
           Start City
         </label>
         <select
@@ -77,6 +94,7 @@ export default function ControlPanel({
       {/* Destination */}
       <div className="panel-section">
         <label className="field-label" htmlFor="goal-city">
+          <IconFlagGoal />
           Destination
         </label>
         <select
@@ -98,6 +116,7 @@ export default function ControlPanel({
       {/* Algorithm */}
       <div className="panel-section">
         <label className="field-label" htmlFor="algorithm">
+          <IconLayers />
           Algorithm
         </label>
         <select
@@ -118,6 +137,7 @@ export default function ControlPanel({
       {/* Heuristic */}
       <div className="panel-section">
         <label className="field-label" htmlFor="heuristic">
+          <IconCompass />
           Heuristic
         </label>
         <select
@@ -138,7 +158,17 @@ export default function ControlPanel({
       {/* Buttons */}
       <div className="panel-actions">
         <button type="button" className="btn btn-primary" onClick={onFindPath} disabled={!canFind}>
-          {isAnimating ? '⏳ Navigating…' : '▶ Find Path'}
+          {isAnimating ? (
+            <>
+              <IconSpinner className="spin" />
+              Navigating…
+            </>
+          ) : (
+            <>
+              <IconPlay />
+              Find Route
+            </>
+          )}
         </button>
         <button
           type="button"
@@ -146,17 +176,18 @@ export default function ControlPanel({
           onClick={onReset}
           disabled={isAnimating}
         >
-          ↺ Reset
+          <IconRefresh />
+          Reset
         </button>
       </div>
 
       {/* Legend */}
       <div className="legend">
         {[
-          { color: '#66BB6A', label: 'Start city' },
-          { color: '#EF5350', label: 'Destination' },
-          { color: '#43A047', label: 'Route' },
-          { color: '#78909C', label: 'Explored' },
+          { color: COLOR.amber, label: 'Start city' },
+          { color: COLOR.crimson, label: 'Destination' },
+          { color: COLOR.emerald, label: 'Route' },
+          { color: COLOR.slateBlue, label: 'Explored' },
         ].map(({ color, label }) => (
           <div key={label} className="legend-item">
             <span className="legend-dot" style={{ background: color }} />
@@ -190,20 +221,30 @@ function ResultCard({ pathResult, algorithm, heuristic }: ResultCardProps) {
   return (
     <div className="result-card">
       <div className="result-header">
-        <span className="result-badge">✓ Route Found</span>
+        <IconCheckCircle />
+        <span className="result-badge">Route Found</span>
       </div>
 
       <div className="result-path">
-        {path.map((cityId, i) => (
-          <div key={cityId} className="path-step">
-            <div
-              className={`path-node${i === 0 ? ' path-node--start' : i === path.length - 1 ? ' path-node--goal' : ''}`}
-            >
-              {cityId.charAt(0).toUpperCase() + cityId.slice(1)}
+        {path.map((cityId, i) => {
+          const isStart = i === 0
+          const isGoal = i === path.length - 1
+          return (
+            <div key={cityId} className="path-step">
+              <div className="path-step-rail">
+                <span
+                  className={`path-step-dot${isStart ? ' path-step-dot--start' : isGoal ? ' path-step-dot--goal' : ''}`}
+                />
+                {!isGoal && <span className="path-step-line" />}
+              </div>
+              <div
+                className={`path-node${isStart ? ' path-node--start' : isGoal ? ' path-node--goal' : ''}`}
+              >
+                {cityId.charAt(0).toUpperCase() + cityId.slice(1)}
+              </div>
             </div>
-            {i < path.length - 1 && <div className="path-arrow">↓</div>}
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       <div className="result-stats">

@@ -2,9 +2,11 @@
  * RomaniaMap — the main 3D scene.
  */
 
+import { Grid } from '@react-three/drei'
 import type { AstarResult } from '../algorithms/astar'
 import type { CityMap } from '../data/cities'
 import type { Edge } from '../data/graph'
+import { COLOR } from '../lib/theme'
 import type { CityStatus } from './CityNode'
 
 import CityNode from './CityNode'
@@ -55,12 +57,16 @@ export default function RomaniaMap({
 }: RomaniaMapProps) {
   return (
     <>
+      {/* Atmosphere */}
+      <color attach="background" args={[COLOR.bgScene]} />
+      <fog attach="fog" args={[COLOR.bgSceneFar, 30, 64]} />
+
       {/* Lighting */}
-      <ambientLight intensity={0.7} color="#FFF8E7" />
+      <ambientLight intensity={0.95} color="#c3d3e0" />
       <directionalLight
-        position={[8, 14, 6]}
-        intensity={1.1}
-        color="#FFF5E0"
+        position={[8, 15, 6]}
+        intensity={1.8}
+        color="#ffe9c2"
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
@@ -71,17 +77,32 @@ export default function RomaniaMap({
         shadow-camera-top={20}
         shadow-camera-bottom={-20}
       />
-      <directionalLight position={[-5, 8, -4]} intensity={0.35} color="#D4E8FF" />
+      <directionalLight position={[-6, 8, -5]} intensity={0.55} color="#7fa0c9" />
+      <pointLight position={[0, 3, 0]} intensity={0.35} color={COLOR.amber} distance={14} />
 
       {/* Ground */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.03, 0]} receiveShadow>
+        <planeGeometry args={[50, 50]} />
+        <meshStandardMaterial color={COLOR.bgScene} roughness={1} metalness={0} />
+      </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow>
-        <planeGeometry args={[40, 40]} />
-        <meshStandardMaterial color="#FCF0AF" roughness={0.95} metalness={0} />
+        <planeGeometry args={[21, 15]} />
+        <meshStandardMaterial color="#30433a" roughness={0.95} metalness={0} />
       </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
-        <planeGeometry args={[20, 14]} />
-        <meshStandardMaterial color="#F5E88A" roughness={0.9} metalness={0} />
-      </mesh>
+      <Grid
+        position={[0, -0.005, 0]}
+        args={[50, 50]}
+        cellSize={1}
+        cellThickness={0.4}
+        cellColor="#425a4d"
+        sectionSize={5}
+        sectionThickness={0.8}
+        sectionColor="#5c7c6a"
+        fadeDistance={38}
+        fadeStrength={1.2}
+        followCamera={false}
+        infiniteGrid
+      />
 
       {/* Roads */}
       {edges.map(({ from, to }) => (

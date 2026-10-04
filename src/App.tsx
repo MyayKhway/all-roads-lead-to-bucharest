@@ -12,9 +12,11 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import type { AstarResult, HeuristicName } from './algorithms/astar'
 import { astar, HEURISTICS } from './algorithms/astar'
 import ControlPanel from './components/ControlPanel'
+import { IconAlertTriangle, IconCompass, IconRoute } from './components/icons'
 import RomaniaMap from './components/RomaniaMap'
 import { cities } from './data/cities'
 import { edges } from './data/graph'
+import { COLOR } from './lib/theme'
 
 import './App.css'
 
@@ -129,7 +131,7 @@ export default function App() {
           shadows
           camera={{ position: [2, 12, 14], fov: 45 }}
           gl={{ antialias: true }}
-          style={{ background: '#E8F4EA' }}
+          style={{ background: COLOR.bgScene }}
         >
           <Suspense fallback={null}>
             <RomaniaMap
@@ -145,10 +147,28 @@ export default function App() {
 
         <div className="canvas-fog" />
 
+        <div className="scene-brand">
+          <div className="scene-brand-icon">
+            <IconRoute />
+          </div>
+          <div className="scene-brand-text">
+            <span className="scene-brand-title">Romania Atlas</span>
+            <span className="scene-brand-subtitle">AI Route Engine</span>
+          </div>
+        </div>
+
         {noPath && (
-          <div className="toast toast--error">⚠ No path found between the selected cities.</div>
+          <div className="toast toast--error">
+            <IconAlertTriangle />
+            No path found between the selected cities.
+          </div>
         )}
-        {isAnimating && <div className="toast toast--info">🗺 Navigating route…</div>}
+        {isAnimating && (
+          <div className="toast toast--info">
+            <IconCompass />
+            Navigating route…
+          </div>
+        )}
       </div>
 
       {/* Sidebar */}

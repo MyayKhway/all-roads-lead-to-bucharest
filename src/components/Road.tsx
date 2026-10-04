@@ -5,6 +5,7 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import type { Position3D } from '../data/cities'
+import { ROAD_COLOR } from '../lib/theme'
 
 export type RoadStatus = 'normal' | 'path' | 'explored'
 
@@ -17,10 +18,6 @@ interface RoadProps {
 const ROAD_WIDTH = 0.06
 const ROAD_HEIGHT = 0.025
 const ROAD_Y = 0.04
-
-const NORMAL_COLOR = '#A09880'
-const PATH_COLOR = '#43A047'
-const EXPLORED_COLOR = '#7B9BAD'
 
 export default function Road({ from, to, status = 'normal' }: RoadProps) {
   const { position, rotation, length } = useMemo(() => {
@@ -42,9 +39,13 @@ export default function Road({ from, to, status = 'normal' }: RoadProps) {
   }, [from, to])
 
   const color =
-    status === 'path' ? PATH_COLOR : status === 'explored' ? EXPLORED_COLOR : NORMAL_COLOR
-  const emissive = status === 'path' ? PATH_COLOR : '#000000'
-  const emissiveInt = status === 'path' ? 0.35 : 0
+    status === 'path'
+      ? ROAD_COLOR.path
+      : status === 'explored'
+        ? ROAD_COLOR.explored
+        : ROAD_COLOR.normal
+  const emissive = status === 'path' ? ROAD_COLOR.pathEmissive : '#000000'
+  const emissiveInt = status === 'path' ? 0.5 : 0
 
   return (
     <mesh position={position} rotation={rotation} receiveShadow>
@@ -53,8 +54,8 @@ export default function Road({ from, to, status = 'normal' }: RoadProps) {
         color={color}
         emissive={emissive}
         emissiveIntensity={emissiveInt}
-        roughness={0.85}
-        metalness={0}
+        roughness={0.7}
+        metalness={0.1}
       />
     </mesh>
   )

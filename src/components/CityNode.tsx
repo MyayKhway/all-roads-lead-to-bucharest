@@ -7,6 +7,7 @@ import type { ThreeEvent } from '@react-three/fiber'
 import { useRef, useState } from 'react'
 import * as THREE from 'three'
 import type { City } from '../data/cities'
+import { STATUS_COLOR } from '../lib/theme'
 import Landmark from './Landmark'
 
 export type CityStatus = 'normal' | 'start' | 'goal' | 'explored' | 'path'
@@ -17,15 +18,6 @@ interface CityNodeProps {
   onClick?: (cityId: string) => void
   onPointerOver?: (cityId: string) => void
   onPointerOut?: (cityId: string) => void
-}
-
-const STATUS_COLORS: Record<CityStatus | 'hover', string> = {
-  normal: '#E8E0C8',
-  start: '#66BB6A',
-  goal: '#EF5350',
-  explored: '#78909C',
-  path: '#43A047',
-  hover: '#FFD54F',
 }
 
 const BASE_HEIGHT = 0.06
@@ -42,7 +34,13 @@ export default function CityNode({
 
   const isHighlighted = status === 'start' || status === 'goal' || status === 'path'
   const isExplored = status === 'explored'
-  const platformColor = hovered ? STATUS_COLORS.hover : STATUS_COLORS[status]
+  const platformColor = hovered ? STATUS_COLOR.hover : STATUS_COLOR[status]
+  const ringColor =
+    status === 'goal'
+      ? STATUS_COLOR.goal
+      : status === 'start'
+        ? STATUS_COLOR.start
+        : STATUS_COLOR.path
 
   function handlePointerOver(e: ThreeEvent<PointerEvent>) {
     e.stopPropagation()
@@ -85,11 +83,11 @@ export default function CityNode({
         <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[0.48, 0.58, 32]} />
           <meshStandardMaterial
-            color={status === 'goal' ? '#EF5350' : '#66BB6A'}
-            emissive={status === 'goal' ? '#EF5350' : '#66BB6A'}
-            emissiveIntensity={0.8}
+            color={ringColor}
+            emissive={ringColor}
+            emissiveIntensity={0.85}
             transparent
-            opacity={0.7}
+            opacity={0.75}
             side={THREE.DoubleSide}
           />
         </mesh>
@@ -104,11 +102,11 @@ export default function CityNode({
       <Billboard follow position={[0, 1.4, 0]}>
         <Text
           fontSize={0.22}
-          color={isHighlighted ? '#1A3C2A' : '#3E3020'}
+          color={isHighlighted ? ringColor : '#e7eaee'}
           anchorX="center"
           anchorY="middle"
-          outlineWidth={0.02}
-          outlineColor="#FCF0AF"
+          outlineWidth={0.018}
+          outlineColor="#0a0d12"
         >
           {city.name}
         </Text>

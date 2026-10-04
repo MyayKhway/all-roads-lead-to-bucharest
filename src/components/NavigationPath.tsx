@@ -6,6 +6,7 @@ import { useMemo } from 'react'
 import * as THREE from 'three'
 import type { CityMap, Position3D } from '../data/cities'
 import { positionOf } from '../data/cities'
+import { COLOR } from '../lib/theme'
 
 interface NavigationPathProps {
   path: string[]
@@ -59,11 +60,11 @@ function PathSegment({ posA, posB, progress }: PathSegmentProps) {
   return (
     <mesh geometry={geometry}>
       <meshStandardMaterial
-        color="#43A047"
-        emissive="#2E7D32"
-        emissiveIntensity={0.6}
-        roughness={0.3}
-        metalness={0.1}
+        color={COLOR.emerald}
+        emissive={COLOR.emeraldDeep}
+        emissiveIntensity={0.75}
+        roughness={0.25}
+        metalness={0.15}
       />
     </mesh>
   )
@@ -82,21 +83,21 @@ function NavigationHead({ position }: NavigationHeadProps) {
       <mesh>
         <sphereGeometry args={[0.12, 16, 16]} />
         <meshStandardMaterial
-          color="#76FF03"
-          emissive="#76FF03"
-          emissiveIntensity={1.2}
+          color={COLOR.emerald}
+          emissive={COLOR.emerald}
+          emissiveIntensity={1.3}
           transparent
-          opacity={0.9}
+          opacity={0.92}
         />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.14, 0.22, 24]} />
         <meshStandardMaterial
-          color="#76FF03"
-          emissive="#76FF03"
-          emissiveIntensity={0.8}
+          color={COLOR.emerald}
+          emissive={COLOR.emerald}
+          emissiveIntensity={0.9}
           transparent
-          opacity={0.5}
+          opacity={0.55}
           side={THREE.DoubleSide}
         />
       </mesh>
