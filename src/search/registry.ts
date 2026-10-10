@@ -1,6 +1,6 @@
 import type { SearchVariant } from '@/search/variant'
 import { validateSearchVariants } from '@/search/variant'
-import { magneticAlignmentVariant } from '@/search/variants/magneticAlignmentVariants'
+import { magneticFieldVariant } from '@/search/variants/magneticFieldVariant'
 
 import { altAstarVariant } from '@/search/variants/alt'
 import { bfsVariant } from '@/search/variants/bfs'
@@ -16,7 +16,7 @@ const variants: SearchVariant[] = [
   altAstarVariant,
   ucsVariant,
   bfsVariant,
-  magneticAlignmentVariant,
+  magneticFieldVariant,
 ]
 
 validateSearchVariants(variants)

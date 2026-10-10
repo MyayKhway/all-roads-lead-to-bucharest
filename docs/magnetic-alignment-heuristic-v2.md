@@ -145,5 +145,5 @@ npm run sweep:magnetic-alpha-v2 -- --from 0 --to 0.01 --step 0.0001 --timing
 Benchmark the registered magnetic variant across every ordered pair:
 
 ```powershell
-npm run benchmark -- --focus astar-magnetic-alignment --pairs all --no-timing
+npm run benchmark -- --focus astar-magnetic-field --pairs all --no-timing
 ```
