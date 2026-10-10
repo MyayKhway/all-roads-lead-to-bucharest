@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createAStarV2 } from '@/algorithms/aStarV2'
+import { createMagneticFieldAStar } from '@/algorithms/magneticFieldAStar'
 import { CITY_IDS } from '@/data/cityIds'
 import { cityPixelCoordinates, manhattanPixelDistance } from '@/data/cityPixelCoordinates'
 import { romaniaGraph } from '@/data/graph'
@@ -89,7 +89,7 @@ test('rejects alpha outside zero through one', () => {
 })
 
 test('returns an optimal route for every ordered city pair', () => {
-  const algorithm = createAStarV2(cachedMagneticHeuristic)
+  const algorithm = createMagneticFieldAStar(cachedMagneticHeuristic)
 
   for (const start of CITY_IDS) {
     for (const goal of CITY_IDS) {

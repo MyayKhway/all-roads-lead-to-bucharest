@@ -7,8 +7,8 @@ city while the camera flies along it.
 Built with React 19, TypeScript, Vite and three.js (via React Three Fiber).
 
 The app runs every search variant registered in `src/search/registry.ts`:
-breadth-first search, uniform-cost search, and A* with the NTB and ALT
-and magnetic-alignment heuristics.
+breadth-first search, uniform-cost search, and A* with the NTB, ALT, and
+magnetic-field heuristics.
 
 ---
 
@@ -93,9 +93,9 @@ One tool per job, so nothing conflicts:
 
 ```
 src/
-├── algorithms/             Frontend placeholder and shared A* V2
+├── algorithms/             Frontend placeholder and magnetic-field A*
 │   ├── astar.ts
-│   ├── aStarV2.ts
+│   ├── magneticFieldAStar.ts
 │   └── magneticField.ts
 ├── components/
 │   ├── RomaniaMap.tsx     The 3D scene: lights, ground, roads, cities

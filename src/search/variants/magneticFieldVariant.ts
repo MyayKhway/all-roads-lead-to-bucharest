@@ -1,4 +1,4 @@
-import { createAStarV2 } from '@/algorithms/aStarV2'
+import { createMagneticFieldAStar } from '@/algorithms/magneticFieldAStar'
 import { cachedMagneticHeuristic, magneticHeuristic } from '@/heuristics/magneticAlignmentV2'
 import type { SearchVariant } from '@/search/variant'
 
@@ -6,9 +6,9 @@ import type { SearchVariant } from '@/search/variant'
 export const magneticFieldVariant: SearchVariant = {
   id: 'astar-magnetic-field',
   name: 'A* with magnetic field heuristic',
-  algorithmName: 'A*',
+  algorithmName: 'Magnetic-field A*',
   heuristicName: 'Magnetic field',
   author: 'Tony',
-  algorithm: createAStarV2(cachedMagneticHeuristic),
+  algorithm: createMagneticFieldAStar(cachedMagneticHeuristic),
   heuristic: magneticHeuristic,
 }

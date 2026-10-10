@@ -47,16 +47,16 @@ function reconstructPath(
 }
 
 /**
- * Build A* V2. The optional callback calculates h for a neighbor using the
+ * Build magnetic-field A*. The callback calculates h for a neighbor using the
  * road being examined; ordinary contributor heuristics use the shared context.
  */
-export function createAStarV2(
+export function createMagneticFieldAStar(
   customHeuristic?: (city: CityId, problem: SearchProblem, road?: RoadStep) => number,
 ): SearchAlgorithm {
   return (problem, context) => {
     const probe = context.probe
     if (probe === undefined) {
-      throw new Error('A* V2 requires a search probe')
+      throw new Error('Magnetic-field A* requires a search probe')
     }
 
     // Search state. The probe-backed collections produce comparable metrics.
@@ -66,8 +66,8 @@ export function createAStarV2(
     const cameFrom = new Map<CityId, CityId>()
     let insertionOrder = 0
 
-    // Magnetic V2 uses the road callback. Ordinary A* falls back to the shared
-    // city-only heuristic, and uniform-cost search uses zero.
+    // The magnetic field uses the road callback. Ordinary A* falls back to the
+    // shared city-only heuristic, or zero when no heuristic is supplied.
     const getHeuristicValue = (city: CityId, road?: RoadStep): number => {
       if (context.heuristic === undefined && customHeuristic === undefined) return 0
 
@@ -174,6 +174,3 @@ export function createAStarV2(
     return { status: 'failure', reason: 'unreachable' }
   }
 }
-
-/** Shared A* V2 instance for ordinary contributor heuristics and uniform cost. */
-export const aStarV2 = createAStarV2()

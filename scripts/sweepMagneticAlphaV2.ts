@@ -1,4 +1,4 @@
-import { createAStarV2 } from '@/algorithms/aStarV2'
+import { createMagneticFieldAStar } from '@/algorithms/magneticFieldAStar'
 import { CITY_IDS } from '@/data/cityIds'
 import { romaniaGraph } from '@/data/graph'
 import {
@@ -79,7 +79,7 @@ for (const problem of problems) {
 
 function evaluateAlpha(alpha: number): AlphaResult {
   const cachedHeuristic = precomputeMagneticHeuristic(alpha)
-  const algorithm = createAStarV2(cachedHeuristic)
+  const algorithm = createMagneticFieldAStar(cachedHeuristic)
   const pairResults = new Map<string, PairResult>()
   let optimalPairs = 0
   let expanded = 0

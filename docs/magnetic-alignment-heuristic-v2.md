@@ -103,7 +103,7 @@ evaluation is direct numeric-array indexing in O(1) time. The starting city is
 handled directly as zero. Vector construction, cosine, square roots, and the
 magnetic formula are outside benchmark timing.
 
-The transition data is private to the A* V2 implementation. The
+The transition data is private to the magnetic-field A* implementation. The
 shared contributor contracts remain unchanged.
 
 ## Alpha results

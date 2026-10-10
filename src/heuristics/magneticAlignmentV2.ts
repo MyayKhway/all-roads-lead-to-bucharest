@@ -8,7 +8,7 @@ export const MAGNETIC_ALIGNMENT_V2_ALPHA = 0.0027
 
 export type Vector2D = readonly [x: number, y: number]
 
-/** Road information supplied privately by A* V2. */
+/** Road information supplied privately by magnetic-field A*. */
 export interface RoadChoice {
   readonly from: CityId
   readonly to: CityId
