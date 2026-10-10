@@ -8,7 +8,7 @@ Built with React 19, TypeScript, Vite and three.js (via React Three Fiber).
 
 The app runs every search variant registered in `src/search/registry.ts`:
 breadth-first search, uniform-cost search, and A* with the NTB and ALT
-heuristics.
+and magnetic-alignment heuristics.
 
 ---
 
@@ -57,6 +57,7 @@ Then open **http://localhost:5173**. The page hot-reloads as you edit.
 | `npm run preview`   | Serve the built `dist/` locally to check the real bundle   |
 | `npm test`          | Typecheck and run the Node test suite                       |
 | `npm run benchmark` | Compare registered search variants                          |
+| `npm run sweep:magnetic-alpha-v2` | Sweep V2 full-range magnetic strength |
 | `npm run diagnosis` | Inspect one registered variant on one city pair             |
 | `npm run typecheck` | TypeScript only, no bundle                                 |
 | `npm run lint`      | Biome — formatting *and* lint rules                        |
@@ -92,6 +93,10 @@ One tool per job, so nothing conflicts:
 
 ```
 src/
+├── algorithms/             Frontend placeholder and shared A* V2
+│   ├── astar.ts
+│   ├── aStarV2.ts
+│   └── magneticField.ts
 ├── components/
 │   ├── RomaniaMap.tsx     The 3D scene: lights, ground, roads, cities
 │   ├── CityNode.tsx       One city — platform, landmark, label
@@ -102,8 +107,11 @@ src/
 │   └── ControlPanel.tsx   Sidebar: pickers, legend, results
 ├── data/
 │   ├── cities.ts          20 cities, 3D positions, landmark metadata
+│   ├── cityPixelCoordinates.ts  Measured source-map coordinates
 │   ├── cityIds.ts         Canonical city identifiers
 │   └── graph.ts           Weighted edges (km) + adjacency builder
+├── heuristics/
+│   └── magneticAlignmentV2.ts  Base, formula, and cache for magnetic alignment V2
 ├── search/
 │   ├── contracts.ts       Algorithm, heuristic, probe, result, and event types
 │   ├── variant.ts         Variant definition, validation, and lookup
@@ -123,7 +131,8 @@ src/
 
 scripts/
 ├── benchmark.ts           Benchmark command entry point
-└── diagnosis.ts           Diagnosis command entry point
+├── diagnosis.ts           Diagnosis command entry point
+└── sweepMagneticAlphaV2.ts  V2 alpha experiment
 
 docs/search-evaluation/
 ├── README.md              Usage, vocabulary, and examples
@@ -163,6 +172,8 @@ heuristics.
   architecture and reviewer guide.
 - **[Performance metrics plan](docs/performance-metrics-plan.md)** — design history,
   methodology, and remaining questions.
+- **[Magnetic alignment V2](docs/magnetic-alignment-heuristic-v2.md)** — full-range
+  directional factor, alpha sweep, implementation, and benchmark results.
 
 ---
 

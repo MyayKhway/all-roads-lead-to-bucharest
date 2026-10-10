@@ -521,6 +521,8 @@ If the registry is ever empty:
 - `--list` reports that no variants are registered;
 - diagnosis and benchmarking cannot run a candidate.
 
+Run `npm run benchmark -- --list` to see the current catalog before choosing IDs.
+
 ### 6. Check the project
 
 Run:
