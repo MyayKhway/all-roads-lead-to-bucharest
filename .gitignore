@@ -31,3 +31,10 @@ dist-ssr
 # Obsidian vault config (docs/ is often opened as a vault)
 .obsidian
 .vercel
+
+# Incomplete selections saved by the map coordinate picker
+.coordinate_picker_progress.json
+
+# Python bytecode generated while running the coordinate picker
+__pycache__/
+*.py[cod]

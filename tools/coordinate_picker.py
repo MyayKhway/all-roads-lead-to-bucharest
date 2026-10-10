@@ -1,0 +1,503 @@
+"""Interactively record city centers from the professor-provided Romania map.
+
+Setup:
+    python -m pip install matplotlib pillow
+
+Usage:
+    1. Put the original map image beside this script as ``romania_map.png``.
+       Alternatively, change IMAGE_PATH below or pass a path on the command line.
+    2. Run ``python coordinate_picker.py`` from the ``tools`` directory.
+    3. Left-click the center of each requested city marker.
+
+Controls:
+    Left click       Record the current city's center.
+    U or Backspace   Undo the most recent selection.
+    R                Reset all selections.
+    Q or Escape      Close the window. Progress is saved for the next run.
+
+Matplotlib reports clicks in image-data coordinates, so the recorded coordinates
+remain relative to the original image even if the window scales or zooms it.
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import io
+import json
+import os
+import sys
+import tempfile
+from pathlib import Path
+from typing import Final, NamedTuple
+
+DEPENDENCY_IMPORT_ERROR: ImportError | None = None
+try:
+    import matplotlib.pyplot as plt
+    from PIL import Image, ImageDraw, ImageFont
+except ImportError as error:
+    # Delay the friendly error until after argparse handles --help. This lets a
+    # new user read the built-in instructions before installing dependencies.
+    DEPENDENCY_IMPORT_ERROR = error
+
+
+# Change this value when the map image has a different filename or location.
+IMAGE_PATH = "romania_map.png"
+
+# Relative paths are resolved from this script's directory, not the terminal's
+# current directory. This makes `python coordinate_picker.py` reproducible.
+OUTPUT_DIRECTORY = "."
+
+CITIES: Final[list[str]] = [
+    "Arad",
+    "Zerind",
+    "Oradea",
+    "Sibiu",
+    "Timisoara",
+    "Lugoj",
+    "Mehadia",
+    "Drobeta",
+    "Craiova",
+    "Rimnicu Vilcea",
+    "Fagaras",
+    "Pitesti",
+    "Bucharest",
+    "Giurgiu",
+    "Urziceni",
+    "Hirsova",
+    "Eforie",
+    "Vaslui",
+    "Iasi",
+    "Neamt",
+]
+
+CSV_FILENAME: Final[str] = "city_coordinates.csv"
+PYTHON_FILENAME: Final[str] = "city_coordinates.py"
+ANNOTATED_FILENAME: Final[str] = "map_with_coordinates.png"
+PROGRESS_FILENAME: Final[str] = ".coordinate_picker_progress.json"
+
+
+class Selection(NamedTuple):
+    """One city name paired with an original-image pixel coordinate."""
+
+    city: str
+    x: int
+    y: int
+
+
+SCRIPT_DIRECTORY = Path(__file__).resolve().parent
+
+
+def require_dependencies() -> None:
+    """Stop with an actionable message when the GUI packages are unavailable."""
+
+    if DEPENDENCY_IMPORT_ERROR is not None:
+        raise SystemExit(
+            "Missing dependency. Install the coordinate picker packages with:\n"
+            "  python -m pip install -r tools/coordinate_picker_requirements.txt\n"
+            "or:\n"
+            "  python -m pip install matplotlib pillow"
+        ) from DEPENDENCY_IMPORT_ERROR
+
+
+def resolve_from_script(path_value: str) -> Path:
+    """Resolve configured relative paths consistently from the script folder."""
+
+    path = Path(path_value).expanduser()
+    return path.resolve() if path.is_absolute() else (SCRIPT_DIRECTORY / path).resolve()
+
+
+def atomic_write_text(path: Path, content: str) -> None:
+    """Replace a text file atomically so interrupted writes cannot corrupt it."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    file_descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.stem}-",
+        suffix=path.suffix,
+        dir=path.parent,
+        text=True,
+    )
+    try:
+        with os.fdopen(file_descriptor, "w", encoding="utf-8", newline="") as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary_name, path)
+    except BaseException:
+        Path(temporary_name).unlink(missing_ok=True)
+        raise
+
+
+def atomic_save_image(image: Image.Image, path: Path) -> None:
+    """Save an image completely before replacing a previous annotated export."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    file_descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.stem}-",
+        suffix=path.suffix,
+        dir=path.parent,
+    )
+    os.close(file_descriptor)
+    try:
+        image.save(temporary_name)
+        os.replace(temporary_name, path)
+    except BaseException:
+        Path(temporary_name).unlink(missing_ok=True)
+        raise
+
+
+def csv_content(selections: list[Selection]) -> str:
+    """Create the requested CSV representation."""
+
+    buffer = io.StringIO(newline="")
+    writer = csv.writer(buffer, lineterminator="\n")
+    writer.writerow(["city", "x", "y"])
+    writer.writerows(selections)
+    return buffer.getvalue()
+
+
+def python_content(selections: list[Selection]) -> str:
+    """Create an importable Python dictionary with stable city ordering."""
+
+    lines = ["# Generated by coordinate_picker.py", "coordinates = {"]
+    lines.extend(f"    {selection.city!r}: ({selection.x}, {selection.y})," for selection in selections)
+    lines.extend(["}", ""])
+    return "\n".join(lines)
+
+
+def annotation_font(image_width: int) -> ImageFont.ImageFont | ImageFont.FreeTypeFont:
+    """Load a readable font when available and fall back safely everywhere."""
+
+    font_size = max(12, round(image_width / 80))
+    for font_name in ("DejaVuSans.ttf", "arial.ttf"):
+        try:
+            return ImageFont.truetype(font_name, font_size)
+        except OSError:
+            continue
+    return ImageFont.load_default()
+
+
+def annotated_image(source: Image.Image, selections: list[Selection]) -> Image.Image:
+    """Render selections on a copy while preserving the source resolution."""
+
+    result = source.copy().convert("RGB")
+    draw = ImageDraw.Draw(result)
+    font = annotation_font(result.width)
+    radius = max(4, round(result.width / 200))
+    crosshair = radius + 4
+
+    for selection in selections:
+        x, y = selection.x, selection.y
+        marker_color = (220, 20, 60)
+        outline_color = (255, 255, 255)
+
+        # A white outline keeps the red crosshair visible on dark roads.
+        draw.ellipse(
+            (x - radius - 1, y - radius - 1, x + radius + 1, y + radius + 1),
+            outline=outline_color,
+            width=3,
+        )
+        draw.ellipse(
+            (x - radius, y - radius, x + radius, y + radius),
+            outline=marker_color,
+            width=2,
+        )
+        draw.line((x - crosshair, y, x + crosshair, y), fill=marker_color, width=2)
+        draw.line((x, y - crosshair, x, y + crosshair), fill=marker_color, width=2)
+
+        label = f"{selection.city} ({x}, {y})"
+        text_box = draw.textbbox((0, 0), label, font=font, stroke_width=1)
+        text_width = text_box[2] - text_box[0]
+        text_height = text_box[3] - text_box[1]
+        label_x = min(max(2, x + crosshair + 3), max(2, result.width - text_width - 6))
+        label_y = min(max(2, y - text_height - 4), max(2, result.height - text_height - 6))
+        padding = 2
+        draw.rectangle(
+            (
+                label_x - padding,
+                label_y - padding,
+                label_x + text_width + padding,
+                label_y + text_height + padding,
+            ),
+            fill=(255, 255, 255),
+        )
+        draw.text(
+            (label_x, label_y),
+            label,
+            font=font,
+            fill=(160, 0, 30),
+            stroke_width=1,
+            stroke_fill=(255, 255, 255),
+        )
+
+    return result
+
+
+def save_progress(
+    progress_path: Path,
+    image_path: Path,
+    image_size: tuple[int, int],
+    selections: list[Selection],
+) -> None:
+    """Save unfinished work separately from completed coordinate outputs."""
+
+    payload = {
+        "image_path": str(image_path),
+        "image_size": list(image_size),
+        "cities": CITIES,
+        "selections": [selection._asdict() for selection in selections],
+    }
+    atomic_write_text(progress_path, json.dumps(payload, indent=2) + "\n")
+
+
+def load_progress(
+    progress_path: Path,
+    image_path: Path,
+    image_size: tuple[int, int],
+) -> list[Selection]:
+    """Resume only progress that belongs to the same image and city list."""
+
+    if not progress_path.exists():
+        return []
+
+    try:
+        payload = json.loads(progress_path.read_text(encoding="utf-8"))
+        if (
+            payload.get("image_path") != str(image_path)
+            or payload.get("image_size") != list(image_size)
+            or payload.get("cities") != CITIES
+        ):
+            print("Ignoring recovery data because the image or city list changed.")
+            return []
+
+        raw_selections = payload.get("selections", [])
+        selections = [
+            Selection(str(item["city"]), int(item["x"]), int(item["y"]))
+            for item in raw_selections
+        ]
+        expected_names = CITIES[: len(selections)]
+        if [selection.city for selection in selections] != expected_names:
+            raise ValueError("saved city order does not match the configured list")
+        if len(selections) > len(CITIES):
+            raise ValueError("saved selection count exceeds the city list")
+        if selections:
+            print(f"Resumed {len(selections)} saved selection(s).")
+        return selections
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
+        print(f"Ignoring invalid recovery data: {error}")
+        return []
+
+
+def save_completed_outputs(
+    output_directory: Path,
+    source_image: Image.Image,
+    selections: list[Selection],
+) -> None:
+    """Write all requested outputs only after the city list is complete."""
+
+    if len(selections) != len(CITIES):
+        raise ValueError("cannot save completed outputs before every city is selected")
+
+    csv_path = output_directory / CSV_FILENAME
+    python_path = output_directory / PYTHON_FILENAME
+    annotated_path = output_directory / ANNOTATED_FILENAME
+
+    atomic_write_text(csv_path, csv_content(selections))
+    atomic_write_text(python_path, python_content(selections))
+    atomic_save_image(annotated_image(source_image, selections), annotated_path)
+
+    print("\nAll cities selected. Saved:")
+    print(f"  {csv_path}")
+    print(f"  {python_path}")
+    print(f"  {annotated_path}")
+
+
+class CoordinatePicker:
+    """Matplotlib interface for ordered, reversible city-center selection."""
+
+    def __init__(self, image_path: Path, output_directory: Path) -> None:
+        self.image_path = image_path
+        self.output_directory = output_directory
+        self.progress_path = output_directory / PROGRESS_FILENAME
+
+        try:
+            self.source_image = Image.open(image_path).convert("RGB")
+        except (FileNotFoundError, OSError) as error:
+            raise SystemExit(f"Could not open map image: {image_path}\n{error}") from error
+
+        self.selections = load_progress(
+            self.progress_path,
+            self.image_path,
+            self.source_image.size,
+        )
+        self.completed = len(self.selections) == len(CITIES)
+
+        self.figure, self.axes = plt.subplots()
+        # Most desktop backends support a window title, but keep the picker
+        # usable with any Matplotlib backend that can display a figure.
+        manager = getattr(self.figure.canvas, "manager", None)
+        if manager is not None and hasattr(manager, "set_window_title"):
+            manager.set_window_title("Romania map coordinate picker")
+        self.figure.canvas.mpl_connect("button_press_event", self.on_click)
+        self.figure.canvas.mpl_connect("key_press_event", self.on_key)
+        self.figure.canvas.mpl_connect("close_event", self.on_close)
+        self.redraw()
+
+    def instruction(self) -> str:
+        """Return the current instruction shown above the image."""
+
+        if self.completed:
+            return "Complete - outputs saved. Press U to correct the last city or R to restart."
+        city = CITIES[len(self.selections)]
+        return (
+            f"Click the center of: {city}  "
+            f"({len(self.selections) + 1}/{len(CITIES)})\n"
+            "U/Backspace: undo | R: reset | Q/Escape: quit"
+        )
+
+    def redraw(self) -> None:
+        """Redraw the unscaled image and all selections after each edit."""
+
+        self.axes.clear()
+        self.axes.imshow(self.source_image, origin="upper", interpolation="nearest")
+        self.axes.set_xlim(-0.5, self.source_image.width - 0.5)
+        self.axes.set_ylim(self.source_image.height - 0.5, -0.5)
+        self.axes.set_aspect("equal")
+        self.axes.set_xlabel("Original image x coordinate (pixels)")
+        self.axes.set_ylabel("Original image y coordinate (pixels)")
+        self.axes.set_title(self.instruction(), fontsize=11)
+
+        for selection in self.selections:
+            self.axes.plot(
+                selection.x,
+                selection.y,
+                marker="+",
+                markersize=12,
+                markeredgewidth=2,
+                color="crimson",
+            )
+            self.axes.plot(
+                selection.x,
+                selection.y,
+                marker="o",
+                markersize=8,
+                markerfacecolor="none",
+                markeredgewidth=1.5,
+                color="white",
+            )
+            self.axes.annotate(
+                f"{selection.city} ({selection.x}, {selection.y})",
+                (selection.x, selection.y),
+                xytext=(7, -10),
+                textcoords="offset points",
+                color="crimson",
+                fontsize=8,
+                fontweight="bold",
+                bbox={"facecolor": "white", "alpha": 0.8, "edgecolor": "none", "pad": 1},
+            )
+
+        self.figure.tight_layout()
+        self.figure.canvas.draw_idle()
+
+    def persist_progress(self) -> None:
+        """Keep partial work recoverable without touching completed outputs."""
+
+        if self.completed:
+            self.progress_path.unlink(missing_ok=True)
+        else:
+            save_progress(
+                self.progress_path,
+                self.image_path,
+                self.source_image.size,
+                self.selections,
+            )
+
+    def on_click(self, event: object) -> None:
+        """Record a left click using original-image data coordinates."""
+
+        if self.completed:
+            return
+        if getattr(event, "button", None) != 1 or getattr(event, "inaxes", None) is not self.axes:
+            return
+
+        x_data = getattr(event, "xdata", None)
+        y_data = getattr(event, "ydata", None)
+        if x_data is None or y_data is None:
+            return
+
+        x = min(max(int(round(x_data)), 0), self.source_image.width - 1)
+        y = min(max(int(round(y_data)), 0), self.source_image.height - 1)
+        city = CITIES[len(self.selections)]
+        selection = Selection(city, x, y)
+        self.selections.append(selection)
+        print(f"{city} -> ({x}, {y})")
+
+        if len(self.selections) == len(CITIES):
+            save_completed_outputs(self.output_directory, self.source_image, self.selections)
+            self.completed = True
+
+        self.persist_progress()
+        self.redraw()
+
+    def on_key(self, event: object) -> None:
+        """Handle undo, reset, and graceful close keyboard shortcuts."""
+
+        key = str(getattr(event, "key", "")).lower()
+        if key in {"u", "backspace"}:
+            if not self.selections:
+                print("Nothing to undo.")
+                return
+            removed = self.selections.pop()
+            self.completed = False
+            print(f"Undid {removed.city} -> ({removed.x}, {removed.y})")
+            self.persist_progress()
+            self.redraw()
+        elif key == "r":
+            self.selections.clear()
+            self.completed = False
+            print("Reset all selections.")
+            self.persist_progress()
+            self.redraw()
+        elif key in {"q", "escape"}:
+            self.persist_progress()
+            plt.close(self.figure)
+
+    def on_close(self, _event: object) -> None:
+        """Persist unfinished work when the user closes the window."""
+
+        self.persist_progress()
+
+    def run(self) -> None:
+        """Open the interactive picker and block until its window closes."""
+
+        print(f"Image: {self.image_path}")
+        print(f"Original resolution: {self.source_image.width} x {self.source_image.height} pixels")
+        print("Coordinates use top-left (0, 0), x rightward, and y downward.")
+        print("Controls: left-click select, U/Backspace undo, R reset, Q/Escape quit.\n")
+        plt.show()
+
+
+def parse_arguments() -> argparse.Namespace:
+    """Allow a one-off image path without requiring a code edit."""
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "image",
+        nargs="?",
+        default=IMAGE_PATH,
+        help=f"map image path (default: {IMAGE_PATH!r}, relative to this script)",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    arguments = parse_arguments()
+    require_dependencies()
+    image_path = resolve_from_script(arguments.image)
+    output_directory = resolve_from_script(OUTPUT_DIRECTORY)
+    output_directory.mkdir(parents=True, exist_ok=True)
+    CoordinatePicker(image_path, output_directory).run()
+
+
+if __name__ == "__main__":
+    main()
