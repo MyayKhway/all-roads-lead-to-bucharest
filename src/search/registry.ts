@@ -1,11 +1,10 @@
-import type { SearchVariant } from '@/search/variant'
-import { validateSearchVariants } from '@/search/variant'
+import { altVariant, type SearchVariant, validateSearchVariants } from '@/search/variant'
 
 /**
  * Application-wide variant catalog shared by production, diagnosis, and benchmarking.
- * Algorithm authors add contract-compatible variants to this array.
+ * Register contract-compatible variants here, as described in the search guide.
  */
-const variants: SearchVariant[] = []
+const variants: SearchVariant[] = [altVariant]
 
 validateSearchVariants(variants)
 

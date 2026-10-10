@@ -2,7 +2,13 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
-import { findSearchVariant, type SearchVariant, validateSearchVariants } from '@/search/variant'
+import { searchVariantRegistry } from '@/search/registry'
+import {
+  altVariant,
+  findSearchVariant,
+  type SearchVariant,
+  validateSearchVariants,
+} from '@/search/variant'
 
 const variant: SearchVariant = {
   id: 'dijkstra',
@@ -22,4 +28,8 @@ test('validates and resolves a registered search variant', () => {
 test('rejects duplicate variant IDs and unknown selections', () => {
   assert.throws(() => validateSearchVariants([variant, variant]), /Duplicate search variant ID/)
   assert.throws(() => findSearchVariant([variant], 'missing'), /Unknown search variant/)
+})
+
+test('registers the ALT variant for application and CLI workflows', () => {
+  assert.ok(searchVariantRegistry.includes(altVariant))
 })

@@ -1,4 +1,7 @@
+import { romaniaGraph } from '@/data/graph'
+import { aStarSearch } from '@/search/algorithms/aStar'
 import type { Heuristic, SearchAlgorithm } from '@/search/contracts'
+import { createAltHeuristic } from '@/search/heuristics/alt'
 
 /** One named algorithm-and-heuristic configuration available to the application. */
 export interface SearchVariant {
@@ -51,4 +54,15 @@ export function findSearchVariant(
     throw new RangeError(`Unknown search variant: ${variantId}`)
   }
   return variant
+}
+
+/** A* with the ALT heuristic (landmarks + triangle inequality). Landmark tables are built once here. */
+export const altVariant: SearchVariant = {
+  id: 'astar-alt',
+  name: 'A* + ALT Landmarks',
+  algorithmName: 'A*',
+  heuristicName: 'ALT (Landmarks + Triangle Inequality)',
+  author: 'HTH',
+  algorithm: aStarSearch,
+  heuristic: createAltHeuristic(romaniaGraph, { landmarkCount: 3 }),
 }
