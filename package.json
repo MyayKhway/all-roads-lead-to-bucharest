@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "models": "tsx scripts/build-models.ts",
     "benchmark": "tsx --tsconfig scripts/tsconfig.json scripts/benchmark.ts",
+    "sweep:magnetic-alpha-v2": "tsx --tsconfig scripts/tsconfig.json scripts/sweepMagneticAlphaV2.ts",
     "diagnosis": "tsx --tsconfig scripts/tsconfig.json scripts/diagnosis.ts",
     "test": "tsc -p tsconfig.test.json && tsx --tsconfig tsconfig.test.json --test",
     "typecheck": "tsc -b --noEmit",
