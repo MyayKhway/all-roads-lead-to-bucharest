@@ -6,7 +6,10 @@ import type { Heuristic } from '@/search/contracts'
 const estimatesByGraph = new WeakMap<WeightedGraph, Map<CityId, ReadonlyMap<CityId, number>>>()
 
 /** Find each reachable city's minimum number of unweighted road hops to the goal. */
-function hopDistancesFromGoal(graph: WeightedGraph, goal: CityId): ReadonlyMap<CityId, number> {
+export function hopDistancesFromGoal(
+  graph: WeightedGraph,
+  goal: CityId,
+): ReadonlyMap<CityId, number> {
   const distances = new Map<CityId, number>([[goal, 0]])
   const queue: CityId[] = [goal]
 
@@ -27,7 +30,7 @@ function hopDistancesFromGoal(graph: WeightedGraph, goal: CityId): ReadonlyMap<C
 }
 
 /** Label the connected components remaining at one nested hop threshold. */
-function componentsAtThreshold(
+export function componentsAtThreshold(
   graph: WeightedGraph,
   hopDistances: ReadonlyMap<CityId, number>,
   threshold: number,
