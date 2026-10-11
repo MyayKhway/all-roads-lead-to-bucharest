@@ -1,5 +1,5 @@
-import { createMagneticFieldAStar } from '@/algorithms/magneticFieldAStar'
-import { cachedMagneticHeuristic, magneticHeuristic } from '@/heuristics/magneticAlignmentV2'
+import { createMagneticFieldAStar } from '@/search/algorithms/magneticFieldAStar'
+import { cachedMagneticHeuristic, magneticHeuristic } from '@/search/heuristics/magneticAlignmentV2'
 import type { SearchVariant } from '@/search/variant'
 
 /** The magnetic field uses its precomputed road lookup through the private A* callback. */

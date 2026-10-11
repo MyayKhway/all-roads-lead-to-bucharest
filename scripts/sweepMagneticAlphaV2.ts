@@ -1,15 +1,15 @@
-import { createMagneticFieldAStar } from '@/algorithms/magneticFieldAStar'
 import { CITY_IDS } from '@/data/cityIds'
 import { romaniaGraph } from '@/data/graph'
-import {
-  calculateManhattanEstimate,
-  precomputeMagneticHeuristic,
-} from '@/heuristics/magneticAlignmentV2'
+import { createMagneticFieldAStar } from '@/search/algorithms/magneticFieldAStar'
 import type { SearchProblem } from '@/search/contracts'
 import { measureExecutionTime } from '@/search/evaluation/benchmark/timer'
 import { executeSearch } from '@/search/evaluation/execution'
 import { createSearchProbe } from '@/search/evaluation/probe'
 import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
+import {
+  calculateManhattanEstimate,
+  precomputeMagneticHeuristic,
+} from '@/search/heuristics/magneticAlignmentV2'
 
 interface PairResult {
   readonly expanded: number

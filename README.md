@@ -93,10 +93,6 @@ One tool per job, so nothing conflicts:
 
 ```
 src/
-├── algorithms/             Frontend placeholder and magnetic-field A*
-│   ├── astar.ts
-│   ├── magneticFieldAStar.ts
-│   └── magneticField.ts
 ├── components/
 │   ├── RomaniaMap.tsx     The 3D scene: lights, ground, roads, cities
 │   ├── CityNode.tsx       One city — platform, landmark, label
@@ -110,15 +106,13 @@ src/
 │   ├── cityPixelCoordinates.ts  Measured source-map coordinates
 │   ├── cityIds.ts         Canonical city identifiers
 │   └── graph.ts           Weighted edges (km) + adjacency builder
-├── heuristics/
-│   └── magneticAlignmentV2.ts  Base, formula, and cache for magnetic alignment V2
 ├── search/
 │   ├── contracts.ts       Algorithm, heuristic, probe, result, and event types
 │   ├── variant.ts         Variant definition, validation, and lookup
 │   ├── registry.ts        Shared variant catalog
 │   ├── presentation.ts    Runs one variant for the UI
-│   ├── algorithms/        BFS, uniform-cost search, A*
-│   ├── heuristics/        NTB and ALT
+│   ├── algorithms/        BFS, uniform-cost search, A*, magnetic-field A*
+│   ├── heuristics/        NTB, ALT, and magnetic alignment V2
 │   ├── variants/          Registered algorithm-and-heuristic pairs
 │   ├── validation.ts      Returned-path correctness checks
 │   └── evaluation/        Diagnosis and benchmarking harness

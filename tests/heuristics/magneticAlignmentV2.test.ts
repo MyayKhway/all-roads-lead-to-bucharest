@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createMagneticFieldAStar } from '@/algorithms/magneticFieldAStar'
 import { CITY_IDS } from '@/data/cityIds'
 import { cityPixelCoordinates, manhattanPixelDistance } from '@/data/cityPixelCoordinates'
 import { romaniaGraph } from '@/data/graph'
+import { createMagneticFieldAStar } from '@/search/algorithms/magneticFieldAStar'
+import { executeSearch } from '@/search/evaluation/execution'
+import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
 import {
   cachedMagneticHeuristic,
   calculateMagneticHeuristic,
@@ -13,9 +15,7 @@ import {
   MAGNETIC_ALIGNMENT_V2_ALPHA,
   magneticHeuristic,
   precomputeMagneticHeuristic,
-} from '@/heuristics/magneticAlignmentV2'
-import { executeSearch } from '@/search/evaluation/execution'
-import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
+} from '@/search/heuristics/magneticAlignmentV2'
 
 test('has integer pixel coordinates for every city', () => {
   assert.deepEqual(Object.keys(cityPixelCoordinates).sort(), [...CITY_IDS].sort())
