@@ -1,8 +1,10 @@
 /**
- * theme — single source of truth for the "Midnight Atlas" palette.
+ * theme — single source of truth for color.
  * Shared between the 3D scene (raw hex, consumed by three.js materials)
  * and the DOM UI (inline swatches, CSS custom properties in App.css).
  */
+
+import type { ThemeName } from './useTheme'
 
 export const COLOR = {
   bgVoid: '#0a0d12',
@@ -51,7 +53,7 @@ export const ROAD_COLOR = {
  * Daylight pastel palette for the 3D map itself — soft sky, sage land, muted
  * water — so the saturated navigation green always stands out on top of it.
  */
-export const SCENE_COLOR = {
+export const SCENE_COLOR_LIGHT = {
   sky: '#dbe9ef',
   fog: '#dde9ee',
   land: '#c4dca6',
@@ -65,6 +67,51 @@ export const SCENE_COLOR = {
   hemiSky: '#eef6ff',
   hemiGround: '#b9c99c',
 } as const
+
+/**
+ * Moonlit night palette for the 3D map — deep navy sky, dark moss land, a
+ * cool moon light instead of a warm sun. Same keys as SCENE_COLOR_LIGHT so
+ * every consumer can switch with one lookup.
+ */
+export const SCENE_COLOR_DARK = {
+  sky: '#0b1220',
+  fog: '#121a2b',
+  land: '#62795a',
+  landSide: '#7d6a52',
+  plain: '#232b38',
+  river: '#4a7a94',
+  roadCasing: '#4a443a',
+  road: '#4b4538',
+  platform: '#3a4046',
+  sun: '#aebfe0',
+  hemiSky: '#1b2740',
+  hemiGround: '#425339',
+} as const
+
+export type SceneColor = Record<keyof typeof SCENE_COLOR_LIGHT, string>
+
+export function sceneColorFor(theme: ThemeName): SceneColor {
+  return theme === 'dark' ? SCENE_COLOR_DARK : SCENE_COLOR_LIGHT
+}
+
+export interface SceneLightIntensity {
+  hemi: number
+  ambient: number
+  directional: number
+}
+
+/**
+ * Light intensities tuned per theme. The daylight sun can run bright without
+ * washing out the pastel palette, but that same intensity over-lights the
+ * dark palette's deeper colours into a flat, saturated glare — so the
+ * moonlit theme gets a softer hemisphere/ambient/directional mix instead.
+ */
+const LIGHT_INTENSITY_LIGHT: SceneLightIntensity = { hemi: 1.15, ambient: 0.22, directional: 2.5 }
+const LIGHT_INTENSITY_DARK: SceneLightIntensity = { hemi: 1.35, ambient: 0.42, directional: 1.7 }
+
+export function lightIntensityFor(theme: ThemeName): SceneLightIntensity {
+  return theme === 'dark' ? LIGHT_INTENSITY_DARK : LIGHT_INTENSITY_LIGHT
+}
 
 /** Navigation route colours — deeper than the UI emerald to read on green land. */
 export const ROUTE_COLOR = {
