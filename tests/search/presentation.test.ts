@@ -38,7 +38,10 @@ test('records each A* expansion with its scored neighbours', () => {
   for (const c of first.candidates) {
     assert.ok(c.h !== null && c.f === c.g + c.h)
   }
-  assert.equal(run.steps.at(-1)?.city, 'bucharest')
+  const goalStep = run.steps.at(-1)
+  assert.equal(goalStep?.city, 'bucharest')
+  // A* returns on selecting the goal, so it examines none of the goal's roads.
+  assert.deepEqual(goalStep?.candidates, [])
 })
 
 test('marks roads that offered no better route', () => {
