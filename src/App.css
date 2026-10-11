@@ -409,3 +409,210 @@ body,
     display: none;
   }
 }
+
+/* =====================================================================
+   Comparison panel (overlays the bottom of the map)
+   ===================================================================== */
+.comparison-panel {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  max-width: 860px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #ede8d0;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+  animation: fadeInUp 0.25s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.comparison-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px 8px;
+}
+
+.comparison-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #3e3020;
+}
+
+.comparison-subtitle {
+  font-size: 0.75rem;
+  color: #7a6840;
+  margin-top: 2px;
+}
+
+.comparison-close {
+  border: none;
+  background: transparent;
+  color: #7a6840;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.comparison-close:hover {
+  background: #f5f0dc;
+}
+
+.comparison-scroll {
+  overflow-x: auto;
+  padding: 0 8px 10px;
+}
+
+.comparison-table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  transition: opacity 0.2s;
+}
+
+.comparison-table--stale {
+  opacity: 0.5;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.comparison-table thead th {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #7a6840;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid #ede8d0;
+}
+
+.comparison-unit {
+  display: block;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #a39470;
+}
+
+.comparison-table tbody tr {
+  border-bottom: 1px solid #f3efdf;
+}
+
+.comparison-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.comparison-table tbody tr.is-selected {
+  background: #f1f8f1;
+}
+
+.comparison-method {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+}
+
+.comparison-method:disabled {
+  cursor: default;
+}
+
+.comparison-method-name {
+  font-weight: 700;
+  color: #3e3020;
+}
+
+.comparison-method:not(:disabled):hover .comparison-method-name {
+  text-decoration: underline;
+}
+
+.comparison-method-kind {
+  font-size: 0.7rem;
+  color: #a39470;
+}
+
+.comparison-cell {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.comparison-value {
+  font-weight: 700;
+  color: #3e3020;
+  font-variant-numeric: tabular-nums;
+}
+
+.comparison-track {
+  margin-top: 4px;
+  height: 6px;
+  max-width: 120px;
+}
+
+.comparison-bar {
+  height: 100%;
+  background: #c9bd8c;
+  border-radius: 0 4px 4px 0;
+  min-width: 2px;
+  transition: width 0.3s ease;
+}
+
+.is-selected .comparison-bar {
+  background: #43a047;
+}
+
+.comparison-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.comparison-badge--good {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.comparison-badge--warn {
+  background: #fff3e0;
+  color: #b45309;
+}
+
+@media (max-width: 640px) {
+  .comparison-panel {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    max-height: 60%;
+    overflow-y: auto;
+  }
+}
