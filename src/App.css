@@ -1071,6 +1071,81 @@ body,
   margin-top: 8px;
 }
 
+.explain-formula {
+  margin: 8px 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.explain-formula sub,
+.explain-formula sup {
+  font-size: 0.7em;
+}
+
+.explain-definitions,
+.explain-process-part ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+
+.explain-heuristic-details {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.explain-heuristic-details summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--border-soft);
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+}
+
+.explain-heuristic-details summary::before {
+  content: none;
+}
+
+.explain-heuristic-details summary::after {
+  content: "⌄";
+  font-size: 0.8em;
+}
+
+.explain-heuristic-details[open] summary::after {
+  content: "⌃";
+}
+
+.explain-heuristic-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.explain-process-part {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.explain-heuristic-details > .explain-process-part:first-of-type {
+  border-top: 0;
+}
+
+.explain-process-part h3 {
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+.explain-process-part li + li {
+  margin-top: 3px;
+}
+
 .explain-key {
   display: flex;
   flex-wrap: wrap;
