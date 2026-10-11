@@ -14,6 +14,9 @@ import Landmark from './Landmark'
 
 for (const city of cityList) useGLTF.preload(city.model, false)
 
+/** Uniform boost on top of each city's calibrated scale, so landmarks read a bit larger. */
+const SCALE_BOOST = 1.18
+
 interface BoundaryProps {
   fallback: ReactNode
   children: ReactNode
@@ -54,16 +57,15 @@ function Glb({ city, onHeight }: GlbProps) {
     return clone
   }, [scene])
 
-  const height = useMemo(
-    () => new THREE.Box3().setFromObject(model).max.y * city.scale,
-    [model, city.scale],
-  )
+  const scale = city.scale * SCALE_BOOST
+
+  const height = useMemo(() => new THREE.Box3().setFromObject(model).max.y * scale, [model, scale])
 
   useEffect(() => {
     onHeight?.(height)
   }, [height, onHeight])
 
-  return <primitive object={model} scale={city.scale} />
+  return <primitive object={model} scale={scale} />
 }
 
 interface LandmarkModelProps extends GlbProps {
