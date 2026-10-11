@@ -46,12 +46,13 @@ function completeSteps(steps: readonly MutableStep[]): ReplayStep[] {
   return steps.map((step, index) => {
     const improvedByCity = new Map(step.improved.map((c) => [c.city, c]))
     const roads = romaniaGraph.adjacency[step.city] ?? []
-    // A search that stops on generation (BFS) never looks past the goal's road.
+    // The final step stops early: A* and UCS return on selecting the goal (no roads),
+    // BFS on generating it (no roads past the goal's).
     const lastImproved = step.improved.at(-1)?.city
     const examined =
-      index === steps.length - 1 && lastImproved !== undefined
-        ? roads.slice(0, roads.findIndex((road) => road.city === lastImproved) + 1)
-        : roads
+      index < steps.length - 1
+        ? roads
+        : roads.slice(0, roads.findIndex((road) => road.city === lastImproved) + 1)
 
     const candidates = examined.map(
       (road): ReplayCandidate =>
