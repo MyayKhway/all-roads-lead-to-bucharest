@@ -8,7 +8,8 @@ import { isCityId } from '../data/cityIds'
 import type { Edge } from '../data/graph'
 import { romaniaGraph } from '../data/graph'
 import { type Phase, roadKey, type SearchView } from '../lib/searchView'
-import { SCENE_COLOR } from '../lib/theme'
+import { useAppTheme } from '../lib/ThemeContext'
+import { lightIntensityFor, sceneColorFor } from '../lib/theme'
 import { explainNtb } from '../search/heuristics/ntbBreakdown'
 import type { RouteRun } from '../search/presentation'
 import type { CityStatus } from './CityNode'
@@ -85,6 +86,10 @@ export default function RomaniaMap({
   animProgress,
   onCityClick,
 }: RomaniaMapProps) {
+  const theme = useAppTheme()
+  const sceneColor = sceneColorFor(theme)
+  const lightIntensity = lightIntensityFor(theme)
+
   // The route and camera flight only start once the replay has finished.
   const route = pathResult && phase !== 'searching' ? pathResult.path : null
   const goal = pathResult?.path.at(-1)
@@ -102,17 +107,17 @@ export default function RomaniaMap({
 
   return (
     <>
-      {/* Atmosphere — soft daylight with a light haze for depth */}
-      <color attach="background" args={[SCENE_COLOR.sky]} />
-      <fog attach="fog" args={[SCENE_COLOR.fog, 40, 90]} />
+      {/* Atmosphere — daylight or moonlit haze, depending on the active theme */}
+      <color attach="background" args={[sceneColor.sky]} />
+      <fog attach="fog" args={[sceneColor.fog, 40, 90]} />
 
-      {/* Lighting: sky/ground fill + a warm sun casting soft shadows */}
-      <hemisphereLight args={[SCENE_COLOR.hemiSky, SCENE_COLOR.hemiGround, 1.15]} />
-      <ambientLight intensity={0.22} />
+      {/* Lighting: sky/ground fill + a sun (or moon) casting soft shadows */}
+      <hemisphereLight args={[sceneColor.hemiSky, sceneColor.hemiGround, lightIntensity.hemi]} />
+      <ambientLight intensity={lightIntensity.ambient} />
       <directionalLight
         position={[9, 16, 7]}
-        intensity={2.5}
-        color={SCENE_COLOR.sun}
+        intensity={lightIntensity.directional}
+        color={sceneColor.sun}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}

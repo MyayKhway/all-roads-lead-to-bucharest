@@ -12,7 +12,8 @@ import { useFrame } from '@react-three/fiber'
 import { useCallback, useRef, useState } from 'react'
 import * as THREE from 'three'
 import type { City } from '../data/cities'
-import { SCENE_COLOR, STATUS_COLOR } from '../lib/theme'
+import { useAppTheme } from '../lib/ThemeContext'
+import { STATUS_COLOR, sceneColorFor } from '../lib/theme'
 import { useDistanceScale } from '../lib/useDistanceScale'
 import LandmarkModel from './LandmarkModel'
 
@@ -51,13 +52,14 @@ export default function CityNode({
   const labelRef = useRef<THREE.Group>(null)
   useDistanceScale(labelRef, 17)
 
+  const sceneColor = sceneColorFor(useAppTheme())
   const ringColor = RING[status]
   const platformColor = hovered
     ? STATUS_COLOR.hover
     : status === 'normal'
-      ? SCENE_COLOR.platform
+      ? sceneColor.platform
       : status === 'frontier'
-        ? SCENE_COLOR.platform
+        ? sceneColor.platform
         : STATUS_COLOR[status]
   const isCurrent = status === 'current'
   const isHighlighted = status === 'start' || status === 'goal' || status === 'path'

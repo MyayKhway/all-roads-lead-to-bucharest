@@ -20,6 +20,9 @@ import { cities } from './data/cities'
 import { isCityId } from './data/cityIds'
 import { edges } from './data/graph'
 import { deriveSearchView, type Phase, stepDurationMs } from './lib/searchView'
+import { ThemeContext } from './lib/ThemeContext'
+import { sceneColorFor } from './lib/theme'
+import { useTheme } from './lib/useTheme'
 import type { RouteComparison } from './search/comparison'
 import type { ComparisonRequest, ComparisonResponse } from './search/comparison.worker'
 import { type RouteRun, runRoute } from './search/presentation'
@@ -46,6 +49,8 @@ function useExplainRoute(): [boolean, (open: boolean) => void] {
 }
 
 export default function App() {
+  const [theme, toggleTheme] = useTheme()
+
   // ── form state ──────────────────────────────────────────────────────────────
   const [startCity, setStartCity] = useState<string>('arad')
   const [goalCity, setGoalCity] = useState<string>('bucharest')
@@ -255,104 +260,108 @@ export default function App() {
   )
 
   return (
-    <div className="app-root">
-      {/* Left: pickers and actions */}
-      <ControlPanel
-        startCity={startCity}
-        goalCity={goalCity}
-        variantId={variantId}
-        isAnimating={isAnimating}
-        phase={phase}
-        onStart={setStartCity}
-        onGoal={setGoalCity}
-        onVariant={setVariantId}
-        onFindPath={handleFindPath}
-        onReset={handleReset}
-      />
+    <ThemeContext.Provider value={theme}>
+      <div className="app-root">
+        {/* Left: pickers and actions */}
+        <ControlPanel
+          startCity={startCity}
+          goalCity={goalCity}
+          variantId={variantId}
+          isAnimating={isAnimating}
+          phase={phase}
+          theme={theme}
+          onStart={setStartCity}
+          onGoal={setGoalCity}
+          onVariant={setVariantId}
+          onFindPath={handleFindPath}
+          onReset={handleReset}
+          onToggleTheme={toggleTheme}
+        />
 
-      {/* 3D canvas */}
-      <div className="canvas-container">
-        <Canvas
-          shadows
-          camera={{ position: [2, 12, 14], fov: 45 }}
-          gl={{ antialias: true }}
-          // Nothing on the map is visible behind the explain page, so stop rendering it.
-          frameloop={explainOpen ? 'never' : 'always'}
-          style={{ background: '#E8F4EA' }}
-        >
-          <Suspense fallback={null}>
-            <RomaniaMap
-              cities={cities}
-              edges={edges}
-              pathResult={pathResult}
-              phase={phase}
-              view={view}
-              animProgress={animProgress}
-              onCityClick={handleCityClick}
-            />
-          </Suspense>
-        </Canvas>
-
-        <div className="canvas-fog" />
-
-        {noPath && (
-          <div className="toast toast--error">⚠ No path found between the selected cities.</div>
-        )}
-        {pathResult && phase !== 'idle' && (
-          <ReplayControls
-            phase={phase}
-            revealed={revealed}
-            total={totalSteps}
-            current={view.current}
-            playing={playing}
-            speed={speed}
-            onTogglePlay={handleTogglePlay}
-            onStepBack={handleStepBack}
-            onStepForward={handleStepForward}
-            onSkip={handleSkip}
-            onSeek={seekStep}
-            onSpeed={setSpeed}
-          />
-        )}
-
-        {/* Measured from Find Path, but only shown once the route has drawn */}
-        {phase === 'done' && !comparisonOpen && (comparison || isMeasuring) && (
-          <button
-            type="button"
-            className="comparison-toggle"
-            onClick={() => setComparisonOpen(true)}
+        {/* 3D canvas */}
+        <div className="canvas-container">
+          <Canvas
+            shadows
+            camera={{ position: [2, 12, 14], fov: 45 }}
+            gl={{ antialias: true }}
+            // Nothing on the map is visible behind the explain page, so stop rendering it.
+            frameloop={explainOpen ? 'never' : 'always'}
+            style={{ background: sceneColorFor(theme).sky }}
           >
-            📊 Compare all methods
-          </button>
-        )}
-        {phase === 'done' && comparisonOpen && (
-          <ComparisonPanel
-            comparison={comparison}
-            isMeasuring={isMeasuring}
-            selectedVariantId={variantId}
-            disabled={isAnimating}
-            onSelect={handleSelectComparedVariant}
-            onClose={() => setComparisonOpen(false)}
+            <Suspense fallback={null}>
+              <RomaniaMap
+                cities={cities}
+                edges={edges}
+                pathResult={pathResult}
+                phase={phase}
+                view={view}
+                animProgress={animProgress}
+                onCityClick={handleCityClick}
+              />
+            </Suspense>
+          </Canvas>
+
+          <div className="canvas-fog" />
+
+          {noPath && (
+            <div className="toast toast--error">⚠ No path found between the selected cities.</div>
+          )}
+          {pathResult && phase !== 'idle' && (
+            <ReplayControls
+              phase={phase}
+              revealed={revealed}
+              total={totalSteps}
+              current={view.current}
+              playing={playing}
+              speed={speed}
+              onTogglePlay={handleTogglePlay}
+              onStepBack={handleStepBack}
+              onStepForward={handleStepForward}
+              onSkip={handleSkip}
+              onSeek={seekStep}
+              onSpeed={setSpeed}
+            />
+          )}
+
+          {/* Measured from Find Path, but only shown once the route has drawn */}
+          {phase === 'done' && !comparisonOpen && (comparison || isMeasuring) && (
+            <button
+              type="button"
+              className="comparison-toggle"
+              onClick={() => setComparisonOpen(true)}
+            >
+              📊 Compare all methods
+            </button>
+          )}
+          {phase === 'done' && comparisonOpen && (
+            <ComparisonPanel
+              comparison={comparison}
+              isMeasuring={isMeasuring}
+              selectedVariantId={variantId}
+              disabled={isAnimating}
+              onSelect={handleSelectComparedVariant}
+              onClose={() => setComparisonOpen(false)}
+            />
+          )}
+        </div>
+
+        {/* Right: the rationale for each step, then the route found */}
+        <ResultsPanel
+          phase={phase}
+          view={view}
+          pathResult={pathResult}
+          onExplain={() => setExplainOpen(true)}
+        />
+
+        {explainOpen && (
+          <ExplainPage
+            startCity={startCity}
+            goalCity={goalCity}
+            initialVariantId={variantId}
+            onBack={() => setExplainOpen(false)}
           />
         )}
       </div>
-
-      {/* Right: the rationale for each step, then the route found */}
-      <ResultsPanel
-        phase={phase}
-        view={view}
-        pathResult={pathResult}
-        onExplain={() => setExplainOpen(true)}
-      />
-
-      {explainOpen && (
-        <ExplainPage
-          startCity={startCity}
-          goalCity={goalCity}
-          initialVariantId={variantId}
-          onBack={() => setExplainOpen(false)}
-        />
-      )}
-    </div>
+    </ThemeContext.Provider>
   )
 }
