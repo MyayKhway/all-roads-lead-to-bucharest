@@ -174,13 +174,24 @@ export function createAltHeuristic(
     for (const table of landmarkTables) {
       const fromCurrent = table.fromLandmark.get(current)
       const fromGoal = table.fromLandmark.get(problem.goal)
-      if (fromCurrent !== undefined && fromGoal !== undefined) {
+      // A landmark in another component bounds nothing, and A* requires finite estimates.
+      if (
+        fromCurrent !== undefined &&
+        fromGoal !== undefined &&
+        Number.isFinite(fromCurrent) &&
+        Number.isFinite(fromGoal)
+      ) {
         estimate = Math.max(estimate, fromGoal - fromCurrent)
       }
 
       const toCurrent = table.toLandmark.get(current)
       const toGoal = table.toLandmark.get(problem.goal)
-      if (toCurrent !== undefined && toGoal !== undefined) {
+      if (
+        toCurrent !== undefined &&
+        toGoal !== undefined &&
+        Number.isFinite(toCurrent) &&
+        Number.isFinite(toGoal)
+      ) {
         estimate = Math.max(estimate, toCurrent - toGoal)
       }
     }
