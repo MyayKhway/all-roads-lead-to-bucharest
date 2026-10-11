@@ -2,19 +2,22 @@
  * App — root component.
  *
  * State machine:
- *   idle       → user configures options
- *   animating  → green path draws city-by-city
- *   done       → route shown, OrbitControls re-enabled
+ *   idle        → user configures options
+ *   searching   → recorded expansions replay step by step
+ *   navigating  → green path draws city-by-city
+ *   done        → route shown, OrbitControls re-enabled
  */
 
 import { Canvas } from '@react-three/fiber'
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ComparisonPanel from './components/ComparisonPanel'
 import ControlPanel from './components/ControlPanel'
+import ReplayControls, { type ReplaySpeed } from './components/ReplayControls'
 import RomaniaMap from './components/RomaniaMap'
 import { cities } from './data/cities'
 import { isCityId } from './data/cityIds'
 import { edges } from './data/graph'
+import { deriveSearchView, type Phase, stepDurationMs } from './lib/searchView'
 import type { RouteComparison } from './search/comparison'
 import type { ComparisonRequest, ComparisonResponse } from './search/comparison.worker'
 import { type RouteRun, runRoute } from './search/presentation'
@@ -33,16 +36,22 @@ export default function App() {
 
   // ── result / animation state ─────────────────────────────────────────────────
   const [pathResult, setPathResult] = useState<RouteRun | null>(null)
+  const [phase, setPhase] = useState<Phase>('idle')
+  const [revealed, setRevealed] = useState<number>(0)
+  const [playing, setPlaying] = useState<boolean>(true)
+  const [speed, setSpeed] = useState<ReplaySpeed>(1)
   const [animProgress, setAnimProgress] = useState<number>(0)
-  const [isAnimating, setIsAnimating] = useState<boolean>(false)
   const [noPath, setNoPath] = useState<boolean>(false)
+
+  const view = useMemo(() => deriveSearchView(pathResult, revealed), [pathResult, revealed])
+  const isAnimating = phase === 'searching' || phase === 'navigating'
+  const totalSteps = pathResult?.steps.length ?? 0
 
   // ── comparison state ─────────────────────────────────────────────────────────
   const [comparison, setComparison] = useState<RouteComparison | null>(null)
   const [isMeasuring, setIsMeasuring] = useState<boolean>(false)
 
   const animRef = useRef<number | null>(null)
-  const startTimeRef = useRef<number | null>(null)
   const workerRef = useRef<Worker | null>(null)
   const latestRequestRef = useRef<number>(0)
 
@@ -60,7 +69,7 @@ export default function App() {
     return () => worker.terminate()
   }, [])
 
-  // ── show one variant's route ─────────────────────────────────────────────────
+  // ── run one variant, then replay its search ─────────────────────────────────
   const animateRoute = useCallback(
     (selectedVariantId: string) => {
       if (!isCityId(startCity) || !isCityId(goalCity) || startCity === goalCity) return
@@ -69,50 +78,78 @@ export default function App() {
         cancelAnimationFrame(animRef.current)
         animRef.current = null
       }
-
-      setNoPath(false)
       setAnimProgress(0)
-      setPathResult(null)
 
       const result = runRoute(
         findSearchVariant(searchVariantRegistry, selectedVariantId),
         startCity,
         goalCity,
       )
-
-      if (!result) {
-        setNoPath(true)
-        return
-      }
-
       setPathResult(result)
-      setIsAnimating(true)
-      startTimeRef.current = null
-
-      const totalSegments = result.path.length - 1
-      const totalDuration = totalSegments * SEGMENT_DURATION * 1000
-
-      function tick(now: number) {
-        if (startTimeRef.current === null) startTimeRef.current = now
-        const elapsed = now - startTimeRef.current
-        const t = Math.min(elapsed / totalDuration, 1)
-        // ease-in-out cubic
-        const eased = t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
-        setAnimProgress(eased * totalSegments)
-
-        if (t < 1) {
-          animRef.current = requestAnimationFrame(tick)
-        } else {
-          setAnimProgress(totalSegments)
-          setIsAnimating(false)
-          animRef.current = null
-        }
-      }
-
-      animRef.current = requestAnimationFrame(tick)
+      setNoPath(result === null)
+      setRevealed(result === null ? 0 : 1)
+      setPlaying(true)
+      setPhase(result === null ? 'idle' : 'searching')
     },
     [startCity, goalCity],
   )
+
+  // ── replay the search, one expansion at a time ───────────────────────────────
+  useEffect(() => {
+    if (phase !== 'searching' || !playing) return
+    const timer = window.setTimeout(() => {
+      if (revealed < totalSteps) setRevealed(revealed + 1)
+      else setPhase('navigating')
+    }, stepDurationMs(totalSteps) / speed)
+    return () => window.clearTimeout(timer)
+  }, [phase, playing, revealed, totalSteps, speed])
+
+  // ── draw the green route city by city ────────────────────────────────────────
+  useEffect(() => {
+    if (phase !== 'navigating' || !pathResult) return
+    const totalSegments = pathResult.path.length - 1
+    if (totalSegments <= 0) {
+      setPhase('done')
+      return
+    }
+    const totalDuration = totalSegments * SEGMENT_DURATION * 1000
+    let startTime: number | null = null
+
+    function tick(now: number) {
+      if (startTime === null) startTime = now
+      const t = Math.min((now - startTime) / totalDuration, 1)
+      // ease-in-out cubic
+      const eased = t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
+      setAnimProgress(eased * totalSegments)
+      if (t < 1) {
+        animRef.current = requestAnimationFrame(tick)
+      } else {
+        animRef.current = null
+        setPhase('done')
+      }
+    }
+    animRef.current = requestAnimationFrame(tick)
+    return () => {
+      if (animRef.current !== null) cancelAnimationFrame(animRef.current)
+    }
+  }, [phase, pathResult])
+
+  // ── replay controls ──────────────────────────────────────────────────────────
+  const handleStepBack = useCallback(() => {
+    setPlaying(false)
+    setRevealed((n) => Math.max(1, n - 1))
+  }, [])
+
+  const handleStepForward = useCallback(() => {
+    setPlaying(false)
+    if (revealed < totalSteps) setRevealed(revealed + 1)
+    else setPhase('navigating')
+  }, [revealed, totalSteps])
+
+  const handleSkip = useCallback(() => {
+    setRevealed(totalSteps)
+    setPhase('navigating')
+  }, [totalSteps])
 
   // ── find path: animate the chosen variant, measure all of them ───────────────
   const handleFindPath = useCallback(() => {
@@ -144,8 +181,9 @@ export default function App() {
       animRef.current = null
     }
     setPathResult(null)
+    setPhase('idle')
+    setRevealed(0)
     setAnimProgress(0)
-    setIsAnimating(false)
     setNoPath(false)
     latestRequestRef.current += 1
     setComparison(null)
@@ -193,8 +231,9 @@ export default function App() {
               cities={cities}
               edges={edges}
               pathResult={pathResult}
+              phase={phase}
+              view={view}
               animProgress={animProgress}
-              isAnimating={isAnimating}
               onCityClick={handleCityClick}
             />
           </Suspense>
@@ -205,7 +244,21 @@ export default function App() {
         {noPath && (
           <div className="toast toast--error">⚠ No path found between the selected cities.</div>
         )}
-        {isAnimating && <div className="toast toast--info">🗺 Navigating route…</div>}
+        {phase === 'searching' && (
+          <ReplayControls
+            revealed={revealed}
+            total={totalSteps}
+            current={view.current}
+            playing={playing}
+            speed={speed}
+            onTogglePlay={() => setPlaying((p) => !p)}
+            onStepBack={handleStepBack}
+            onStepForward={handleStepForward}
+            onSkip={handleSkip}
+            onSpeed={setSpeed}
+          />
+        )}
+        {phase === 'navigating' && <div className="toast toast--info">🗺 Navigating route…</div>}
 
         <ComparisonPanel
           comparison={comparison}
@@ -223,6 +276,8 @@ export default function App() {
         goalCity={goalCity}
         variantId={variantId}
         isAnimating={isAnimating}
+        phase={phase}
+        view={view}
         pathResult={pathResult}
         onStart={setStartCity}
         onGoal={setGoalCity}
