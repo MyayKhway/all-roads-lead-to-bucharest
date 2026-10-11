@@ -190,12 +190,8 @@ export default function RingDiagram({ start, goal }: RingDiagramProps) {
       </div>
 
       <div className="ring-diagram-body">
-        <svg
-          className="ring-svg"
-          viewBox={`0 0 ${SIZE} ${SIZE}`}
-          role="group"
-          aria-label={`NTB rings around ${cityName(goal)}`}
-        >
+        <svg className="ring-svg" viewBox={`0 0 ${SIZE} ${SIZE}`} aria-labelledby="ring-svg-title">
+          <title id="ring-svg-title">NTB rings around {cityName(goal)}</title>
           {Array.from({ length: layout.maxRing }, (_, i) => layout.maxRing - i).map((ring) => (
             <g key={ring}>
               <circle
