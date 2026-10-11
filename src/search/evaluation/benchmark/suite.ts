@@ -62,7 +62,7 @@ function createProblem(graph: WeightedGraph, pair: BenchmarkCityPair): SearchPro
 }
 
 /** Measures only algorithm execution while retaining the standardized search structures. */
-function measureVariantExecutionTime(
+export function measureVariantExecutionTime(
   variant: SearchVariant,
   problem: SearchProblem,
   timingOptions: TimingOptions | undefined,
