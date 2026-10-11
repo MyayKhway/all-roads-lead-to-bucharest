@@ -119,17 +119,15 @@ The project plans to use the shared search contracts in three different ways:
 | --- | --- | --- |
 | Diagnosis | Implemented | Inspect one variant on one city pair while developing or debugging it. |
 | Benchmark | Implemented | Compare selected variants across selected city pairs using uniform measurements. |
-| Presentation | Deferred | Supply frontend-facing results for the final demonstration. |
+| Presentation | Implemented | Supply frontend-facing results through `src/search/presentation.ts`. |
 
-Diagnosis and benchmarking are available through command-line tools today.
+Diagnosis and benchmarking are available through command-line tools.
 They share the same algorithm contracts, graph, validation, reference Dijkstra,
 probe, and metric meanings.
 
-Presentation mode is intentionally not implemented yet. The team first needs to
-agree on what the frontend will show, which variants it will run, whether it
-needs events for animation, and what result shape it expects. After that
-agreement, presentation can reuse the stable search contracts without making
-the frontend depend on benchmark reports or command-line code.
+Presentation runs one registered variant through the same execution path and
+returns the route, its cost, the expansion order, and the metrics. The frontend
+depends on it, not on benchmark reports or command-line code.
 
 ## The current implemented flow
 
@@ -517,10 +515,7 @@ Import the variant and add it to the `variants` array in
 Think of this step as putting the variant into the shared catalog. Diagnosis,
 benchmarking, and future application integration use this same registry.
 
-The registry is currently empty because the existing frontend algorithms are
-placeholders and do not follow the new contract yet.
-
-While the registry is empty:
+If the registry is ever empty:
 
 - `--help` still works;
 - `--list` reports that no variants are registered;
