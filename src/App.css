@@ -1154,7 +1154,7 @@ body,
 }
 
 .explain-ntb {
-  color: #5b21b6;
+  color: #3730a3;
 }
 
 @media (max-width: 720px) {
@@ -1172,7 +1172,7 @@ body,
   background: #f4effc;
   border-radius: 8px;
   font-size: 0.76rem;
-  color: #5b21b6;
+  color: #3730a3;
   font-variant-numeric: tabular-nums;
 }
 

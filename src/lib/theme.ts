@@ -74,10 +74,13 @@ export const ROUTE_COLOR = {
 } as const
 
 /**
- * NTB ring colours, nearest the goal first: one hue, dark → light, so ring
- * order reads as distance. Kept clear of the status colours used on the map.
+ * NTB ring colours, nearest the goal first: indigo → violet → fuchsia → pink,
+ * each step shifting hue as well as lightness so adjacent rings stay
+ * distinguishable at a glance (not just lightness within one hue, which read
+ * too similar between the first two steps). Kept clear of the status colours
+ * used on the map.
  */
-export const RING_COLOR = ['#5b21b6', '#7c3aed', '#9f67f5', '#b794f8', '#cbb2fa', '#ddd0fc']
+export const RING_COLOR = ['#3730a3', '#7c3aed', '#c026d3', '#db2777', '#f472b6', '#fbcfe8']
 
 export function ringColor(ring: number): string {
   return RING_COLOR[Math.min(Math.max(ring - 1, 0), RING_COLOR.length - 1)] ?? '#ddd0fc'
