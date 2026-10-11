@@ -302,14 +302,14 @@ export function vegetationInstances(): Record<VegetationModel, Instance[]> {
   }
 
   // 4. Scattered trees over open country
-  for (let i = 0; i < 900 && out.round.length + out.small.length + out.large.length < 330; i++) {
+  for (let i = 0; i < 900 && out.round.length + out.small.length + out.large.length < 160; i++) {
     const x = -8.6 + rand() * 20
     const z = -8.6 + rand() * 14.8
     place(pick({ round: 3, small: 3, large: 1, pine: 1 }, rand()), x, z, TREE_RULES)
   }
 
   // 5. Bushes and rocks
-  for (let i = 0; i < 1200 && out.bush.length < 240; i++) {
+  for (let i = 0; i < 1200 && out.bush.length < 120; i++) {
     place('bush', -8.6 + rand() * 20, -8.6 + rand() * 14.8, SMALL_RULES)
   }
   for (const f of RELIEF) {
@@ -323,7 +323,7 @@ export function vegetationInstances(): Record<VegetationModel, Instance[]> {
 
   // 6. Grass tufts — ground detail, allowed closer to everything
   const grassRules: Rules = { road: 0.12, city: 0.6, river: 0.05, spacing: 0.0 }
-  for (let i = 0; i < 4000 && out.grass.length < 1600; i++) {
+  for (let i = 0; i < 4000 && out.grass.length < 800; i++) {
     const x = -8.6 + rand() * 20
     const z = -8.6 + rand() * 14.8
     if (!fits(x, z, grassRules)) continue
