@@ -139,12 +139,20 @@ export default function RomaniaMap({
       {showRings && goal && <NtbRings cities={cities} goal={goal} />}
 
       {/* Roads */}
-      {edges.map(({ from, to }) => (
+      {edges.map(({ from, to, distance }) => (
         <Road
           key={`${from}-${to}`}
           from={cities[from]?.position ?? [0, 0, 0]}
           to={cities[to]?.position ?? [0, 0, 0]}
+          distance={distance}
           status={getEdgeStatus(from, to, pathResult, phase, view, tollRoads)}
+          showDistance={
+            !route?.some(
+              (city, index) =>
+                (city === from && route[index + 1] === to) ||
+                (city === to && route[index + 1] === from),
+            )
+          }
         />
       ))}
 
