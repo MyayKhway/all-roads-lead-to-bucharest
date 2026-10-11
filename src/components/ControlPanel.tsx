@@ -1,44 +1,33 @@
 /**
- * ControlPanel — sidebar UI for selecting cities, algorithm, and heuristic.
+ * ControlPanel — sidebar UI for selecting cities and a registered search variant.
  */
 
-import type { AstarResult, HeuristicName } from '../algorithms/astar'
-import { HEURISTICS } from '../algorithms/astar'
-import { cityList } from '../data/cities'
+import { cities, cityList } from '../data/cities'
+import type { RouteRun } from '../search/presentation'
+import { searchVariantRegistry } from '../search/registry'
 
 interface ControlPanelProps {
   startCity: string
   goalCity: string
-  algorithm: string
-  heuristic: HeuristicName
+  variantId: string
   isAnimating: boolean
-  pathResult: AstarResult | null
+  pathResult: RouteRun | null
   onStart: (id: string) => void
   onGoal: (id: string) => void
-  onAlgorithm: (val: string) => void
-  onHeuristic: (val: HeuristicName) => void
+  onVariant: (id: string) => void
   onFindPath: () => void
   onReset: () => void
 }
 
-const ALGORITHMS = [{ value: 'astar', label: 'A*' }]
-
-const HEURISTIC_OPTIONS: { value: HeuristicName; label: string }[] = [
-  { value: HEURISTICS.MAGNETIC_FIELD, label: 'Magnetic Field' },
-  { value: HEURISTICS.STRAIGHT_LINE, label: 'Straight Line' },
-]
-
 export default function ControlPanel({
   startCity,
   goalCity,
-  algorithm,
-  heuristic,
+  variantId,
   isAnimating,
   pathResult,
   onStart,
   onGoal,
-  onAlgorithm,
-  onHeuristic,
+  onVariant,
   onFindPath,
   onReset,
 }: ControlPanelProps) {
@@ -95,41 +84,21 @@ export default function ControlPanel({
         </select>
       </div>
 
-      {/* Algorithm */}
+      {/* Search method: one registered algorithm-and-heuristic variant */}
       <div className="panel-section">
-        <label className="field-label" htmlFor="algorithm">
-          Algorithm
+        <label className="field-label" htmlFor="variant">
+          Search Method
         </label>
         <select
-          id="algorithm"
+          id="variant"
           className="field-select"
-          value={algorithm}
-          onChange={(e) => onAlgorithm(e.target.value)}
+          value={variantId}
+          onChange={(e) => onVariant(e.target.value)}
           disabled={isAnimating}
         >
-          {ALGORITHMS.map((a) => (
-            <option key={a.value} value={a.value}>
-              {a.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Heuristic */}
-      <div className="panel-section">
-        <label className="field-label" htmlFor="heuristic">
-          Heuristic
-        </label>
-        <select
-          id="heuristic"
-          className="field-select"
-          value={heuristic}
-          onChange={(e) => onHeuristic(e.target.value as HeuristicName)}
-          disabled={isAnimating}
-        >
-          {HEURISTIC_OPTIONS.map((h) => (
-            <option key={h.value} value={h.value}>
-              {h.label}
+          {searchVariantRegistry.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.name}
             </option>
           ))}
         </select>
@@ -166,9 +135,7 @@ export default function ControlPanel({
       </div>
 
       {/* Result card */}
-      {pathResult && !isAnimating && (
-        <ResultCard pathResult={pathResult} algorithm={algorithm} heuristic={heuristic} />
-      )}
+      {pathResult && !isAnimating && <ResultCard pathResult={pathResult} />}
     </div>
   )
 }
@@ -176,16 +143,11 @@ export default function ControlPanel({
 // ─── Result card ──────────────────────────────────────────────────────────────
 
 interface ResultCardProps {
-  pathResult: AstarResult
-  algorithm: string
-  heuristic: HeuristicName
+  pathResult: RouteRun
 }
 
-function ResultCard({ pathResult, algorithm, heuristic }: ResultCardProps) {
-  const { path, totalDistance, exploredOrder } = pathResult
-  const algoLabel = algorithm === 'astar' ? 'A*' : algorithm
-  const heuristicLabel =
-    heuristic === HEURISTICS.MAGNETIC_FIELD ? 'Magnetic Field' : 'Straight Line'
+function ResultCard({ pathResult }: ResultCardProps) {
+  const { path, pathCost, metrics, variant } = pathResult
 
   return (
     <div className="result-card">
@@ -199,7 +161,7 @@ function ResultCard({ pathResult, algorithm, heuristic }: ResultCardProps) {
             <div
               className={`path-node${i === 0 ? ' path-node--start' : i === path.length - 1 ? ' path-node--goal' : ''}`}
             >
-              {cityId.charAt(0).toUpperCase() + cityId.slice(1)}
+              {cities[cityId]?.name ?? cityId}
             </div>
             {i < path.length - 1 && <div className="path-arrow">↓</div>}
           </div>
@@ -208,11 +170,12 @@ function ResultCard({ pathResult, algorithm, heuristic }: ResultCardProps) {
 
       <div className="result-stats">
         {[
-          { label: 'Total Distance', value: `${totalDistance} km` },
+          { label: 'Total Distance', value: `${pathCost} km` },
           { label: 'Cities in Route', value: String(path.length) },
-          { label: 'Nodes Explored', value: String(exploredOrder?.length ?? '—') },
-          { label: 'Algorithm', value: algoLabel },
-          { label: 'Heuristic', value: heuristicLabel },
+          { label: 'Nodes Expanded', value: String(metrics.nodesExpanded) },
+          { label: 'Peak Frontier', value: String(metrics.peakFrontierEntries) },
+          { label: 'Algorithm', value: variant.algorithmName },
+          { label: 'Heuristic', value: variant.heuristicName ?? 'None (blind)' },
         ].map(({ label, value }) => (
           <div key={label} className="stat-row">
             <span className="stat-label">{label}</span>
