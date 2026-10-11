@@ -67,7 +67,7 @@ export default function ReplayControls({
             disabled={revealed <= 1 || phase === 'navigating'}
             aria-label="Previous step"
           >
-            ◀
+            ❘◀
           </button>
           <button
             type="button"
