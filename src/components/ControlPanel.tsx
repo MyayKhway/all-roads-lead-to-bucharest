@@ -49,10 +49,18 @@ export default function ControlPanel({
           type="button"
           className="theme-toggle"
           onClick={onToggleTheme}
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          role="switch"
+          aria-checked={theme === 'dark'}
+          aria-label="Dark mode"
           title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
         >
-          {theme === 'dark' ? '☀' : '☾'}
+          <span className="theme-toggle-icon theme-toggle-icon--sun" aria-hidden="true">
+            ☀
+          </span>
+          <span className="theme-toggle-icon theme-toggle-icon--moon" aria-hidden="true">
+            ☾
+          </span>
+          <span className="theme-toggle-thumb" aria-hidden="true" />
         </button>
         <div className="panel-logo">📍</div>
         <h1 className="panel-title">Romania 3D Map</h1>
