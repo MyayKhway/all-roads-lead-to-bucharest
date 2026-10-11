@@ -3,9 +3,11 @@
  */
 
 import { useMemo } from 'react'
+import { Billboard, Text } from '@react-three/drei'
 import * as THREE from 'three'
 import type { CityMap, Position3D } from '../data/cities'
 import { positionOf } from '../data/cities'
+import { romaniaGraph } from '../data/graph'
 
 interface NavigationPathProps {
   path: readonly string[]
@@ -106,7 +108,11 @@ function NavigationHead({ position }: NavigationHeadProps) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function NavigationPath({ path, cities, animProgress }: NavigationPathProps) {
+export default function NavigationPath({
+  path,
+  cities,
+  animProgress,
+}: NavigationPathProps) {
   const isDrawable = path.length >= 2
 
   // Computed unconditionally: a hook must not sit behind an early return.
@@ -147,6 +153,31 @@ export default function NavigationPath({ path, cities, animProgress }: Navigatio
 
   return (
     <group>
+      {segments.map(({ id, posA, posB }, index) => {
+        const midpoint: Position3D = [
+          (posA[0] + posB[0]) / 2,
+          (posA[1] + posB[1]) / 2 + 0.5,
+          (posA[2] + posB[2]) / 2,
+        ]
+        const from = path[index]
+        const to = path[index + 1]
+        const distance = romaniaGraph.adjacency[from ?? '']?.find((road) => road.city === to)?.distance
+        if (distance === undefined) return null
+        return (
+          <Billboard key={`cost-${id}`} position={midpoint}>
+            <Text
+              fontSize={0.26}
+              color="#1B5E20"
+              outlineWidth={0.03}
+              outlineColor="#ffffff"
+              anchorX="center"
+              anchorY="middle"
+            >
+              {String(distance)}
+            </Text>
+          </Billboard>
+        )
+      })}
       {segments.map(({ id, posA, posB, progress }) => (
         <PathSegment key={id} posA={posA} posB={posB} progress={progress} />
       ))}
