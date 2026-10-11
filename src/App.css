@@ -773,3 +773,256 @@ body,
     gap: 6px;
   }
 }
+
+/* =====================================================================
+   Explain page — every expansion step in depth
+   ===================================================================== */
+.explain-page {
+  --explain-current: #3b82f6;
+  --explain-frontier: #f2c46b;
+  --explain-explored: #6b84a6;
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  background: #faf8ef;
+  color: #3e3020;
+  z-index: 50;
+}
+
+.explain-header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 24px;
+  background: #fcf0af;
+  border-bottom: 1px solid #ede8d0;
+  z-index: 2;
+}
+
+.explain-header h1 {
+  font-size: 1.15rem;
+}
+
+.explain-header p {
+  font-size: 0.85rem;
+  color: #7a6840;
+}
+
+.explain-back {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 8px 16px;
+}
+
+.explain-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 1040px;
+  margin: 18px auto 0;
+  padding: 0 24px;
+}
+
+.explain-tabs button {
+  border: 1px solid #e0d39a;
+  background: #ffffff;
+  color: #3e3020;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.explain-tabs button.is-active {
+  background: #43a047;
+  border-color: #43a047;
+  color: #ffffff;
+}
+
+.explain-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1040px;
+  margin: 16px auto 48px;
+  padding: 0 24px;
+}
+
+.explain-empty {
+  max-width: 1040px;
+  margin: 24px auto;
+  padding: 0 24px;
+}
+
+.explain-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  padding: 14px 18px;
+  background: #ffffff;
+  border: 1px solid #ede8d0;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.explain-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.explain-summary-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #7a6840;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.explain-how {
+  padding: 16px 18px;
+  background: #ffffff;
+  border: 1px solid #ede8d0;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.explain-how h2 {
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.explain-how p + p {
+  margin-top: 8px;
+}
+
+.explain-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: #7a6840;
+}
+
+.explain-key i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+
+.explain-step {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 18px;
+  padding: 16px 18px;
+  background: #ffffff;
+  border: 1px solid #ede8d0;
+  border-radius: 12px;
+}
+
+.step-map {
+  width: 100%;
+  height: auto;
+  background: #f4f0df;
+  border-radius: 10px;
+}
+
+.step-map-label {
+  font-size: 0.42px;
+  font-weight: 700;
+  fill: #3e3020;
+  paint-order: stroke;
+  stroke: #ffffff;
+  stroke-width: 0.12px;
+}
+
+.explain-step-body {
+  min-width: 0;
+}
+
+.explain-step-body h3 {
+  font-size: 1rem;
+}
+
+.explain-step-body h4 {
+  margin: 12px 0 4px;
+  font-size: 0.72rem;
+  color: #7a6840;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.explain-why {
+  margin-top: 4px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.explain-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.explain-table thead th {
+  text-align: left;
+  padding: 5px 6px;
+  font-size: 0.7rem;
+  color: #7a6840;
+  border-bottom: 1px solid #ede8d0;
+}
+
+.explain-table td {
+  padding: 5px 6px;
+  border-bottom: 1px solid #f3efdf;
+}
+
+.explain-table tr.is-picked td {
+  background: #e8f1fe;
+  font-weight: 700;
+}
+
+.explain-table tr.is-stale td {
+  color: #a39470;
+}
+
+.result-explain {
+  display: block;
+  margin: 0 16px 14px;
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .explain-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+
+  .explain-tabs,
+  .explain-main,
+  .explain-empty {
+    padding: 0 16px;
+  }
+
+  .explain-step {
+    grid-template-columns: 1fr;
+  }
+
+  .explain-table {
+    display: block;
+    overflow-x: auto;
+  }
+}
