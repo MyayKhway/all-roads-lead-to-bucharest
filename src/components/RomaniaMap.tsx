@@ -4,6 +4,7 @@
 
 import type { CityMap } from '../data/cities'
 import type { Edge } from '../data/graph'
+import { SCENE_COLOR } from '../lib/theme'
 import type { RouteRun } from '../search/presentation'
 import type { CityStatus } from './CityNode'
 
@@ -12,6 +13,8 @@ import NavigationCamera from './NavigationCamera'
 import NavigationPath from './NavigationPath'
 import type { RoadStatus } from './Road'
 import Road from './Road'
+import Scenery from './Scenery'
+import Terrain from './Terrain'
 
 interface RomaniaMapProps {
   cities: CityMap
@@ -55,33 +58,34 @@ export default function RomaniaMap({
 }: RomaniaMapProps) {
   return (
     <>
-      {/* Lighting */}
-      <ambientLight intensity={0.7} color="#FFF8E7" />
+      {/* Atmosphere — soft daylight with a light haze for depth */}
+      <color attach="background" args={[SCENE_COLOR.sky]} />
+      <fog attach="fog" args={[SCENE_COLOR.fog, 24, 52]} />
+
+      {/* Lighting: sky/ground fill + a warm sun casting soft shadows */}
+      <hemisphereLight args={[SCENE_COLOR.hemiSky, SCENE_COLOR.hemiGround, 1.15]} />
+      <ambientLight intensity={0.22} />
       <directionalLight
-        position={[8, 14, 6]}
-        intensity={1.1}
-        color="#FFF5E0"
+        position={[9, 16, 7]}
+        intensity={2.5}
+        color={SCENE_COLOR.sun}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
-        shadow-camera-near={0.5}
-        shadow-camera-far={60}
-        shadow-camera-left={-20}
-        shadow-camera-right={20}
-        shadow-camera-top={20}
-        shadow-camera-bottom={-20}
+        shadow-camera-near={1}
+        shadow-camera-far={50}
+        shadow-camera-left={-15}
+        shadow-camera-right={15}
+        shadow-camera-top={14}
+        shadow-camera-bottom={-14}
+        shadow-bias={-0.0004}
+        shadow-normalBias={0.02}
+        shadow-radius={3}
       />
-      <directionalLight position={[-5, 8, -4]} intensity={0.35} color="#D4E8FF" />
 
-      {/* Ground */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow>
-        <planeGeometry args={[40, 40]} />
-        <meshStandardMaterial color="#FCF0AF" roughness={0.95} metalness={0} />
-      </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
-        <planeGeometry args={[20, 14]} />
-        <meshStandardMaterial color="#F5E88A" roughness={0.9} metalness={0} />
-      </mesh>
+      {/* Ground, relief and vegetation (decorative only) */}
+      <Terrain />
+      <Scenery />
 
       {/* Roads */}
       {edges.map(({ from, to }) => (
