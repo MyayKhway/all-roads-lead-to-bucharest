@@ -1,9 +1,8 @@
 import type { SearchVariant } from '@/search/variant'
 import { validateSearchVariants } from '@/search/variant'
-import { magneticFieldVariant } from '@/search/variants/magneticFieldVariant'
-
 import { altAstarVariant } from '@/search/variants/alt'
 import { bfsVariant } from '@/search/variants/bfs'
+import { magneticFieldVariant } from '@/search/variants/magneticFieldVariant'
 import { ntbAstarVariant } from '@/search/variants/ntbAstar'
 import { ucsVariant } from '@/search/variants/ucs'
 
