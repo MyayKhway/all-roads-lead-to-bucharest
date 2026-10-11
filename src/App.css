@@ -1139,3 +1139,30 @@ body,
     grid-template-columns: 1fr;
   }
 }
+
+.step-ntb {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 16px 8px;
+  padding: 6px 10px;
+  background: #f4effc;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  color: #5b21b6;
+  font-variant-numeric: tabular-nums;
+}
+
+.step-ntb-key {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #7a6840;
+}
+
+.step-ntb-key i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
