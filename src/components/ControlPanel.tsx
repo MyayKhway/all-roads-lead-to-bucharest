@@ -5,6 +5,7 @@
 import { cityList } from '../data/cities'
 import type { Phase } from '../lib/searchView'
 import { STATUS_COLOR } from '../lib/theme'
+import type { ThemeName } from '../lib/useTheme'
 import { searchVariantRegistry } from '../search/registry'
 
 const REPO_URL = 'https://github.com/MyayKhway/all-roads-lead-to-bucharest'
@@ -15,11 +16,13 @@ interface ControlPanelProps {
   variantId: string
   isAnimating: boolean
   phase: Phase
+  theme: ThemeName
   onStart: (id: string) => void
   onGoal: (id: string) => void
   onVariant: (id: string) => void
   onFindPath: () => void
   onReset: () => void
+  onToggleTheme: () => void
 }
 
 export default function ControlPanel({
@@ -28,11 +31,13 @@ export default function ControlPanel({
   variantId,
   isAnimating,
   phase,
+  theme,
   onStart,
   onGoal,
   onVariant,
   onFindPath,
   onReset,
+  onToggleTheme,
 }: ControlPanelProps) {
   const canFind = startCity && goalCity && startCity !== goalCity && !isAnimating
 
@@ -40,6 +45,15 @@ export default function ControlPanel({
     <div className="control-panel">
       {/* Header */}
       <div className="panel-header">
+        <button
+          type="button"
+          className="theme-toggle"
+          onClick={onToggleTheme}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? '☀' : '☾'}
+        </button>
         <div className="panel-logo">📍</div>
         <h1 className="panel-title">Romania 3D Map</h1>
         <p className="panel-subtitle">Pathfinding Visualizer</p>

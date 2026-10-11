@@ -6,7 +6,8 @@
 
 import { memo, useMemo } from 'react'
 import * as THREE from 'three'
-import { SCENE_COLOR } from '../lib/theme'
+import { useAppTheme } from '../lib/ThemeContext'
+import { sceneColorFor } from '../lib/theme'
 import { RIVERS, ROMANIA_OUTLINE, type XZ } from '../scenery/geography'
 import { LAND_Y, PLAIN_Y } from '../scenery/placement'
 
@@ -46,6 +47,8 @@ function riverGeometry(points: readonly XZ[], width: number): THREE.BufferGeomet
 }
 
 function Terrain() {
+  const sceneColor = sceneColorFor(useAppTheme())
+
   const land = useMemo(() => {
     const g = new THREE.ExtrudeGeometry(shapeOf(ROMANIA_OUTLINE), {
       depth: LAND_DEPTH,
@@ -66,10 +69,10 @@ function Terrain() {
 
   const landMaterials = useMemo(
     () => [
-      new THREE.MeshStandardMaterial({ color: SCENE_COLOR.land, roughness: 0.95 }),
-      new THREE.MeshStandardMaterial({ color: SCENE_COLOR.landSide, roughness: 1 }),
+      new THREE.MeshStandardMaterial({ color: sceneColor.land, roughness: 0.95 }),
+      new THREE.MeshStandardMaterial({ color: sceneColor.landSide, roughness: 1 }),
     ],
-    [],
+    [sceneColor],
   )
 
   return (
@@ -77,7 +80,7 @@ function Terrain() {
       {/* Surrounding plain */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, PLAIN_Y, 0]} receiveShadow>
         <circleGeometry args={[80, 64]} />
-        <meshStandardMaterial color={SCENE_COLOR.plain} roughness={1} />
+        <meshStandardMaterial color={sceneColor.plain} roughness={1} />
       </mesh>
 
       {/* Romania — a raised landmass, like a tile on a relief map */}
@@ -87,7 +90,7 @@ function Terrain() {
       {rivers.map(({ name, geometry }) => (
         <mesh key={name} geometry={geometry} receiveShadow>
           <meshStandardMaterial
-            color={SCENE_COLOR.river}
+            color={sceneColor.river}
             roughness={0.2}
             metalness={0.05}
             polygonOffset
