@@ -222,8 +222,7 @@ This allows separate records for A* with heuristic A and A* with heuristic B.
 `findSearchVariant()` resolves an ID or throws for an unknown selection.
 
 `registry.ts` owns the application-wide array. It is validated and then exposed
-as a readonly frozen array. The array is currently empty because placeholder
-frontend algorithms are intentionally not treated as benchmark candidates.
+as a readonly frozen array, which the UI reads through `presentation.ts`.
 
 ## Probe implementation
 
