@@ -24,7 +24,7 @@ import { deriveSearchView, type Phase, stepDurationMs } from './lib/searchView'
 import { ThemeContext } from './lib/ThemeContext'
 import { sceneColorFor } from './lib/theme'
 import { useTheme } from './lib/useTheme'
-import type { RouteComparison } from './search/comparison'
+import type { AllPairsComparison, RouteComparison } from './search/comparison'
 import type { ComparisonRequest, ComparisonResponse } from './search/comparison.worker'
 import { type RouteRun, runRoute } from './search/presentation'
 import { searchVariantRegistry } from './search/registry'
@@ -76,6 +76,8 @@ export default function App() {
   // ── comparison state ─────────────────────────────────────────────────────────
   const [comparison, setComparison] = useState<RouteComparison | null>(null)
   const [isMeasuring, setIsMeasuring] = useState<boolean>(false)
+  const [allPairsComparison, setAllPairsComparison] = useState<AllPairsComparison | null>(null)
+  const [isMeasuringAllPairs, setIsMeasuringAllPairs] = useState<boolean>(false)
   // Hidden until asked for, so the finished route stays visible.
   const [comparisonOpen, setComparisonOpen] = useState<boolean>(false)
 
@@ -89,6 +91,11 @@ export default function App() {
       type: 'module',
     })
     worker.onmessage = (event: MessageEvent<ComparisonResponse>) => {
+      if (event.data.type === 'all-pairs') {
+        setAllPairsComparison(event.data.comparison)
+        setIsMeasuringAllPairs(false)
+        return
+      }
       if (event.data.requestId !== latestRequestRef.current) return
       setComparison(event.data.comparison)
       setIsMeasuring(false)
@@ -202,14 +209,16 @@ export default function App() {
 
     latestRequestRef.current += 1
     const request: ComparisonRequest = {
+      type: 'route',
       requestId: latestRequestRef.current,
       start: startCity,
       goal: goalCity,
     }
     setIsMeasuring(true)
+    if (allPairsComparison === null) setIsMeasuringAllPairs(true)
     setComparisonOpen(false)
     workerRef.current?.postMessage(request)
-  }, [startCity, goalCity, variantId, animateRoute])
+  }, [startCity, goalCity, variantId, animateRoute, allPairsComparison])
 
   const handleSelectComparedVariant = useCallback(
     (selectedVariantId: string) => {
@@ -348,6 +357,8 @@ export default function App() {
             <ComparisonPanel
               comparison={comparison}
               isMeasuring={isMeasuring}
+              allPairsComparison={allPairsComparison}
+              isMeasuringAllPairs={isMeasuringAllPairs}
               selectedVariantId={variantId}
               disabled={isAnimating}
               onSelect={handleSelectComparedVariant}
