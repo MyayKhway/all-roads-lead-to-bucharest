@@ -9,12 +9,14 @@
 
 import { Canvas } from '@react-three/fiber'
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import type { AstarResult, HeuristicName } from './algorithms/astar'
-import { astar, HEURISTICS } from './algorithms/astar'
 import ControlPanel from './components/ControlPanel'
 import RomaniaMap from './components/RomaniaMap'
 import { cities } from './data/cities'
+import { isCityId } from './data/cityIds'
 import { edges } from './data/graph'
+import { type RouteRun, runRoute } from './search/presentation'
+import { searchVariantRegistry } from './search/registry'
+import { findSearchVariant } from './search/variant'
 
 import './App.css'
 
@@ -24,11 +26,10 @@ export default function App() {
   // ── form state ──────────────────────────────────────────────────────────────
   const [startCity, setStartCity] = useState<string>('arad')
   const [goalCity, setGoalCity] = useState<string>('bucharest')
-  const [algorithm, setAlgorithm] = useState<string>('astar')
-  const [heuristic, setHeuristic] = useState<HeuristicName>(HEURISTICS.MAGNETIC_FIELD)
+  const [variantId, setVariantId] = useState<string>(searchVariantRegistry[0]?.id ?? '')
 
   // ── result / animation state ─────────────────────────────────────────────────
-  const [pathResult, setPathResult] = useState<AstarResult | null>(null)
+  const [pathResult, setPathResult] = useState<RouteRun | null>(null)
   const [animProgress, setAnimProgress] = useState<number>(0)
   const [isAnimating, setIsAnimating] = useState<boolean>(false)
   const [noPath, setNoPath] = useState<boolean>(false)
@@ -38,7 +39,7 @@ export default function App() {
 
   // ── find path ────────────────────────────────────────────────────────────────
   const handleFindPath = useCallback(() => {
-    if (!startCity || !goalCity || startCity === goalCity) return
+    if (!isCityId(startCity) || !isCityId(goalCity) || startCity === goalCity) return
 
     if (animRef.current !== null) {
       cancelAnimationFrame(animRef.current)
@@ -49,7 +50,11 @@ export default function App() {
     setAnimProgress(0)
     setPathResult(null)
 
-    const result = astar(startCity, goalCity, heuristic)
+    const result = runRoute(
+      findSearchVariant(searchVariantRegistry, variantId),
+      startCity,
+      goalCity,
+    )
 
     if (!result) {
       setNoPath(true)
@@ -81,7 +86,7 @@ export default function App() {
     }
 
     animRef.current = requestAnimationFrame(tick)
-  }, [startCity, goalCity, heuristic])
+  }, [startCity, goalCity, variantId])
 
   // ── reset ────────────────────────────────────────────────────────────────────
   const handleReset = useCallback(() => {
@@ -155,14 +160,12 @@ export default function App() {
       <ControlPanel
         startCity={startCity}
         goalCity={goalCity}
-        algorithm={algorithm}
-        heuristic={heuristic}
+        variantId={variantId}
         isAnimating={isAnimating}
         pathResult={pathResult}
         onStart={setStartCity}
         onGoal={setGoalCity}
-        onAlgorithm={setAlgorithm}
-        onHeuristic={setHeuristic}
+        onVariant={setVariantId}
         onFindPath={handleFindPath}
         onReset={handleReset}
       />

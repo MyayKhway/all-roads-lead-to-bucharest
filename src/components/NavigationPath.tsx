@@ -8,7 +8,7 @@ import type { CityMap, Position3D } from '../data/cities'
 import { positionOf } from '../data/cities'
 
 interface NavigationPathProps {
-  path: string[]
+  path: readonly string[]
   cities: CityMap
   animProgress: number
 }
