@@ -6,7 +6,7 @@ import { useMemo } from 'react'
 import * as THREE from 'three'
 import type { Position3D } from '../data/cities'
 
-export type RoadStatus = 'normal' | 'path' | 'explored'
+export type RoadStatus = 'normal' | 'path' | 'explored' | 'toll'
 
 interface RoadProps {
   from: Position3D
@@ -21,6 +21,8 @@ const ROAD_Y = 0.04
 const NORMAL_COLOR = '#A09880'
 const PATH_COLOR = '#43A047'
 const EXPLORED_COLOR = '#7B9BAD'
+// Matches the NTB ring colours: the cheapest road out of a ring.
+const TOLL_COLOR = '#7c3aed'
 
 export default function Road({ from, to, status = 'normal' }: RoadProps) {
   const { position, rotation, length } = useMemo(() => {
@@ -42,9 +44,16 @@ export default function Road({ from, to, status = 'normal' }: RoadProps) {
   }, [from, to])
 
   const color =
-    status === 'path' ? PATH_COLOR : status === 'explored' ? EXPLORED_COLOR : NORMAL_COLOR
-  const emissive = status === 'path' ? PATH_COLOR : '#000000'
-  const emissiveInt = status === 'path' ? 0.35 : 0
+    status === 'path'
+      ? PATH_COLOR
+      : status === 'toll'
+        ? TOLL_COLOR
+        : status === 'explored'
+          ? EXPLORED_COLOR
+          : NORMAL_COLOR
+  const glows = status === 'path' || status === 'toll'
+  const emissive = glows ? color : '#000000'
+  const emissiveInt = glows ? 0.45 : 0
 
   return (
     <mesh position={position} rotation={rotation} receiveShadow>
