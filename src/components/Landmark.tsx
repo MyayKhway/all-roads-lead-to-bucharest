@@ -6,6 +6,7 @@
 import { useFrame } from '@react-three/fiber'
 import { useRef } from 'react'
 import type * as THREE from 'three'
+import { COLOR } from '../lib/theme'
 
 type ShapeVariant =
   | 'castle'
@@ -40,15 +41,15 @@ const SHAPE_MAP: Record<string, ShapeVariant> = {
   neamt: 'castle',
 }
 
-const PASTEL: Record<ShapeVariant, string> = {
-  castle: '#B5D5C5',
-  church: '#D4B8E0',
-  cathedral: '#C8D8E8',
-  tower: '#F5C6A0',
-  fort: '#C4A882',
-  arch: '#E8D5A3',
-  palace: '#F2B5D4',
-  bridge: '#A8D8EA',
+const STONE: Record<ShapeVariant, string> = {
+  castle: '#6e7a8a',
+  church: '#7d7690',
+  cathedral: '#71889a',
+  tower: '#8a7862',
+  fort: '#6b6455',
+  arch: '#9c8a68',
+  palace: '#8a7484',
+  bridge: '#5f7f86',
 }
 
 interface ShapeProps {
@@ -79,7 +80,7 @@ function CastleShape({ color, scale }: ShapeProps) {
       ))}
       <mesh position={[0, 0.9, 0]} castShadow>
         <coneGeometry args={[0.25, 0.3, 6]} />
-        <meshStandardMaterial color="#E87070" roughness={0.6} />
+        <meshStandardMaterial color="#a85c3f" roughness={0.55} />
       </mesh>
     </group>
   )
@@ -94,7 +95,7 @@ function ChurchShape({ color, scale }: ShapeProps) {
       </mesh>
       <mesh position={[0, 0.55, 0]} castShadow>
         <coneGeometry args={[0.22, 0.4, 4]} />
-        <meshStandardMaterial color="#9B7EBD" roughness={0.6} />
+        <meshStandardMaterial color="#5e6e88" roughness={0.5} />
       </mesh>
       <mesh position={[0.2, 0.35, 0.1]} castShadow>
         <cylinderGeometry args={[0.07, 0.07, 0.5, 8]} />
@@ -102,7 +103,7 @@ function ChurchShape({ color, scale }: ShapeProps) {
       </mesh>
       <mesh position={[0.2, 0.65, 0.1]} castShadow>
         <coneGeometry args={[0.1, 0.2, 8]} />
-        <meshStandardMaterial color="#9B7EBD" roughness={0.6} />
+        <meshStandardMaterial color="#5e6e88" roughness={0.5} />
       </mesh>
     </group>
   )
@@ -117,7 +118,7 @@ function CathedralShape({ color, scale }: ShapeProps) {
       </mesh>
       <mesh position={[0, 0.65, 0]} castShadow>
         <sphereGeometry args={[0.22, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshStandardMaterial color="#A3C4BC" roughness={0.5} />
+        <meshStandardMaterial color="#5e8a82" roughness={0.4} />
       </mesh>
       {(
         [
@@ -135,7 +136,7 @@ function CathedralShape({ color, scale }: ShapeProps) {
           </mesh>
           <mesh position={[0, 0.65, 0]} castShadow>
             <coneGeometry args={[0.09, 0.2, 8]} />
-            <meshStandardMaterial color="#7BA7BC" roughness={0.5} />
+            <meshStandardMaterial color="#5e8a82" roughness={0.4} />
           </mesh>
         </group>
       ))}
@@ -152,7 +153,7 @@ function TowerShape({ color, scale }: ShapeProps) {
       </mesh>
       <mesh position={[0, 0.8, 0]} castShadow>
         <coneGeometry args={[0.22, 0.35, 8]} />
-        <meshStandardMaterial color="#D4845A" roughness={0.6} />
+        <meshStandardMaterial color="#a86e4a" roughness={0.55} />
       </mesh>
       {[0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2].map((angle, i) => (
         <mesh
@@ -163,7 +164,7 @@ function TowerShape({ color, scale }: ShapeProps) {
           castShadow
         >
           <boxGeometry args={[0.04, 0.12, 0.02]} />
-          <meshStandardMaterial color="#5C4A3A" roughness={0.9} />
+          <meshStandardMaterial color="#2c2620" roughness={0.9} />
         </mesh>
       ))}
     </group>
@@ -216,7 +217,7 @@ function ArchShape({ color, scale }: ShapeProps) {
       </mesh>
       <mesh position={[0, 0.08, 0]} castShadow>
         <boxGeometry args={[0.7, 0.06, 0.18]} />
-        <meshStandardMaterial color="#C8B89A" roughness={0.8} />
+        <meshStandardMaterial color="#4a4238" roughness={0.85} />
       </mesh>
     </group>
   )
@@ -231,13 +232,13 @@ function PalaceShape({ color, scale }: ShapeProps) {
       </mesh>
       <mesh position={[0, 0.58, 0]} castShadow>
         <coneGeometry args={[0.2, 0.18, 4]} />
-        <meshStandardMaterial color="#D4A0B5" roughness={0.5} />
+        <meshStandardMaterial color="#6e5a68" roughness={0.45} />
       </mesh>
       {[-0.25, -0.08, 0.08, 0.25].map((x, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: static geometry array, order is fixed
         <mesh key={i} position={[x, 0.2, 0.26]} castShadow>
           <cylinderGeometry args={[0.03, 0.035, 0.4, 6]} />
-          <meshStandardMaterial color="#F0E8D8" roughness={0.4} />
+          <meshStandardMaterial color="#c9bfa8" roughness={0.4} />
         </mesh>
       ))}
       <mesh position={[-0.48, 0.18, 0]} castShadow>
@@ -267,7 +268,7 @@ function BridgeShape({ color, scale }: ShapeProps) {
         // biome-ignore lint/suspicious/noArrayIndexKey: static geometry array, order is fixed
         <mesh key={i} position={[0, 0.3, z]} castShadow>
           <boxGeometry args={[0.68, 0.06, 0.03]} />
-          <meshStandardMaterial color="#D0C0A8" roughness={0.7} />
+          <meshStandardMaterial color="#4a4238" roughness={0.7} />
         </mesh>
       ))}
     </group>
@@ -285,9 +286,9 @@ interface LandmarkProps {
 export default function Landmark({ cityId, highlight, explored }: LandmarkProps) {
   const ref = useRef<THREE.Group>(null)
   const variant: ShapeVariant = SHAPE_MAP[cityId] ?? 'tower'
-  const baseColor = PASTEL[variant]
+  const baseColor = STONE[variant]
 
-  const color = highlight ? '#FFE066' : explored ? '#B0B8C4' : baseColor
+  const color = highlight ? COLOR.amberHover : explored ? '#5c6a7d' : baseColor
 
   useFrame((state) => {
     if (!ref.current) return
