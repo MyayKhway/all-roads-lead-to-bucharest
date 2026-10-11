@@ -30,3 +30,4 @@ dist-ssr
 
 # Obsidian vault config (docs/ is often opened as a vault)
 .obsidian
+.vercel
