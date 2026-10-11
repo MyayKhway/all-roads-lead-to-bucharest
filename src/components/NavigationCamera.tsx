@@ -38,12 +38,18 @@ const COUNTRY_FILL = 0.94 / OVERVIEW_MARGIN
 // A route's cities carry landmarks and labels beyond their centre points, so leave more room.
 const ROUTE_FILL = 0.72
 
-function cameraFor(target: THREE.Vector3, range: number, fov: number, aspect: number) {
+function cameraFor(
+  target: THREE.Vector3,
+  range: number,
+  fov: number,
+  aspect: number,
+  heading = new THREE.Vector2(0, 1),
+) {
   const camera = new THREE.PerspectiveCamera(fov, aspect, 0.1, 500)
   camera.position.set(
-    target.x,
-    range * Math.sin(OVERVIEW_TILT),
-    target.z + range * Math.cos(OVERVIEW_TILT),
+    target.x + range * Math.cos(OVERVIEW_TILT) * heading.x,
+    target.y + range * Math.sin(OVERVIEW_TILT),
+    target.z + range * Math.cos(OVERVIEW_TILT) * heading.y,
   )
   camera.lookAt(target)
   camera.updateMatrixWorld()
@@ -51,9 +57,8 @@ function cameraFor(target: THREE.Vector3, range: number, fov: number, aspect: nu
 }
 
 /**
- * Camera position and target that fit ground points on screen, seen from the south.
- * Perspective makes the near (southern) side look wider than the far side, so the
- * points are projected and the view is nudged until their on-screen bounds are centred.
+ * Camera position and target that fit ground points on screen from a chosen heading.
+ * Points are projected and the view is nudged until their on-screen bounds are centred.
  */
 function framePoints(
   points: readonly THREE.Vector3[],
@@ -61,6 +66,7 @@ function framePoints(
   aspect: number,
   fill: number,
   minRange = 0,
+  heading = new THREE.Vector2(0, 1),
 ): { position: THREE.Vector3; target: THREE.Vector3 } {
   const box = new THREE.Box3().setFromPoints([...points])
   const target = box.getCenter(new THREE.Vector3())
@@ -69,7 +75,7 @@ function framePoints(
   let range = Math.max(minRange, box.getSize(new THREE.Vector3()).length())
 
   for (let pass = 0; pass < 8; pass += 1) {
-    const camera = cameraFor(target, range, fov, aspect)
+    const camera = cameraFor(target, range, fov, aspect, heading)
     let minX = Infinity
     let maxX = -Infinity
     let minY = Infinity
@@ -82,14 +88,20 @@ function framePoints(
       maxY = Math.max(maxY, ndc.y)
     }
     // Shift the target so the projected bounds are centred (screen up is north, −z)…
-    target.x += ((minX + maxX) / 2) * range * Math.tan(hfov / 2)
-    target.z -= (((minY + maxY) / 2) * range * Math.tan(vfov / 2)) / Math.sin(OVERVIEW_TILT)
+    const centerX = (minX + maxX) / 2
+    const centerY = (minY + maxY) / 2
+    const rightX = heading.y
+    const rightZ = -heading.x
+    const horizontalShift = centerX * range * Math.tan(hfov / 2)
+    const verticalShift = (centerY * range * Math.tan(vfov / 2)) / Math.sin(OVERVIEW_TILT)
+    target.x += rightX * horizontalShift - heading.x * verticalShift
+    target.z += rightZ * horizontalShift - heading.y * verticalShift
     // …and scale the distance so the larger extent fills FILL of the screen.
     const extent = Math.max((maxX - minX) / 2, (maxY - minY) / 2)
     range = Math.max(minRange, range * (extent / fill))
   }
 
-  return { position: cameraFor(target, range, fov, aspect).position.clone(), target }
+  return { position: cameraFor(target, range, fov, aspect, heading).position.clone(), target }
 }
 
 export default function NavigationCamera({
@@ -104,6 +116,7 @@ export default function NavigationCamera({
   const controlsRef = useRef<OrbitControlsImpl>(null)
   // True while flying to the overview; once there, the user has the camera.
   const settling = useRef(false)
+  const wasAnimating = useRef(false)
 
   // No route on screen: show the whole country. Glide there when a route is cleared;
   // jump there at startup and on resize, where a glide would only look like lag.
@@ -135,6 +148,32 @@ export default function NavigationCamera({
     }
     settling.current = false
   }, [path, camera, size.width, size.height])
+
+  useEffect(() => {
+    if (!isAnimating) {
+      wasAnimating.current = false
+      return
+    }
+    if (wasAnimating.current || !path || path.length < 2) return
+    wasAnimating.current = true
+
+    const first = positionOf(cities, path[0])
+    const second = positionOf(cities, path[1])
+    if (!first || !second) return
+    const heading = new THREE.Vector2(first[0] - second[0], first[2] - second[2]).normalize()
+    const opening = framePoints(
+      [new THREE.Vector3(...first), new THREE.Vector3(...second)],
+      fovOf(camera),
+      size.width / Math.max(1, size.height),
+      0.52,
+      ROUTE_MIN_RANGE,
+      heading,
+    )
+    camera.position.copy(opening.position)
+    controlsRef.current?.target.copy(opening.target)
+    controlsRef.current?.update()
+    if (!controlsRef.current) camera.lookAt(opening.target)
+  }, [isAnimating, path, cities, camera, size.width, size.height])
 
   useEffect(() => {
     if (!path || path.length === 0) return
@@ -185,12 +224,22 @@ export default function NavigationCamera({
     const cityPos = new THREE.Vector3(...currentPos)
 
     const nextPos = positionOf(cities, path[cityIdx + 1])
-    const lookTarget =
-      nextPos !== undefined
-        ? new THREE.Vector3(...nextPos)
-        : cityPos.clone().add(new THREE.Vector3(1, 0, 1))
+    const previousPos = positionOf(cities, path[cityIdx - 1])
+    const travelDirection = nextPos
+      ? new THREE.Vector2(nextPos[0] - cityPos.x, nextPos[2] - cityPos.z)
+      : previousPos
+        ? new THREE.Vector2(cityPos.x - previousPos[0], cityPos.z - previousPos[2])
+        : new THREE.Vector2(0, -1)
+    travelDirection.normalize()
+    const lookTarget = nextPos
+      ? cityPos.clone().lerp(new THREE.Vector3(...nextPos), 0.55)
+      : cityPos
 
-    targetPos.current.set(cityPos.x + FOLLOW_DIST * 0.7, FOLLOW_HEIGHT, cityPos.z + FOLLOW_DIST)
+    targetPos.current.set(
+      cityPos.x - travelDirection.x * FOLLOW_DIST,
+      FOLLOW_HEIGHT,
+      cityPos.z - travelDirection.y * FOLLOW_DIST,
+    )
     targetLookAt.current.copy(lookTarget)
 
     camera.position.lerp(targetPos.current, LERP_SPEED * 1.5)
