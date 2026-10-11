@@ -5,16 +5,20 @@ import { romaniaGraph, type WeightedGraph } from '@/data/graph'
 import type { SearchAlgorithmContext, SearchProblem } from '@/search/contracts'
 import { createSearchProbe } from '@/search/evaluation/probe'
 import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
+import { createAltHeuristic } from '@/search/heuristics/alt'
 import { ntbHeuristic } from '@/search/heuristics/ntb'
 import { validateSearchResult } from '@/search/validation'
+import { altAstarVariant } from '@/search/variants/alt'
 import { ntbAstarVariant } from '@/search/variants/ntbAstar'
 import { ucsVariant } from '@/search/variants/ucs'
 
-// Both variants promise optimal routes, so they share one set of expectations.
-const optimalVariants = [ntbAstarVariant, ucsVariant]
+// These variants all promise optimal routes, so they share one set of expectations.
+const optimalVariants = [ntbAstarVariant, altAstarVariant, ucsVariant]
 
-function contextFor(variant: (typeof optimalVariants)[number]): SearchAlgorithmContext {
-  const { heuristic } = variant
+function contextFor(
+  variant: (typeof optimalVariants)[number],
+  heuristic = variant.heuristic,
+): SearchAlgorithmContext {
   return { ...(heuristic === undefined ? {} : { heuristic }), probe: createSearchProbe() }
 }
 
@@ -50,8 +54,11 @@ for (const variant of optimalVariants) {
       },
     }
     const problem: SearchProblem = { graph: disconnected, start: 'arad', goal: 'bucharest' }
+    // ALT tables belong to one graph, so rebuild them for this one.
+    const heuristic =
+      variant === altAstarVariant ? createAltHeuristic(disconnected) : variant.heuristic
 
-    assert.deepEqual(variant.algorithm(problem, contextFor(variant)), {
+    assert.deepEqual(variant.algorithm(problem, contextFor(variant, heuristic)), {
       status: 'failure',
       reason: 'unreachable',
     })
