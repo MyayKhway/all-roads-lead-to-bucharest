@@ -124,7 +124,11 @@ export default function ControlPanel({
       {/* Buttons */}
       <div className="panel-actions">
         <button type="button" className="btn btn-primary" onClick={onFindPath} disabled={!canFind}>
-          {phase === 'searching' ? '⏳ Searching…' : isAnimating ? '⏳ Navigating…' : '▶ Find Path'}
+          {!isAnimating
+            ? '▶ Find Path'
+            : phase === 'searching'
+              ? '⏳ Searching…'
+              : '⏳ Navigating…'}
         </button>
         <button
           type="button"
