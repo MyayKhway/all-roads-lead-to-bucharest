@@ -27,36 +27,69 @@ const OVERVIEW_MARGIN = 1.03
 const ROUTE_MIN_RANGE = 9
 const SETTLE_EPSILON = 0.02
 
-const ROMANIA_BOX = new THREE.Box3().setFromPoints(
-  ROMANIA_OUTLINE.map(([x, z]) => new THREE.Vector3(x, 0, z)),
-)
+const ROMANIA_POINTS = ROMANIA_OUTLINE.map(([x, z]) => new THREE.Vector3(x, 0, z))
 
 function fovOf(camera: THREE.Camera): number {
   return camera instanceof THREE.PerspectiveCamera ? camera.fov : 45
 }
 
-/** Camera position and target that fit a ground box in view, seen from the south. */
-function frameBox(
-  box: THREE.Box3,
-  fovDegrees: number,
-  aspect: number,
-  minRange = 0,
-): { position: THREE.Vector3; target: THREE.Vector3 } {
-  const target = box.getCenter(new THREE.Vector3())
-  const size = box.getSize(new THREE.Vector3())
-  const vfov = THREE.MathUtils.degToRad(fovDegrees)
-  const hfov = 2 * Math.atan(Math.tan(vfov / 2) * aspect)
-  // The southern (near) edge looks widest, so fit the width there; depth is foreshortened by the tilt.
-  const nearEdge = (size.z / 2) * Math.cos(OVERVIEW_TILT)
-  const fitWidth = ((size.x / 2) * OVERVIEW_MARGIN) / Math.tan(hfov / 2) + nearEdge
-  const fitDepth = (((size.z * Math.sin(OVERVIEW_TILT)) / 2) * OVERVIEW_MARGIN) / Math.tan(vfov / 2)
-  const range = Math.max(minRange, fitWidth, fitDepth)
-  const position = new THREE.Vector3(
+/** How much of the screen (normalised device coordinates) framed points may fill. */
+const COUNTRY_FILL = 0.94 / OVERVIEW_MARGIN
+// A route's cities carry landmarks and labels beyond their centre points, so leave more room.
+const ROUTE_FILL = 0.72
+
+function cameraFor(target: THREE.Vector3, range: number, fov: number, aspect: number) {
+  const camera = new THREE.PerspectiveCamera(fov, aspect, 0.1, 500)
+  camera.position.set(
     target.x,
     range * Math.sin(OVERVIEW_TILT),
     target.z + range * Math.cos(OVERVIEW_TILT),
   )
-  return { position, target }
+  camera.lookAt(target)
+  camera.updateMatrixWorld()
+  return camera
+}
+
+/**
+ * Camera position and target that fit ground points on screen, seen from the south.
+ * Perspective makes the near (southern) side look wider than the far side, so the
+ * points are projected and the view is nudged until their on-screen bounds are centred.
+ */
+function framePoints(
+  points: readonly THREE.Vector3[],
+  fov: number,
+  aspect: number,
+  fill: number,
+  minRange = 0,
+): { position: THREE.Vector3; target: THREE.Vector3 } {
+  const box = new THREE.Box3().setFromPoints([...points])
+  const target = box.getCenter(new THREE.Vector3())
+  const vfov = THREE.MathUtils.degToRad(fov)
+  const hfov = 2 * Math.atan(Math.tan(vfov / 2) * aspect)
+  let range = Math.max(minRange, box.getSize(new THREE.Vector3()).length())
+
+  for (let pass = 0; pass < 8; pass += 1) {
+    const camera = cameraFor(target, range, fov, aspect)
+    let minX = Infinity
+    let maxX = -Infinity
+    let minY = Infinity
+    let maxY = -Infinity
+    for (const point of points) {
+      const ndc = point.clone().project(camera)
+      minX = Math.min(minX, ndc.x)
+      maxX = Math.max(maxX, ndc.x)
+      minY = Math.min(minY, ndc.y)
+      maxY = Math.max(maxY, ndc.y)
+    }
+    // Shift the target so the projected bounds are centred (screen up is north, −z)…
+    target.x += ((minX + maxX) / 2) * range * Math.tan(hfov / 2)
+    target.z -= (((minY + maxY) / 2) * range * Math.tan(vfov / 2)) / Math.sin(OVERVIEW_TILT)
+    // …and scale the distance so the larger extent fills FILL of the screen.
+    const extent = Math.max((maxX - minX) / 2, (maxY - minY) / 2)
+    range = Math.max(minRange, range * (extent / fill))
+  }
+
+  return { position: cameraFor(target, range, fov, aspect).position.clone(), target }
 }
 
 export default function NavigationCamera({
@@ -80,7 +113,12 @@ export default function NavigationCamera({
     const cleared = hadRoute.current && !hasRoute
     hadRoute.current = hasRoute
     if (hasRoute) return
-    const home = frameBox(ROMANIA_BOX, fovOf(camera), size.width / Math.max(1, size.height))
+    const home = framePoints(
+      ROMANIA_POINTS,
+      fovOf(camera),
+      size.width / Math.max(1, size.height),
+      COUNTRY_FILL,
+    )
     targetPos.current.copy(home.position)
     targetLookAt.current.copy(home.target)
     if (cleared) {
@@ -106,10 +144,11 @@ export default function NavigationCamera({
         .filter((p): p is Position3D => p !== undefined)
         .map((p) => new THREE.Vector3(...p))
       if (pts.length === 0) return
-      const overview = frameBox(
-        new THREE.Box3().setFromPoints(pts),
+      const overview = framePoints(
+        pts,
         fovOf(camera),
         size.width / Math.max(1, size.height),
+        ROUTE_FILL,
         ROUTE_MIN_RANGE,
       )
       targetPos.current.copy(overview.position)
