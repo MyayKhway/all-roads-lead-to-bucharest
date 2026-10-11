@@ -5,6 +5,15 @@ import type { Heuristic } from '@/search/contracts'
 /** Prepared NTB estimates are shared only by calls using the same graph and goal. */
 const estimatesByGraph = new WeakMap<WeightedGraph, Map<CityId, ReadonlyMap<CityId, number>>>()
 
+function estimatesForGraph(graph: WeightedGraph): Map<CityId, ReadonlyMap<CityId, number>> {
+  let byGoal = estimatesByGraph.get(graph)
+  if (byGoal === undefined) {
+    byGoal = new Map()
+    estimatesByGraph.set(graph, byGoal)
+  }
+  return byGoal
+}
+
 /** Find each reachable city's minimum number of unweighted road hops to the goal. */
 export function hopDistancesFromGoal(
   graph: WeightedGraph,
@@ -125,24 +134,26 @@ function prepareGoalEstimates(graph: WeightedGraph, goal: CityId): ReadonlyMap<C
   return estimates
 }
 
+function estimatesForGoal(graph: WeightedGraph, goal: CityId): ReadonlyMap<CityId, number> {
+  const byGoal = estimatesForGraph(graph)
+  let estimates = byGoal.get(goal)
+  if (estimates === undefined) {
+    estimates = prepareGoalEstimates(graph, goal)
+    byGoal.set(goal, estimates)
+  }
+  return estimates
+}
+
+/** Build and cache NTB lookup tables for every possible goal before search timing begins. */
+export function precomputeNtbEstimates(graph: WeightedGraph): void {
+  for (const goal of graph.cityIds) {
+    estimatesForGoal(graph, goal)
+  }
+}
+
 /** Return the unchanged NTB lower bound from its graph-and-goal lookup table. */
 export const ntbHeuristic: Heuristic = (current, problem) => {
   if (current === problem.goal) return 0
-
-  let byGoal = estimatesByGraph.get(problem.graph)
-  if (byGoal === undefined) {
-    byGoal = new Map()
-    estimatesByGraph.set(problem.graph, byGoal)
-  }
-
-  let estimates = byGoal.get(problem.goal)
-  if (estimates === undefined) {
-    estimates = prepareGoalEstimates(problem.graph, problem.goal)
-    byGoal.set(problem.goal, estimates)
-  }
-
+  const estimates = estimatesForGoal(problem.graph, problem.goal)
   return estimates.get(current) ?? 0
 }
-/** Evaluator warms up the cache first before measurement.
- * Execution time records cached NTB lookups with A* search,
- * not NTB preprocessing with A* search */
