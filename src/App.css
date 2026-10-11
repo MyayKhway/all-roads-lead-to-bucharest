@@ -635,3 +635,126 @@ body,
     overflow-y: auto;
   }
 }
+
+/* =====================================================================
+   Search replay — playback bar and step card
+   ===================================================================== */
+.replay-bar {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 10px 8px 18px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #ede8d0;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  font-size: 0.85rem;
+  color: #3e3020;
+  white-space: nowrap;
+  z-index: 11;
+}
+
+.replay-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.replay-sep {
+  width: 1px;
+  height: 14px;
+  background: #e0d39a;
+}
+
+.replay-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.replay-buttons button,
+.replay-buttons select {
+  border: 1px solid #e0d39a;
+  background: #fffdf3;
+  color: #3e3020;
+  border-radius: 999px;
+  min-width: 32px;
+  height: 30px;
+  padding: 0 8px;
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.replay-buttons button:hover:not(:disabled) {
+  background: #fcf0af;
+}
+
+.replay-buttons button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.step-current {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 16px 6px;
+  font-size: 0.85rem;
+  color: #3e3020;
+}
+
+.step-formula {
+  font-size: 0.75rem;
+  color: #7a6840;
+  font-variant-numeric: tabular-nums;
+}
+
+.step-table {
+  width: calc(100% - 24px);
+  margin: 0 12px;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.step-table thead th {
+  text-align: left;
+  font-size: 0.7rem;
+  color: #7a6840;
+  font-weight: 700;
+  padding: 4px;
+  border-bottom: 1px solid #e0ede0;
+}
+
+.step-table td {
+  padding: 4px;
+  color: #3e3020;
+  border-bottom: 1px solid #f0f4f0;
+}
+
+.step-row--stale td {
+  color: #a39470;
+}
+
+.step-note {
+  padding: 8px 16px 12px;
+  font-size: 0.72rem;
+  color: #7a6840;
+}
+
+@media (max-width: 640px) {
+  .replay-bar {
+    top: 8px;
+    flex-direction: column;
+    gap: 6px;
+    border-radius: 14px;
+    padding: 8px 12px;
+  }
+}

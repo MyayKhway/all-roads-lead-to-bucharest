@@ -4,6 +4,7 @@
 
 import type { CityMap } from '../data/cities'
 import type { Edge } from '../data/graph'
+import { type Phase, roadKey, type SearchView } from '../lib/searchView'
 import { SCENE_COLOR } from '../lib/theme'
 import type { RouteRun } from '../search/presentation'
 import type { CityStatus } from './CityNode'
@@ -20,42 +21,66 @@ interface RomaniaMapProps {
   cities: CityMap
   edges: Edge[]
   pathResult: RouteRun | null
+  phase: Phase
+  view: SearchView
   animProgress: number
-  isAnimating: boolean
   onCityClick: (cityId: string) => void
 }
 
-function getCityStatus(cityId: string, pathResult: RouteRun | null): CityStatus {
+function getCityStatus(
+  cityId: string,
+  pathResult: RouteRun | null,
+  phase: Phase,
+  view: SearchView,
+): CityStatus {
   if (!pathResult) return 'normal'
-  const { path, expandedOrder } = pathResult
+  const { path } = pathResult
   if (cityId === path[0]) return 'start'
   if (cityId === path[path.length - 1]) return 'goal'
+  // While replaying, only what the search has seen so far is shown.
+  if (phase === 'searching') {
+    if (cityId === view.current) return 'current'
+    if (view.frontier.has(cityId)) return 'frontier'
+    return view.explored.includes(cityId) ? 'explored' : 'normal'
+  }
   if (path.some((step) => step === cityId)) return 'path'
-  if (expandedOrder.some((expanded) => expanded === cityId)) return 'explored'
+  if (view.explored.includes(cityId)) return 'explored'
   return 'normal'
 }
 
-function getEdgeStatus(fromId: string, toId: string, pathResult: RouteRun | null): RoadStatus {
+function getEdgeStatus(
+  fromId: string,
+  toId: string,
+  pathResult: RouteRun | null,
+  phase: Phase,
+  view: SearchView,
+): RoadStatus {
   if (!pathResult) return 'normal'
   const { path } = pathResult
-  for (let i = 0; i < path.length - 1; i++) {
-    if (
-      (path[i] === fromId && path[i + 1] === toId) ||
-      (path[i] === toId && path[i + 1] === fromId)
-    )
-      return 'path'
+  if (phase !== 'searching') {
+    for (let i = 0; i < path.length - 1; i++) {
+      if (
+        (path[i] === fromId && path[i + 1] === toId) ||
+        (path[i] === toId && path[i + 1] === fromId)
+      )
+        return 'path'
+    }
   }
-  return 'normal'
+  return view.touchedRoads.has(roadKey(fromId, toId)) ? 'explored' : 'normal'
 }
 
 export default function RomaniaMap({
   cities,
   edges,
   pathResult,
+  phase,
+  view,
   animProgress,
-  isAnimating,
   onCityClick,
 }: RomaniaMapProps) {
+  // The route and camera flight only start once the replay has finished.
+  const route = pathResult && phase !== 'searching' ? pathResult.path : null
+
   return (
     <>
       {/* Atmosphere — soft daylight with a light haze for depth */}
@@ -93,7 +118,7 @@ export default function RomaniaMap({
           key={`${from}-${to}`}
           from={cities[from]?.position ?? [0, 0, 0]}
           to={cities[to]?.position ?? [0, 0, 0]}
-          status={getEdgeStatus(from, to, pathResult)}
+          status={getEdgeStatus(from, to, pathResult, phase, view)}
         />
       ))}
 
@@ -102,22 +127,20 @@ export default function RomaniaMap({
         <CityNode
           key={city.id}
           city={city}
-          status={getCityStatus(city.id, pathResult)}
+          status={getCityStatus(city.id, pathResult, phase, view)}
           onClick={onCityClick}
         />
       ))}
 
       {/* Animated navigation path */}
-      {pathResult && (
-        <NavigationPath path={pathResult.path} cities={cities} animProgress={animProgress} />
-      )}
+      {route && <NavigationPath path={route} cities={cities} animProgress={animProgress} />}
 
       {/* Camera */}
       <NavigationCamera
-        path={pathResult?.path ?? null}
+        path={route}
         cities={cities}
         animProgress={animProgress}
-        isAnimating={isAnimating}
+        isAnimating={phase === 'navigating'}
       />
     </>
   )
