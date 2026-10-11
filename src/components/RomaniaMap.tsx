@@ -2,9 +2,9 @@
  * RomaniaMap — the main 3D scene.
  */
 
-import type { AstarResult } from '../algorithms/astar'
 import type { CityMap } from '../data/cities'
 import type { Edge } from '../data/graph'
+import type { RouteRun } from '../search/presentation'
 import type { CityStatus } from './CityNode'
 
 import CityNode from './CityNode'
@@ -16,23 +16,23 @@ import Road from './Road'
 interface RomaniaMapProps {
   cities: CityMap
   edges: Edge[]
-  pathResult: AstarResult | null
+  pathResult: RouteRun | null
   animProgress: number
   isAnimating: boolean
   onCityClick: (cityId: string) => void
 }
 
-function getCityStatus(cityId: string, pathResult: AstarResult | null): CityStatus {
+function getCityStatus(cityId: string, pathResult: RouteRun | null): CityStatus {
   if (!pathResult) return 'normal'
-  const { path, exploredOrder } = pathResult
+  const { path, expandedOrder } = pathResult
   if (cityId === path[0]) return 'start'
   if (cityId === path[path.length - 1]) return 'goal'
-  if (path.includes(cityId)) return 'path'
-  if (exploredOrder.includes(cityId)) return 'explored'
+  if (path.some((step) => step === cityId)) return 'path'
+  if (expandedOrder.some((expanded) => expanded === cityId)) return 'explored'
   return 'normal'
 }
 
-function getEdgeStatus(fromId: string, toId: string, pathResult: AstarResult | null): RoadStatus {
+function getEdgeStatus(fromId: string, toId: string, pathResult: RouteRun | null): RoadStatus {
   if (!pathResult) return 'normal'
   const { path } = pathResult
   for (let i = 0; i < path.length - 1; i++) {

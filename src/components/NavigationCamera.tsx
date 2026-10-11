@@ -11,7 +11,7 @@ import type { CityMap, Position3D } from '../data/cities'
 import { positionOf } from '../data/cities'
 
 interface NavigationCameraProps {
-  path: string[] | null
+  path: readonly string[] | null
   cities: CityMap
   animProgress: number
   isAnimating: boolean
