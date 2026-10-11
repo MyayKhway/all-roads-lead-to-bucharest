@@ -1,14 +1,10 @@
 /**
- * ControlPanel — sidebar UI for selecting cities and a registered search variant.
+ * ControlPanel — left sidebar: pick the cities and search method, run or reset.
  */
 
-import { cities, cityList } from '../data/cities'
-import { isCityId } from '../data/cityIds'
-import { romaniaGraph } from '../data/graph'
-import type { Phase, SearchView } from '../lib/searchView'
-import { ringColor, STATUS_COLOR } from '../lib/theme'
-import { explainNtb } from '../search/heuristics/ntbBreakdown'
-import type { RouteRun } from '../search/presentation'
+import { cityList } from '../data/cities'
+import type { Phase } from '../lib/searchView'
+import { STATUS_COLOR } from '../lib/theme'
 import { searchVariantRegistry } from '../search/registry'
 
 const REPO_URL = 'https://github.com/MyayKhway/all-roads-lead-to-bucharest'
@@ -19,14 +15,11 @@ interface ControlPanelProps {
   variantId: string
   isAnimating: boolean
   phase: Phase
-  view: SearchView
-  pathResult: RouteRun | null
   onStart: (id: string) => void
   onGoal: (id: string) => void
   onVariant: (id: string) => void
   onFindPath: () => void
   onReset: () => void
-  onExplain: () => void
 }
 
 export default function ControlPanel({
@@ -35,14 +28,11 @@ export default function ControlPanel({
   variantId,
   isAnimating,
   phase,
-  view,
-  pathResult,
   onStart,
   onGoal,
   onVariant,
   onFindPath,
   onReset,
-  onExplain,
 }: ControlPanelProps) {
   const canFind = startCity && goalCity && startCity !== goalCity && !isAnimating
 
@@ -151,6 +141,8 @@ export default function ControlPanel({
           { color: STATUS_COLOR.start, label: 'Start city' },
           { color: STATUS_COLOR.goal, label: 'Destination' },
           { color: STATUS_COLOR.path, label: 'Route' },
+          { color: STATUS_COLOR.current, label: 'Expanding now' },
+          { color: STATUS_COLOR.frontier, label: 'In the queue' },
           { color: STATUS_COLOR.explored, label: 'Explored' },
         ].map(({ color, label }) => (
           <div key={label} className="legend-item">
@@ -159,169 +151,6 @@ export default function ControlPanel({
           </div>
         ))}
       </div>
-
-      {/* Step-by-step panel while the search replays */}
-      {pathResult && phase === 'searching' && (
-        <StepCard pathResult={pathResult} view={view} onExplain={onExplain} />
-      )}
-
-      {/* Result card */}
-      {pathResult && phase === 'done' && (
-        <ResultCard pathResult={pathResult} onExplain={onExplain} />
-      )}
-    </div>
-  )
-}
-
-// ─── Result card ──────────────────────────────────────────────────────────────
-
-interface ResultCardProps {
-  pathResult: RouteRun
-  onExplain: () => void
-}
-
-function ExplainButton({ onExplain }: { onExplain: () => void }) {
-  return (
-    <button type="button" className="btn btn-secondary result-explain" onClick={onExplain}>
-      Explain every step →
-    </button>
-  )
-}
-
-function ResultCard({ pathResult, onExplain }: ResultCardProps) {
-  const { path, pathCost, metrics, variant } = pathResult
-
-  return (
-    <div className="result-card">
-      <div className="result-header">
-        <span className="result-badge">✓ Route Found</span>
-      </div>
-
-      <div className="result-path">
-        {path.map((cityId, i) => (
-          <div key={cityId} className="path-step">
-            <div
-              className={`path-node${i === 0 ? ' path-node--start' : i === path.length - 1 ? ' path-node--goal' : ''}`}
-            >
-              {cities[cityId]?.name ?? cityId}
-            </div>
-            {i < path.length - 1 && <div className="path-arrow">↓</div>}
-          </div>
-        ))}
-      </div>
-
-      <div className="result-stats">
-        {[
-          { label: 'Total Distance', value: `${pathCost} km` },
-          { label: 'Cities in Route', value: String(path.length) },
-          { label: 'Nodes Expanded', value: String(metrics.nodesExpanded) },
-          { label: 'Peak Frontier', value: String(metrics.peakFrontierEntries) },
-          { label: 'Algorithm', value: variant.algorithmName },
-          { label: 'Heuristic', value: variant.heuristicName ?? 'None (blind)' },
-        ].map(({ label, value }) => (
-          <div key={label} className="stat-row">
-            <span className="stat-label">{label}</span>
-            <span className="stat-value">{value}</span>
-          </div>
-        ))}
-      </div>
-      <ExplainButton onExplain={onExplain} />
-    </div>
-  )
-}
-
-// ─── Step card ────────────────────────────────────────────────────────────────
-
-function cityName(id: string): string {
-  return cities[id]?.name ?? id
-}
-
-function StepCard({
-  pathResult,
-  view,
-  onExplain,
-}: {
-  pathResult: RouteRun
-  view: SearchView
-  onExplain: () => void
-}) {
-  const { step } = view
-  if (!step) return null
-  const informed = pathResult.variant.heuristic !== undefined
-  const goal = pathResult.path.at(-1)
-  const ntb =
-    pathResult.variant.id === 'astar-ntb' && goal && isCityId(step.city) && step.city !== goal
-      ? explainNtb(romaniaGraph, step.city, goal)
-      : null
-  // BFS keeps the first route it finds; UCS replaces a route only when cheaper.
-  const stale = pathResult.variant.id === 'bfs' ? 'already reached' : 'no gain'
-
-  return (
-    <div className="result-card step-card">
-      <div className="result-header">
-        <span className="result-badge">
-          {pathResult.variant.name} · step {view.explored.length} / {pathResult.steps.length}
-        </span>
-      </div>
-      <div className="step-current">
-        Expanding <strong>{cityName(step.city)}</strong>
-        <span className="step-formula">
-          g = {step.g}
-          {informed && step.h !== null && ` · f = ${(step.g + step.h).toFixed(0)}`}
-        </span>
-      </div>
-      {ntb && (
-        <div className="step-ntb">
-          <span>
-            h from ring tolls: {ntb.tolls.map((t) => t.road.distance).join(' + ')} ={' '}
-            <strong>{ntb.total}</strong>
-          </span>
-          <span className="step-ntb-key">
-            {ntb.tolls.map((t) => (
-              <i
-                key={t.threshold}
-                style={{ background: ringColor(t.threshold) }}
-                title={`ring ${t.threshold}`}
-              />
-            ))}
-            violet roads on the map
-          </span>
-        </div>
-      )}
-      {step.candidates.length === 0 ? (
-        <p className="step-note">Goal selected for expansion, so the search stops here.</p>
-      ) : (
-        <table className="step-table">
-          <thead>
-            <tr>
-              <th scope="col">Neighbour</th>
-              <th scope="col">g</th>
-              {informed && <th scope="col">h</th>}
-              {informed && <th scope="col">f = g + h</th>}
-              {!informed && <th scope="col">Result</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {step.candidates.map((c) => (
-              <tr key={c.city} className={c.improved ? undefined : 'step-row--stale'}>
-                <td>{cityName(c.city)}</td>
-                <td>{c.g}</td>
-                {informed && <td>{c.h === null ? '—' : c.h.toFixed(0)}</td>}
-                {informed && <td>{c.f === null ? 'no gain' : c.f.toFixed(0)}</td>}
-                {!informed && <td>{c.improved ? 'added' : stale}</td>}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-      <p className="step-note">
-        {informed
-          ? 'A* expands the frontier city with the lowest f next.'
-          : pathResult.variant.id === 'bfs'
-            ? 'BFS expands cities in the order it found them, ignoring cost.'
-            : 'UCS expands the frontier city with the lowest g next.'}
-      </p>
-      <ExplainButton onExplain={onExplain} />
     </div>
   )
 }
