@@ -73,7 +73,22 @@ export default function ControlPanel({
           </span>
           <span className="theme-toggle-thumb" aria-hidden="true" />
         </button>
-        <div className="panel-logo">📍</div>
+        <div className="panel-logo" aria-hidden="true">
+          <svg viewBox="0 0 100 124">
+            <title>Romania map pin</title>
+            <ellipse cx="50" cy="118" rx="14" ry="4" fill="#000000" opacity="0.15" />
+            <path d="M36 80 C 39 97, 44 109, 50 120 C 56 109, 61 97, 64 80 Z" fill="#ffffff" />
+            <rect x="6" y="6" width="88" height="88" rx="24" fill="#ffffff" />
+            <clipPath id="panel-logo-flag-clip">
+              <rect x="13" y="13" width="74" height="74" rx="18" />
+            </clipPath>
+            <g clipPath="url(#panel-logo-flag-clip)">
+              <rect x="13" y="13" width="24.67" height="74" fill="#002b7f" />
+              <rect x="37.67" y="13" width="24.67" height="74" fill="#fcd116" />
+              <rect x="62.33" y="13" width="24.67" height="74" fill="#ce1126" />
+            </g>
+          </svg>
+        </div>
         <h1 className="panel-title">Romania 3D Map</h1>
         <p className="panel-subtitle">Pathfinding Visualizer</p>
         <a className="panel-repo-link" href={REPO_URL} target="_blank" rel="noopener noreferrer">
