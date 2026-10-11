@@ -44,7 +44,8 @@ export default function App() {
   const [noPath, setNoPath] = useState<boolean>(false)
 
   const view = useMemo(() => deriveSearchView(pathResult, revealed), [pathResult, revealed])
-  const isAnimating = phase === 'searching' || phase === 'navigating'
+  // A paused replay leaves the controls free; only moving playback locks them.
+  const isAnimating = (phase === 'searching' && playing) || phase === 'navigating'
   const totalSteps = pathResult?.steps.length ?? 0
 
   // ── comparison state ─────────────────────────────────────────────────────────
@@ -134,11 +135,17 @@ export default function App() {
     }
   }, [phase, pathResult])
 
-  // ── replay controls ──────────────────────────────────────────────────────────
-  const handleStepBack = useCallback(() => {
-    setPlaying(false)
-    setRevealed((n) => Math.max(1, n - 1))
-  }, [])
+  // ── replay controls (also usable after the route has drawn) ─────────────────
+  const seekStep = useCallback(
+    (step: number) => {
+      setPlaying(false)
+      setRevealed(Math.min(Math.max(1, step), totalSteps))
+      setPhase('searching')
+    },
+    [totalSteps],
+  )
+
+  const handleStepBack = useCallback(() => seekStep(revealed - 1), [seekStep, revealed])
 
   const handleStepForward = useCallback(() => {
     setPlaying(false)
@@ -150,6 +157,16 @@ export default function App() {
     setRevealed(totalSteps)
     setPhase('navigating')
   }, [totalSteps])
+
+  const handleTogglePlay = useCallback(() => {
+    if (phase === 'done') {
+      setRevealed(1)
+      setPhase('searching')
+      setPlaying(true)
+    } else {
+      setPlaying((p) => !p)
+    }
+  }, [phase])
 
   // ── find path: animate the chosen variant, measure all of them ───────────────
   const handleFindPath = useCallback(() => {
@@ -244,21 +261,22 @@ export default function App() {
         {noPath && (
           <div className="toast toast--error">⚠ No path found between the selected cities.</div>
         )}
-        {phase === 'searching' && (
+        {pathResult && phase !== 'idle' && (
           <ReplayControls
+            phase={phase}
             revealed={revealed}
             total={totalSteps}
             current={view.current}
             playing={playing}
             speed={speed}
-            onTogglePlay={() => setPlaying((p) => !p)}
+            onTogglePlay={handleTogglePlay}
             onStepBack={handleStepBack}
             onStepForward={handleStepForward}
             onSkip={handleSkip}
+            onSeek={seekStep}
             onSpeed={setSpeed}
           />
         )}
-        {phase === 'navigating' && <div className="toast toast--info">🗺 Navigating route…</div>}
 
         <ComparisonPanel
           comparison={comparison}
