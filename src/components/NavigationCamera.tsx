@@ -20,8 +20,11 @@ interface NavigationCameraProps {
 const LERP_SPEED = 0.04
 const FOLLOW_HEIGHT = 5.5
 const FOLLOW_DIST = 4.5
-const OVERVIEW_HEIGHT = 14
-const OVERVIEW_DIST = 2
+// Overview after the route: due south of it, looking north (−z), far enough to fit it.
+const OVERVIEW_MIN_RANGE = 9
+const OVERVIEW_RANGE_PER_UNIT = 1.9
+const OVERVIEW_TILT = 0.95 // radians above the horizon
+const SETTLE_EPSILON = 0.02
 
 export default function NavigationCamera({
   path,
@@ -33,6 +36,8 @@ export default function NavigationCamera({
   const targetPos = useRef(new THREE.Vector3())
   const targetLookAt = useRef(new THREE.Vector3())
   const controlsRef = useRef<OrbitControlsImpl>(null)
+  // True while flying to the overview; once there, the user has the camera.
+  const settling = useRef(false)
 
   useEffect(() => {
     if (!path || path.length === 0) return
@@ -42,11 +47,17 @@ export default function NavigationCamera({
         .filter((p): p is Position3D => p !== undefined)
         .map((p) => new THREE.Vector3(...p))
       if (pts.length === 0) return
-      const center = pts
-        .reduce((acc, p) => acc.add(p), new THREE.Vector3())
-        .divideScalar(pts.length)
-      targetPos.current.set(center.x + OVERVIEW_DIST, OVERVIEW_HEIGHT, center.z + OVERVIEW_DIST * 2)
+      const box = new THREE.Box3().setFromPoints(pts)
+      const center = box.getCenter(new THREE.Vector3())
+      const extent = box.getSize(new THREE.Vector3()).length()
+      const range = Math.max(OVERVIEW_MIN_RANGE, extent * OVERVIEW_RANGE_PER_UNIT)
+      targetPos.current.set(
+        center.x,
+        range * Math.sin(OVERVIEW_TILT),
+        center.z + range * Math.cos(OVERVIEW_TILT),
+      )
       targetLookAt.current.copy(center)
+      settling.current = true
     }
   }, [isAnimating, path, cities])
 
@@ -54,12 +65,22 @@ export default function NavigationCamera({
     if (!path || path.length === 0) return
 
     if (!isAnimating) {
+      if (!settling.current) return
+      // Move the orbit target with the camera so OrbitControls keeps it looking at the route.
+      const controls = controlsRef.current
       camera.position.lerp(targetPos.current, LERP_SPEED)
-      const currentDir = new THREE.Vector3()
-      camera.getWorldDirection(currentDir)
-      const desired = targetLookAt.current.clone().sub(camera.position).normalize()
-      const blended = currentDir.lerp(desired, LERP_SPEED * 2)
-      camera.lookAt(camera.position.clone().add(blended))
+      if (controls) {
+        controls.target.lerp(targetLookAt.current, LERP_SPEED * 2)
+        controls.update()
+      } else {
+        camera.lookAt(targetLookAt.current)
+      }
+      if (camera.position.distanceTo(targetPos.current) < SETTLE_EPSILON) {
+        camera.position.copy(targetPos.current)
+        controls?.target.copy(targetLookAt.current)
+        controls?.update()
+        settling.current = false
+      }
       return
     }
 
