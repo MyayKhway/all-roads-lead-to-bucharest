@@ -9,6 +9,7 @@ import * as THREE from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import type { CityMap, Position3D } from '../data/cities'
 import { positionOf } from '../data/cities'
+import { ROMANIA_OUTLINE } from '../scenery/geography'
 
 interface NavigationCameraProps {
   path: readonly string[] | null
@@ -20,11 +21,43 @@ interface NavigationCameraProps {
 const LERP_SPEED = 0.04
 const FOLLOW_HEIGHT = 5.5
 const FOLLOW_DIST = 4.5
-// Overview after the route: due south of it, looking north (−z), far enough to fit it.
-const OVERVIEW_MIN_RANGE = 9
-const OVERVIEW_RANGE_PER_UNIT = 1.9
+// Overviews sit due south of what they frame, looking north (−z).
 const OVERVIEW_TILT = 0.95 // radians above the horizon
+const OVERVIEW_MARGIN = 1.03
+const ROUTE_MIN_RANGE = 9
 const SETTLE_EPSILON = 0.02
+
+const ROMANIA_BOX = new THREE.Box3().setFromPoints(
+  ROMANIA_OUTLINE.map(([x, z]) => new THREE.Vector3(x, 0, z)),
+)
+
+function fovOf(camera: THREE.Camera): number {
+  return camera instanceof THREE.PerspectiveCamera ? camera.fov : 45
+}
+
+/** Camera position and target that fit a ground box in view, seen from the south. */
+function frameBox(
+  box: THREE.Box3,
+  fovDegrees: number,
+  aspect: number,
+  minRange = 0,
+): { position: THREE.Vector3; target: THREE.Vector3 } {
+  const target = box.getCenter(new THREE.Vector3())
+  const size = box.getSize(new THREE.Vector3())
+  const vfov = THREE.MathUtils.degToRad(fovDegrees)
+  const hfov = 2 * Math.atan(Math.tan(vfov / 2) * aspect)
+  // The southern (near) edge looks widest, so fit the width there; depth is foreshortened by the tilt.
+  const nearEdge = (size.z / 2) * Math.cos(OVERVIEW_TILT)
+  const fitWidth = ((size.x / 2) * OVERVIEW_MARGIN) / Math.tan(hfov / 2) + nearEdge
+  const fitDepth = (((size.z * Math.sin(OVERVIEW_TILT)) / 2) * OVERVIEW_MARGIN) / Math.tan(vfov / 2)
+  const range = Math.max(minRange, fitWidth, fitDepth)
+  const position = new THREE.Vector3(
+    target.x,
+    range * Math.sin(OVERVIEW_TILT),
+    target.z + range * Math.cos(OVERVIEW_TILT),
+  )
+  return { position, target }
+}
 
 export default function NavigationCamera({
   path,
@@ -32,12 +65,38 @@ export default function NavigationCamera({
   animProgress,
   isAnimating,
 }: NavigationCameraProps) {
-  const { camera } = useThree()
+  const { camera, size } = useThree()
   const targetPos = useRef(new THREE.Vector3())
   const targetLookAt = useRef(new THREE.Vector3())
   const controlsRef = useRef<OrbitControlsImpl>(null)
   // True while flying to the overview; once there, the user has the camera.
   const settling = useRef(false)
+
+  // No route on screen: show the whole country. Glide there when a route is cleared;
+  // jump there at startup and on resize, where a glide would only look like lag.
+  const hadRoute = useRef(false)
+  useEffect(() => {
+    const hasRoute = path !== null && path.length > 0
+    const cleared = hadRoute.current && !hasRoute
+    hadRoute.current = hasRoute
+    if (hasRoute) return
+    const home = frameBox(ROMANIA_BOX, fovOf(camera), size.width / Math.max(1, size.height))
+    targetPos.current.copy(home.position)
+    targetLookAt.current.copy(home.target)
+    if (cleared) {
+      settling.current = true
+      return
+    }
+    camera.position.copy(home.position)
+    const controls = controlsRef.current
+    if (controls) {
+      controls.target.copy(home.target)
+      controls.update()
+    } else {
+      camera.lookAt(home.target)
+    }
+    settling.current = false
+  }, [path, camera, size.width, size.height])
 
   useEffect(() => {
     if (!path || path.length === 0) return
@@ -47,24 +106,20 @@ export default function NavigationCamera({
         .filter((p): p is Position3D => p !== undefined)
         .map((p) => new THREE.Vector3(...p))
       if (pts.length === 0) return
-      const box = new THREE.Box3().setFromPoints(pts)
-      const center = box.getCenter(new THREE.Vector3())
-      const extent = box.getSize(new THREE.Vector3()).length()
-      const range = Math.max(OVERVIEW_MIN_RANGE, extent * OVERVIEW_RANGE_PER_UNIT)
-      targetPos.current.set(
-        center.x,
-        range * Math.sin(OVERVIEW_TILT),
-        center.z + range * Math.cos(OVERVIEW_TILT),
+      const overview = frameBox(
+        new THREE.Box3().setFromPoints(pts),
+        fovOf(camera),
+        size.width / Math.max(1, size.height),
+        ROUTE_MIN_RANGE,
       )
-      targetLookAt.current.copy(center)
+      targetPos.current.copy(overview.position)
+      targetLookAt.current.copy(overview.target)
       settling.current = true
     }
-  }, [isAnimating, path, cities])
+  }, [isAnimating, path, cities, camera, size.width, size.height])
 
   useFrame(() => {
-    if (!path || path.length === 0) return
-
-    if (!isAnimating) {
+    if (!isAnimating || !path || path.length === 0) {
       if (!settling.current) return
       // Move the orbit target with the camera so OrbitControls keeps it looking at the route.
       const controls = controlsRef.current
@@ -115,7 +170,7 @@ export default function NavigationCamera({
       enableZoom
       enableRotate
       minDistance={3}
-      maxDistance={30}
+      maxDistance={60}
       maxPolarAngle={Math.PI / 2.2}
     />
   )

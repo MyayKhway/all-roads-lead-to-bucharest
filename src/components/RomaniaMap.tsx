@@ -104,7 +104,7 @@ export default function RomaniaMap({
     <>
       {/* Atmosphere — soft daylight with a light haze for depth */}
       <color attach="background" args={[SCENE_COLOR.sky]} />
-      <fog attach="fog" args={[SCENE_COLOR.fog, 24, 52]} />
+      <fog attach="fog" args={[SCENE_COLOR.fog, 40, 90]} />
 
       {/* Lighting: sky/ground fill + a warm sun casting soft shadows */}
       <hemisphereLight args={[SCENE_COLOR.hemiSky, SCENE_COLOR.hemiGround, 1.15]} />
