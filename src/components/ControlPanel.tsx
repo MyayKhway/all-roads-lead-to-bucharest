@@ -3,6 +3,7 @@
  */
 
 import { cities, cityList } from '../data/cities'
+import { STATUS_COLOR } from '../lib/theme'
 import type { RouteRun } from '../search/presentation'
 import { searchVariantRegistry } from '../search/registry'
 
@@ -133,10 +134,10 @@ export default function ControlPanel({
       {/* Legend */}
       <div className="legend">
         {[
-          { color: '#66BB6A', label: 'Start city' },
-          { color: '#EF5350', label: 'Destination' },
-          { color: '#43A047', label: 'Route' },
-          { color: '#78909C', label: 'Explored' },
+          { color: STATUS_COLOR.start, label: 'Start city' },
+          { color: STATUS_COLOR.goal, label: 'Destination' },
+          { color: STATUS_COLOR.path, label: 'Route' },
+          { color: STATUS_COLOR.explored, label: 'Explored' },
         ].map(({ color, label }) => (
           <div key={label} className="legend-item">
             <span className="legend-dot" style={{ background: color }} />
