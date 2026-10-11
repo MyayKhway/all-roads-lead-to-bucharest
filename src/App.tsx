@@ -278,14 +278,17 @@ export default function App() {
           />
         )}
 
-        <ComparisonPanel
-          comparison={comparison}
-          isMeasuring={isMeasuring}
-          selectedVariantId={variantId}
-          disabled={isAnimating}
-          onSelect={handleSelectComparedVariant}
-          onClose={() => setComparison(null)}
-        />
+        {/* Measured from Find Path, but only shown once the route has drawn */}
+        {phase === 'done' && (
+          <ComparisonPanel
+            comparison={comparison}
+            isMeasuring={isMeasuring}
+            selectedVariantId={variantId}
+            disabled={isAnimating}
+            onSelect={handleSelectComparedVariant}
+            onClose={() => setComparison(null)}
+          />
+        )}
       </div>
 
       {/* Sidebar */}
