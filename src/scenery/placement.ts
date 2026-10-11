@@ -321,14 +321,11 @@ export function vegetationInstances(): Record<VegetationModel, Instance[]> {
     }
   }
 
-  // 6. Grass tufts — ground detail, allowed closer to everything
-  const grassRules: Rules = { road: 0.12, city: 0.6, river: 0.05, spacing: 0.0 }
-  for (let i = 0; i < 4000 && out.grass.length < 800; i++) {
-    const x = -8.6 + rand() * 20
-    const z = -8.6 + rand() * 14.8
-    if (!fits(x, z, grassRules)) continue
-    const s = 0.6 + rand() * 0.45
-    out.grass.push({ position: [x, LAND_Y, z], rotationY: rand() * Math.PI * 2, scale: [s, s, s] })
+  // 6. Grass tufts — ground detail, allowed closer to everything, but still
+  // spaced from one another so they read as scattered rather than a clump.
+  const grassRules: Rules = { road: 0.12, city: 0.6, river: 0.05, spacing: 0.22 }
+  for (let i = 0; i < 4000 && out.grass.length < 220; i++) {
+    place('grass', -8.6 + rand() * 20, -8.6 + rand() * 14.8, grassRules)
   }
 
   return out
