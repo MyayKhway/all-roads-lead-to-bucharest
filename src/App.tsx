@@ -14,6 +14,7 @@ import ComparisonPanel from './components/ComparisonPanel'
 import ControlPanel from './components/ControlPanel'
 import ExplainPage from './components/explain/ExplainPage'
 import ReplayControls, { type ReplaySpeed } from './components/ReplayControls'
+import ResultsPanel from './components/ResultsPanel'
 import RomaniaMap from './components/RomaniaMap'
 import { cities } from './data/cities'
 import { isCityId } from './data/cityIds'
@@ -255,6 +256,20 @@ export default function App() {
 
   return (
     <div className="app-root">
+      {/* Left: pickers and actions */}
+      <ControlPanel
+        startCity={startCity}
+        goalCity={goalCity}
+        variantId={variantId}
+        isAnimating={isAnimating}
+        phase={phase}
+        onStart={setStartCity}
+        onGoal={setGoalCity}
+        onVariant={setVariantId}
+        onFindPath={handleFindPath}
+        onReset={handleReset}
+      />
+
       {/* 3D canvas */}
       <div className="canvas-container">
         <Canvas
@@ -322,20 +337,11 @@ export default function App() {
         )}
       </div>
 
-      {/* Sidebar */}
-      <ControlPanel
-        startCity={startCity}
-        goalCity={goalCity}
-        variantId={variantId}
-        isAnimating={isAnimating}
+      {/* Right: the rationale for each step, then the route found */}
+      <ResultsPanel
         phase={phase}
         view={view}
         pathResult={pathResult}
-        onStart={setStartCity}
-        onGoal={setGoalCity}
-        onVariant={setVariantId}
-        onFindPath={handleFindPath}
-        onReset={handleReset}
         onExplain={() => setExplainOpen(true)}
       />
 
