@@ -177,21 +177,21 @@ interface Forest {
 
 /** Forest stands — mostly conifers in the mountains, broadleaf in the lowlands. */
 const FORESTS: Forest[] = [
-  { x: 1.5, z: -4.4, r: 1.0, count: 34, mix: { pine: 5, round: 1 } },
-  { x: 1.6, z: -6.2, r: 0.8, count: 22, mix: { pine: 4, large: 1 } },
-  { x: -1.2, z: -6.7, r: 1.0, count: 28, mix: { pine: 2, round: 2, large: 1 } },
-  { x: -3.6, z: -5.1, r: 0.7, count: 16, mix: { pine: 3, round: 1 } },
-  { x: -2.1, z: 0.5, r: 0.55, count: 12, mix: { pine: 4, round: 1 } },
-  { x: -1.3, z: 2.3, r: 0.5, count: 10, mix: { pine: 2, round: 2 } },
-  { x: 3.8, z: -2.5, r: 0.8, count: 20, mix: { pine: 2, large: 2, round: 1 } },
-  { x: 2.0, z: -1.0, r: 0.45, count: 8, mix: { pine: 3, round: 1 } },
-  { x: 3.0, z: 3.5, r: 0.6, count: 16, mix: { large: 3, round: 2 } },
-  { x: 6.9, z: -2.4, r: 0.7, count: 18, mix: { round: 3, large: 2 } },
-  { x: 5.5, z: -6.8, r: 0.7, count: 16, mix: { round: 2, pine: 2, large: 1 } },
-  { x: -7.3, z: -0.8, r: 0.6, count: 14, mix: { round: 3, large: 1 } },
-  { x: 1.1, z: 3.0, r: 0.6, count: 14, mix: { large: 2, round: 2 } },
-  { x: -4.9, z: -4.3, r: 0.5, count: 10, mix: { round: 2, small: 1 } },
-  { x: 7.9, z: -5.5, r: 0.5, count: 10, mix: { round: 2, large: 1 } },
+  { x: 1.5, z: -4.4, r: 1.0, count: 20, mix: { pine: 5, round: 1 } },
+  { x: 1.6, z: -6.2, r: 0.8, count: 13, mix: { pine: 4, large: 1 } },
+  { x: -1.2, z: -6.7, r: 1.0, count: 17, mix: { pine: 2, round: 2, large: 1 } },
+  { x: -3.6, z: -5.1, r: 0.7, count: 10, mix: { pine: 3, round: 1 } },
+  { x: -2.1, z: 0.5, r: 0.55, count: 7, mix: { pine: 4, round: 1 } },
+  { x: -1.3, z: 2.3, r: 0.5, count: 6, mix: { pine: 2, round: 2 } },
+  { x: 3.8, z: -2.5, r: 0.8, count: 12, mix: { pine: 2, large: 2, round: 1 } },
+  { x: 2.0, z: -1.0, r: 0.45, count: 5, mix: { pine: 3, round: 1 } },
+  { x: 3.0, z: 3.5, r: 0.6, count: 10, mix: { large: 3, round: 2 } },
+  { x: 6.9, z: -2.4, r: 0.7, count: 11, mix: { round: 3, large: 2 } },
+  { x: 5.5, z: -6.8, r: 0.7, count: 10, mix: { round: 2, pine: 2, large: 1 } },
+  { x: -7.3, z: -0.8, r: 0.6, count: 8, mix: { round: 3, large: 1 } },
+  { x: 1.1, z: 3.0, r: 0.6, count: 8, mix: { large: 2, round: 2 } },
+  { x: -4.9, z: -4.3, r: 0.5, count: 6, mix: { round: 2, small: 1 } },
+  { x: 7.9, z: -5.5, r: 0.5, count: 6, mix: { round: 2, large: 1 } },
 ]
 
 /** Plain roads get rows of poplars — a familiar sight in the Romanian lowlands. */
@@ -271,10 +271,10 @@ export function vegetationInstances(): Record<VegetationModel, Instance[]> {
     }
   }
 
-  // 2. A few trees framing each landmark — always on its far (north) side
+  // 2. A couple of trees framing each landmark — always on its far (north) side
   for (const [cx, cz] of CITY_POINTS) {
-    for (let i = 0; i < 4; i++) {
-      const a = Math.PI * (1.12 + (i / 3) * 0.76) + (rand() - 0.5) * 0.25
+    for (let i = 0; i < 2; i++) {
+      const a = Math.PI * (1.12 + i * 0.76) + (rand() - 0.5) * 0.25
       const d = 0.74 + rand() * 0.24
       place(i % 2 ? 'round' : 'small', cx + Math.cos(a) * d, cz + Math.sin(a) * d, {
         ...TREE_RULES,
@@ -294,7 +294,7 @@ export function vegetationInstances(): Record<VegetationModel, Instance[]> {
     const len = Math.hypot(dx, dz)
     const nx = -dz / len
     const nz = dx / len
-    for (let t = 0.8; t < len - 0.8; t += 0.34) {
+    for (let t = 0.8; t < len - 0.8; t += 0.52) {
       const x = a[0] + (dx / len) * t
       const z = a[2] + (dz / len) * t
       place('poplar', x + nx * 0.3, z + nz * 0.3, { ...TREE_RULES, road: 0.22, spacing: 0.15 })
@@ -302,7 +302,7 @@ export function vegetationInstances(): Record<VegetationModel, Instance[]> {
   }
 
   // 4. Scattered trees over open country
-  for (let i = 0; i < 900 && out.round.length + out.small.length + out.large.length < 160; i++) {
+  for (let i = 0; i < 900 && out.round.length + out.small.length + out.large.length < 90; i++) {
     const x = -8.6 + rand() * 20
     const z = -8.6 + rand() * 14.8
     place(pick({ round: 3, small: 3, large: 1, pine: 1 }, rand()), x, z, TREE_RULES)
