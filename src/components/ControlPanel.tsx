@@ -3,6 +3,7 @@
  */
 
 import { cities, cityList } from '../data/cities'
+import type { Phase, SearchView } from '../lib/searchView'
 import { STATUS_COLOR } from '../lib/theme'
 import type { RouteRun } from '../search/presentation'
 import { searchVariantRegistry } from '../search/registry'
@@ -14,6 +15,8 @@ interface ControlPanelProps {
   goalCity: string
   variantId: string
   isAnimating: boolean
+  phase: Phase
+  view: SearchView
   pathResult: RouteRun | null
   onStart: (id: string) => void
   onGoal: (id: string) => void
@@ -27,6 +30,8 @@ export default function ControlPanel({
   goalCity,
   variantId,
   isAnimating,
+  phase,
+  view,
   pathResult,
   onStart,
   onGoal,
@@ -119,7 +124,7 @@ export default function ControlPanel({
       {/* Buttons */}
       <div className="panel-actions">
         <button type="button" className="btn btn-primary" onClick={onFindPath} disabled={!canFind}>
-          {isAnimating ? '⏳ Navigating…' : '▶ Find Path'}
+          {phase === 'searching' ? '⏳ Searching…' : isAnimating ? '⏳ Navigating…' : '▶ Find Path'}
         </button>
         <button
           type="button"
@@ -145,6 +150,9 @@ export default function ControlPanel({
           </div>
         ))}
       </div>
+
+      {/* Step-by-step panel while the search replays */}
+      {pathResult && phase === 'searching' && <StepCard pathResult={pathResult} view={view} />}
 
       {/* Result card */}
       {pathResult && !isAnimating && <ResultCard pathResult={pathResult} />}
@@ -195,6 +203,70 @@ function ResultCard({ pathResult }: ResultCardProps) {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+// ─── Step card ────────────────────────────────────────────────────────────────
+
+function cityName(id: string): string {
+  return cities[id]?.name ?? id
+}
+
+function StepCard({ pathResult, view }: { pathResult: RouteRun; view: SearchView }) {
+  const { step } = view
+  if (!step) return null
+  const informed = pathResult.variant.heuristic !== undefined
+  // BFS keeps the first route it finds; UCS replaces a route only when cheaper.
+  const stale = pathResult.variant.id === 'bfs' ? 'already reached' : 'no gain'
+
+  return (
+    <div className="result-card step-card">
+      <div className="result-header">
+        <span className="result-badge">
+          {pathResult.variant.name} · step {view.explored.length} / {pathResult.steps.length}
+        </span>
+      </div>
+      <div className="step-current">
+        Expanding <strong>{cityName(step.city)}</strong>
+        <span className="step-formula">
+          g = {step.g}
+          {informed && step.h !== null && ` · f = ${(step.g + step.h).toFixed(0)}`}
+        </span>
+      </div>
+      {step.candidates.length === 0 ? (
+        <p className="step-note">Goal selected for expansion, so the search stops here.</p>
+      ) : (
+        <table className="step-table">
+          <thead>
+            <tr>
+              <th scope="col">Neighbour</th>
+              <th scope="col">g</th>
+              {informed && <th scope="col">h</th>}
+              {informed && <th scope="col">f = g + h</th>}
+              {!informed && <th scope="col">Result</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {step.candidates.map((c) => (
+              <tr key={c.city} className={c.improved ? undefined : 'step-row--stale'}>
+                <td>{cityName(c.city)}</td>
+                <td>{c.g}</td>
+                {informed && <td>{c.h === null ? '—' : c.h.toFixed(0)}</td>}
+                {informed && <td>{c.f === null ? 'no gain' : c.f.toFixed(0)}</td>}
+                {!informed && <td>{c.improved ? 'added' : stale}</td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <p className="step-note">
+        {informed
+          ? 'A* expands the frontier city with the lowest f next.'
+          : pathResult.variant.id === 'bfs'
+            ? 'BFS expands cities in the order it found them, ignoring cost.'
+            : 'UCS expands the frontier city with the lowest g next.'}
+      </p>
     </div>
   )
 }
