@@ -23,6 +23,7 @@ interface ControlPanelProps {
   onVariant: (id: string) => void
   onFindPath: () => void
   onReset: () => void
+  onExplain: () => void
 }
 
 export default function ControlPanel({
@@ -38,6 +39,7 @@ export default function ControlPanel({
   onVariant,
   onFindPath,
   onReset,
+  onExplain,
 }: ControlPanelProps) {
   const canFind = startCity && goalCity && startCity !== goalCity && !isAnimating
 
@@ -156,10 +158,14 @@ export default function ControlPanel({
       </div>
 
       {/* Step-by-step panel while the search replays */}
-      {pathResult && phase === 'searching' && <StepCard pathResult={pathResult} view={view} />}
+      {pathResult && phase === 'searching' && (
+        <StepCard pathResult={pathResult} view={view} onExplain={onExplain} />
+      )}
 
       {/* Result card */}
-      {pathResult && !isAnimating && <ResultCard pathResult={pathResult} />}
+      {pathResult && phase === 'done' && (
+        <ResultCard pathResult={pathResult} onExplain={onExplain} />
+      )}
     </div>
   )
 }
@@ -168,9 +174,18 @@ export default function ControlPanel({
 
 interface ResultCardProps {
   pathResult: RouteRun
+  onExplain: () => void
 }
 
-function ResultCard({ pathResult }: ResultCardProps) {
+function ExplainButton({ onExplain }: { onExplain: () => void }) {
+  return (
+    <button type="button" className="btn btn-secondary result-explain" onClick={onExplain}>
+      Explain every step →
+    </button>
+  )
+}
+
+function ResultCard({ pathResult, onExplain }: ResultCardProps) {
   const { path, pathCost, metrics, variant } = pathResult
 
   return (
@@ -207,6 +222,7 @@ function ResultCard({ pathResult }: ResultCardProps) {
           </div>
         ))}
       </div>
+      <ExplainButton onExplain={onExplain} />
     </div>
   )
 }
@@ -217,7 +233,15 @@ function cityName(id: string): string {
   return cities[id]?.name ?? id
 }
 
-function StepCard({ pathResult, view }: { pathResult: RouteRun; view: SearchView }) {
+function StepCard({
+  pathResult,
+  view,
+  onExplain,
+}: {
+  pathResult: RouteRun
+  view: SearchView
+  onExplain: () => void
+}) {
   const { step } = view
   if (!step) return null
   const informed = pathResult.variant.heuristic !== undefined
@@ -271,6 +295,7 @@ function StepCard({ pathResult, view }: { pathResult: RouteRun; view: SearchView
             ? 'BFS expands cities in the order it found them, ignoring cost.'
             : 'UCS expands the frontier city with the lowest g next.'}
       </p>
+      <ExplainButton onExplain={onExplain} />
     </div>
   )
 }
