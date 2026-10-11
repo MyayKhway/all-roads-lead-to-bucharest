@@ -3,8 +3,11 @@
  */
 
 import { cities, cityList } from '../data/cities'
+import { isCityId } from '../data/cityIds'
+import { romaniaGraph } from '../data/graph'
 import type { Phase, SearchView } from '../lib/searchView'
-import { STATUS_COLOR } from '../lib/theme'
+import { ringColor, STATUS_COLOR } from '../lib/theme'
+import { explainNtb } from '../search/heuristics/ntbBreakdown'
 import type { RouteRun } from '../search/presentation'
 import { searchVariantRegistry } from '../search/registry'
 
@@ -245,6 +248,11 @@ function StepCard({
   const { step } = view
   if (!step) return null
   const informed = pathResult.variant.heuristic !== undefined
+  const goal = pathResult.path.at(-1)
+  const ntb =
+    pathResult.variant.id === 'astar-ntb' && goal && isCityId(step.city) && step.city !== goal
+      ? explainNtb(romaniaGraph, step.city, goal)
+      : null
   // BFS keeps the first route it finds; UCS replaces a route only when cheaper.
   const stale = pathResult.variant.id === 'bfs' ? 'already reached' : 'no gain'
 
@@ -262,6 +270,24 @@ function StepCard({
           {informed && step.h !== null && ` · f = ${(step.g + step.h).toFixed(0)}`}
         </span>
       </div>
+      {ntb && (
+        <div className="step-ntb">
+          <span>
+            h from ring tolls: {ntb.tolls.map((t) => t.road.distance).join(' + ')} ={' '}
+            <strong>{ntb.total}</strong>
+          </span>
+          <span className="step-ntb-key">
+            {ntb.tolls.map((t) => (
+              <i
+                key={t.threshold}
+                style={{ background: ringColor(t.threshold) }}
+                title={`ring ${t.threshold}`}
+              />
+            ))}
+            violet roads on the map
+          </span>
+        </div>
+      )}
       {step.candidates.length === 0 ? (
         <p className="step-note">Goal selected for expansion, so the search stops here.</p>
       ) : (
