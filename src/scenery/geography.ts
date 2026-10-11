@@ -188,27 +188,4 @@ export const TERRAIN: readonly TerrainFeature[] = [
   { model: 'hill', x: 7.4, z: -1.5, r: 0.9, h: 0.28, rot: 0.4 },
   { model: 'hill', x: 9.1, z: 2.3, r: 0.6, h: 0.24, rot: 2.3 },
   { model: 'hill', x: -7.3, z: -5.2, r: 0.7, h: 0.22, rot: 1.0 },
-  // Background range beyond the northern border
-  ...[-9.5, -7, -4.5, -2, 0.5, 3, 5.5, 8, 10.5].map(
-    (x, i): TerrainFeature => ({
-      model: (['mountain_a', 'mountain_b', 'mountain_c'] as const)[i % 3] ?? 'mountain_a',
-      x,
-      z: -10.2 - (i % 2) * 0.7,
-      r: 1.7 + (i % 3) * 0.2,
-      h: 1.2 + ((i * 7) % 5) * 0.1,
-      rot: i * 1.3,
-      background: true,
-    }),
-  ),
-  ...[-8.2, -5.8, -3.2, -0.7, 1.8, 4.3, 6.8, 9.3].map(
-    (x, i): TerrainFeature => ({
-      model: (['mountain_b', 'mountain_c', 'mountain_a'] as const)[i % 3] ?? 'mountain_b',
-      x,
-      z: -12.4 + (i % 2) * 0.4,
-      r: 2.1,
-      h: 1.55 + ((i * 3) % 4) * 0.12,
-      rot: i * 0.9 + 0.4,
-      background: true,
-    }),
-  ),
 ]
