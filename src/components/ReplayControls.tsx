@@ -63,6 +63,14 @@ export default function ReplayControls({
         <div className="replay-buttons">
           <button
             type="button"
+            onClick={() => onSeek(1)}
+            disabled={revealed <= 1 || phase === 'navigating'}
+            aria-label="First step"
+          >
+            ⏮
+          </button>
+          <button
+            type="button"
             onClick={onStepBack}
             disabled={revealed <= 1 || phase === 'navigating'}
             aria-label="Previous step"
