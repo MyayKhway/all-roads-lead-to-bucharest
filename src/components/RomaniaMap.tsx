@@ -2,16 +2,21 @@
  * RomaniaMap — the main 3D scene.
  */
 
+import { useMemo } from 'react'
 import type { CityMap } from '../data/cities'
+import { isCityId } from '../data/cityIds'
 import type { Edge } from '../data/graph'
+import { romaniaGraph } from '../data/graph'
 import { type Phase, roadKey, type SearchView } from '../lib/searchView'
 import { SCENE_COLOR } from '../lib/theme'
+import { explainNtb } from '../search/heuristics/ntbBreakdown'
 import type { RouteRun } from '../search/presentation'
 import type { CityStatus } from './CityNode'
 
 import CityNode from './CityNode'
 import NavigationCamera from './NavigationCamera'
 import NavigationPath from './NavigationPath'
+import NtbRings from './NtbRings'
 import type { RoadStatus } from './Road'
 import Road from './Road'
 import Scenery from './Scenery'
@@ -54,8 +59,10 @@ function getEdgeStatus(
   pathResult: RouteRun | null,
   phase: Phase,
   view: SearchView,
+  tollRoads: ReadonlySet<string>,
 ): RoadStatus {
   if (!pathResult) return 'normal'
+  if (tollRoads.has(roadKey(fromId, toId))) return 'toll'
   const { path } = pathResult
   if (phase !== 'searching') {
     for (let i = 0; i < path.length - 1; i++) {
@@ -80,6 +87,18 @@ export default function RomaniaMap({
 }: RomaniaMapProps) {
   // The route and camera flight only start once the replay has finished.
   const route = pathResult && phase !== 'searching' ? pathResult.path : null
+  const goal = pathResult?.path.at(-1)
+
+  // While A* + NTB replays, show its rings and the tolls behind the current city's h.
+  const showRings = phase === 'searching' && pathResult?.variant.id === 'astar-ntb'
+  const tollRoads = useMemo(() => {
+    const current = view.current
+    if (!showRings || !goal || !current || !isCityId(current) || current === goal) {
+      return new Set<string>()
+    }
+    const breakdown = explainNtb(romaniaGraph, current, goal)
+    return new Set(breakdown.tolls.map((t) => roadKey(t.road.from, t.road.to)))
+  }, [showRings, goal, view.current])
 
   return (
     <>
@@ -112,13 +131,15 @@ export default function RomaniaMap({
       <Terrain />
       <Scenery />
 
+      {showRings && goal && <NtbRings cities={cities} goal={goal} />}
+
       {/* Roads */}
       {edges.map(({ from, to }) => (
         <Road
           key={`${from}-${to}`}
           from={cities[from]?.position ?? [0, 0, 0]}
           to={cities[to]?.position ?? [0, 0, 0]}
-          status={getEdgeStatus(from, to, pathResult, phase, view)}
+          status={getEdgeStatus(from, to, pathResult, phase, view, tollRoads)}
         />
       ))}
 
