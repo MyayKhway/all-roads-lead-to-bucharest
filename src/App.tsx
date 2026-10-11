@@ -68,6 +68,8 @@ export default function App() {
   // ── comparison state ─────────────────────────────────────────────────────────
   const [comparison, setComparison] = useState<RouteComparison | null>(null)
   const [isMeasuring, setIsMeasuring] = useState<boolean>(false)
+  // Hidden until asked for, so the finished route stays visible.
+  const [comparisonOpen, setComparisonOpen] = useState<boolean>(false)
 
   const animRef = useRef<number | null>(null)
   const workerRef = useRef<Worker | null>(null)
@@ -197,6 +199,7 @@ export default function App() {
       goal: goalCity,
     }
     setIsMeasuring(true)
+    setComparisonOpen(false)
     workerRef.current?.postMessage(request)
   }, [startCity, goalCity, variantId, animateRoute])
 
@@ -298,14 +301,23 @@ export default function App() {
         )}
 
         {/* Measured from Find Path, but only shown once the route has drawn */}
-        {phase === 'done' && (
+        {phase === 'done' && !comparisonOpen && (comparison || isMeasuring) && (
+          <button
+            type="button"
+            className="comparison-toggle"
+            onClick={() => setComparisonOpen(true)}
+          >
+            📊 Compare all methods
+          </button>
+        )}
+        {phase === 'done' && comparisonOpen && (
           <ComparisonPanel
             comparison={comparison}
             isMeasuring={isMeasuring}
             selectedVariantId={variantId}
             disabled={isAnimating}
             onSelect={handleSelectComparedVariant}
-            onClose={() => setComparison(null)}
+            onClose={() => setComparisonOpen(false)}
           />
         )}
       </div>
