@@ -6,15 +6,18 @@
 import { useMemo, useState } from 'react'
 import { cities } from '../../data/cities'
 import { type CityId, isCityId } from '../../data/cityIds'
+import { romaniaGraph } from '../../data/graph'
 import {
   type ExplainedStep,
   explainRun,
   type QueueOrder,
   queueOrderOf,
 } from '../../search/explanation'
+import { explainNtb } from '../../search/heuristics/ntbBreakdown'
 import { runRoute } from '../../search/presentation'
 import { searchVariantRegistry } from '../../search/registry'
 import type { SearchVariant } from '../../search/variant'
+import RingDiagram from './RingDiagram'
 import StepMap from './StepMap'
 
 interface ExplainPageProps {
@@ -109,6 +112,14 @@ function StepSection({
           Step {explained.index + 1} — expand {cityName(step.city)}
         </h3>
         <p className="explain-why">{whyPicked(explained, order)}</p>
+        {variant.id === 'astar-ntb' && step.city !== goal && (
+          <p className="explain-why explain-ntb">
+            Its h comes from the ring tolls: {(() => {
+              const b = explainNtb(romaniaGraph, step.city, goal)
+              return `h(${cityName(step.city)}) = ${b.tolls.map((t) => t.road.distance).join(' + ')} = ${b.total}`
+            })()}.
+          </p>
+        )}
 
         <h4>Queue before this step</h4>
         <table className="explain-table">
@@ -267,6 +278,10 @@ export default function ExplainPage({
               </span>
             </div>
           </section>
+
+          {variant.id === 'astar-ntb' && (
+            <RingDiagram key={pair.goal} start={pair.start} goal={pair.goal} />
+          )}
 
           {explained.map((step, index) => (
             <StepSection

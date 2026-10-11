@@ -1026,3 +1026,116 @@ body,
     overflow-x: auto;
   }
 }
+
+/* ---- NTB ring diagram ---- */
+.ring-diagram {
+  padding: 16px 18px;
+  background: #ffffff;
+  border: 1px solid #ede8d0;
+  border-radius: 12px;
+}
+
+.ring-diagram-head h2 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.ring-diagram .ring-diagram-head p {
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.ring-diagram-body {
+  display: grid;
+  grid-template-columns: minmax(0, 560px) 1fr;
+  gap: 20px;
+  align-items: start;
+  margin-top: 12px;
+}
+
+.ring-svg {
+  width: 100%;
+  height: auto;
+  background: #faf7ec;
+  border-radius: 12px;
+}
+
+.ring-label {
+  font-size: 11px;
+  fill: #8d7fb8;
+  font-weight: 600;
+}
+
+.ring-city {
+  font-size: 11px;
+  fill: #3e3020;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: #faf7ec;
+  stroke-width: 3px;
+}
+
+.ring-toll {
+  font-size: 13px;
+  font-weight: 800;
+  fill: #c62828;
+  paint-order: stroke;
+  stroke: #faf7ec;
+  stroke-width: 3px;
+}
+
+.ring-node {
+  cursor: pointer;
+}
+
+.ring-node:focus-visible circle {
+  stroke: #3b82f6;
+}
+
+.ring-ladder h3 {
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.ring-ladder ol {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.86rem;
+}
+
+.ring-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: -1px;
+}
+
+.ring-sum {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: #f4effc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ring-note {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #7a6840;
+}
+
+.explain-ntb {
+  color: #5b21b6;
+}
+
+@media (max-width: 720px) {
+  .ring-diagram-body {
+    grid-template-columns: 1fr;
+  }
+}
