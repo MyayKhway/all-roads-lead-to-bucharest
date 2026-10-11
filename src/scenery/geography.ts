@@ -44,20 +44,6 @@ export const ROMANIA_OUTLINE: readonly XZ[] = [
   [-8.6, -5.5],
 ]
 
-/** The Black Sea, east of the coast. */
-export const BLACK_SEA: readonly XZ[] = [
-  [9.9, 5.6],
-  [10.1, 4.3],
-  [10.4, 3.0],
-  [11.3, 1.9],
-  [11.0, 0.7],
-  [12.6, -1.2],
-  [16, -4.5],
-  [34, -8],
-  [34, 24],
-  [9.4, 24],
-]
-
 export interface River {
   name: string
   width: number

@@ -57,7 +57,6 @@ export const SCENE_COLOR = {
   land: '#c4dca6',
   landSide: '#d6c4a0',
   plain: '#e3eadb',
-  sea: '#9ccfe0',
   river: '#8fc7dc',
   roadCasing: '#b8ad98',
   road: '#f5efe1',
