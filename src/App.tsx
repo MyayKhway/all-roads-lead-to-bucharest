@@ -12,6 +12,7 @@ import { Canvas } from '@react-three/fiber'
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ComparisonPanel from './components/ComparisonPanel'
 import ControlPanel from './components/ControlPanel'
+import ExplainPage from './components/explain/ExplainPage'
 import ReplayControls, { type ReplaySpeed } from './components/ReplayControls'
 import RomaniaMap from './components/RomaniaMap'
 import { cities } from './data/cities'
@@ -27,12 +28,28 @@ import { findSearchVariant } from './search/variant'
 import './App.css'
 
 const SEGMENT_DURATION = 1.0 // seconds per path segment
+const EXPLAIN_HASH = '#/explain'
+
+/** The explain page is a hash route, so it works on any static host without rewrites. */
+function useExplainRoute(): [boolean, (open: boolean) => void] {
+  const [open, setOpen] = useState(() => window.location.hash === EXPLAIN_HASH)
+  useEffect(() => {
+    const sync = () => setOpen(window.location.hash === EXPLAIN_HASH)
+    window.addEventListener('hashchange', sync)
+    return () => window.removeEventListener('hashchange', sync)
+  }, [])
+  const navigate = useCallback((next: boolean) => {
+    window.location.hash = next ? EXPLAIN_HASH : ''
+  }, [])
+  return [open, navigate]
+}
 
 export default function App() {
   // ── form state ──────────────────────────────────────────────────────────────
   const [startCity, setStartCity] = useState<string>('arad')
   const [goalCity, setGoalCity] = useState<string>('bucharest')
   const [variantId, setVariantId] = useState<string>(searchVariantRegistry[0]?.id ?? '')
+  const [explainOpen, setExplainOpen] = useExplainRoute()
 
   // ── result / animation state ─────────────────────────────────────────────────
   const [pathResult, setPathResult] = useState<RouteRun | null>(null)
@@ -241,6 +258,8 @@ export default function App() {
           shadows
           camera={{ position: [2, 12, 14], fov: 45 }}
           gl={{ antialias: true }}
+          // Nothing on the map is visible behind the explain page, so stop rendering it.
+          frameloop={explainOpen ? 'never' : 'always'}
           style={{ background: '#E8F4EA' }}
         >
           <Suspense fallback={null}>
@@ -305,7 +324,17 @@ export default function App() {
         onVariant={setVariantId}
         onFindPath={handleFindPath}
         onReset={handleReset}
+        onExplain={() => setExplainOpen(true)}
       />
+
+      {explainOpen && (
+        <ExplainPage
+          startCity={startCity}
+          goalCity={goalCity}
+          initialVariantId={variantId}
+          onBack={() => setExplainOpen(false)}
+        />
+      )}
     </div>
   )
 }
