@@ -159,6 +159,25 @@ body,
   letter-spacing: 0.08em;
 }
 
+.panel-repo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid #e0d39a;
+  background: #ffffff;
+  color: #3e3020;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.panel-repo-link:hover {
+  background: #fff9dc;
+}
+
 /* ---- Form sections ---- */
 .panel-section {
   padding: 14px 20px 0;
