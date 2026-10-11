@@ -3,6 +3,7 @@
  */
 
 import { useMemo } from 'react'
+import { Billboard, Text } from '@react-three/drei'
 import * as THREE from 'three'
 import type { Position3D } from '../data/cities'
 
@@ -11,6 +12,8 @@ export type RoadStatus = 'normal' | 'path' | 'explored' | 'toll'
 interface RoadProps {
   from: Position3D
   to: Position3D
+  distance: number
+  showDistance?: boolean
   status?: RoadStatus
 }
 
@@ -24,7 +27,13 @@ const EXPLORED_COLOR = '#7B9BAD'
 // Matches the NTB ring colours: the cheapest road out of a ring.
 const TOLL_COLOR = '#7c3aed'
 
-export default function Road({ from, to, status = 'normal' }: RoadProps) {
+export default function Road({
+  from,
+  to,
+  distance,
+  showDistance = true,
+  status = 'normal',
+}: RoadProps) {
   const { position, rotation, length } = useMemo(() => {
     const a = new THREE.Vector3(...from)
     const b = new THREE.Vector3(...to)
@@ -56,15 +65,31 @@ export default function Road({ from, to, status = 'normal' }: RoadProps) {
   const emissiveInt = glows ? 0.45 : 0
 
   return (
-    <mesh position={position} rotation={rotation} receiveShadow>
-      <boxGeometry args={[ROAD_WIDTH, ROAD_HEIGHT, length]} />
-      <meshStandardMaterial
-        color={color}
-        emissive={emissive}
-        emissiveIntensity={emissiveInt}
-        roughness={0.85}
-        metalness={0}
-      />
-    </mesh>
+    <>
+      <mesh position={position} rotation={rotation} receiveShadow>
+        <boxGeometry args={[ROAD_WIDTH, ROAD_HEIGHT, length]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={emissive}
+          emissiveIntensity={emissiveInt}
+          roughness={0.85}
+          metalness={0}
+        />
+      </mesh>
+      {showDistance && (
+        <Billboard position={[position[0], ROAD_Y + 0.22, position[2]]}>
+          <Text
+            fontSize={0.22}
+            color="#302B22"
+            outlineWidth={0.025}
+            outlineColor="#ffffff"
+            anchorX="center"
+            anchorY="middle"
+          >
+            {String(distance)}
+          </Text>
+        </Billboard>
+      )}
+    </>
   )
 }
