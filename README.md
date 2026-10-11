@@ -6,9 +6,9 @@ city while the camera flies along it.
 
 Built with React 19, TypeScript, Vite and three.js (via React Three Fiber).
 
-> **Current implementation note:** the algorithms in `src/algorithms/` are
-> frontend-development placeholders. Real algorithms and heuristics should use
-> the contracts and evaluation harness under `src/search/`.
+The app runs every search variant registered in `src/search/registry.ts`:
+breadth-first search, uniform-cost search, and A* with the NTB and ALT
+heuristics.
 
 ---
 
@@ -92,9 +92,6 @@ One tool per job, so nothing conflicts:
 
 ```
 src/
-├── algorithms/             Frontend-development placeholders
-│   ├── astar.ts
-│   └── magneticField.ts
 ├── components/
 │   ├── RomaniaMap.tsx     The 3D scene: lights, ground, roads, cities
 │   ├── CityNode.tsx       One city — platform, landmark, label
@@ -111,6 +108,10 @@ src/
 │   ├── contracts.ts       Algorithm, heuristic, probe, result, and event types
 │   ├── variant.ts         Variant definition, validation, and lookup
 │   ├── registry.ts        Shared variant catalog
+│   ├── presentation.ts    Runs one variant for the UI
+│   ├── algorithms/        BFS, uniform-cost search, A*
+│   ├── heuristics/        NTB and ALT
+│   ├── variants/          Registered algorithm-and-heuristic pairs
 │   ├── validation.ts      Returned-path correctness checks
 │   └── evaluation/        Diagnosis and benchmarking harness
 │       ├── execution.ts   One instrumented and validated search
