@@ -1,13 +1,13 @@
 /**
  * Terrain — the ground the map stands on: Romania as a raised landmass, the
- * surrounding plain, the Black Sea and the major rivers. Purely decorative;
- * it has no bearing on the graph.
+ * surrounding plain, and the major rivers. Purely decorative; it has no
+ * bearing on the graph.
  */
 
 import { memo, useMemo } from 'react'
 import * as THREE from 'three'
 import { SCENE_COLOR } from '../lib/theme'
-import { BLACK_SEA, RIVERS, ROMANIA_OUTLINE, type XZ } from '../scenery/geography'
+import { RIVERS, ROMANIA_OUTLINE, type XZ } from '../scenery/geography'
 import { LAND_Y, PLAIN_Y } from '../scenery/placement'
 
 const LAND_DEPTH = 0.3
@@ -59,12 +59,6 @@ function Terrain() {
     return g
   }, [])
 
-  const sea = useMemo(() => {
-    const g = new THREE.ShapeGeometry(shapeOf(BLACK_SEA))
-    g.rotateX(-Math.PI / 2)
-    return g
-  }, [])
-
   const rivers = useMemo(
     () => RIVERS.map((r) => ({ name: r.name, geometry: riverGeometry(r.points, r.width) })),
     [],
@@ -84,11 +78,6 @@ function Terrain() {
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, PLAIN_Y, 0]} receiveShadow>
         <circleGeometry args={[80, 64]} />
         <meshStandardMaterial color={SCENE_COLOR.plain} roughness={1} />
-      </mesh>
-
-      {/* Black Sea */}
-      <mesh geometry={sea} position={[0, PLAIN_Y + 0.04, 0]} receiveShadow>
-        <meshStandardMaterial color={SCENE_COLOR.sea} roughness={0.25} metalness={0.05} />
       </mesh>
 
       {/* Romania — a raised landmass, like a tile on a relief map */}
