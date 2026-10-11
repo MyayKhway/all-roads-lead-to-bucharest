@@ -225,8 +225,8 @@ body,
    Control Panel (sidebar)
    ===================================================================== */
 .control-panel {
-  width: 290px;
-  min-width: 260px;
+  width: 260px;
+  min-width: 240px;
   height: 100vh;
   background: var(--bg-panel);
   border-right: 1px solid var(--border);
@@ -254,17 +254,23 @@ body,
 /* ---- Panel header ---- */
 .panel-header {
   background: var(--bg-panel-alt);
-  padding: 22px 20px 18px;
+  padding: 15px 20px 12px;
   text-align: center;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   position: relative;
 }
 
+
 .panel-logo {
-  font-size: 2rem;
-  line-height: 1;
-  margin-bottom: 6px;
+  width: 34px;
+  margin: 0 auto 6px;
+}
+
+.panel-logo svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .panel-title {
@@ -277,7 +283,7 @@ body,
 .panel-subtitle {
   font-size: 0.75rem;
   color: var(--text-secondary);
-  margin-top: 2px;
+  margin-top: 1px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -286,8 +292,8 @@ body,
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 10px;
-  padding: 4px 12px;
+  margin-top: 7px;
+  padding: 2px 12px;
   border-radius: 999px;
   border: 1px solid var(--border-strong);
   background: var(--bg-panel);
@@ -304,7 +310,7 @@ body,
 /* ---- Theme toggle ---- */
 .theme-toggle {
   position: absolute;
-  top: 14px;
+  top: 11px;
   right: 14px;
   width: 52px;
   height: 30px;
@@ -406,7 +412,7 @@ body,
 
 /* ---- Form sections ---- */
 .panel-section {
-  padding: 14px 20px 0;
+  padding: 8px 20px 0;
 }
 
 .field-label {
@@ -416,7 +422,7 @@ body,
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-secondary);
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .map-tip {
@@ -429,7 +435,7 @@ body,
 
 .field-select {
   width: 100%;
-  padding: 9px 12px;
+  padding: 5px 12px;
   border: 1.5px solid var(--border-strong);
   border-radius: 8px;
   background-color: var(--bg-input);
@@ -460,12 +466,12 @@ body,
 .panel-actions {
   display: flex;
   gap: 8px;
-  padding: 18px 20px 4px;
+  padding: 10px 20px 3px;
 }
 
 .btn {
   flex: 1;
-  padding: 10px 8px;
+  padding: 8px 8px;
   border: none;
   border-radius: 8px;
   font-size: 0.88rem;
@@ -510,9 +516,9 @@ body,
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 14px 20px;
+  padding: 10px 20px;
   border-top: 1px solid var(--border);
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .legend-item {
@@ -669,8 +675,11 @@ body,
   }
 
   .panel-logo {
-    font-size: 1.4rem;
+    width: 30px;
+    height: 37.5px;
+    margin-top: 0;
     margin-bottom: 0;
+    margin-inline: 0;
   }
   .panel-title {
     font-size: 1rem;
