@@ -644,6 +644,8 @@ body,
   top: 16px;
   left: 50%;
   transform: translateX(-50%);
+  /* Fixed width so the buttons don't slide as city names change length */
+  width: min(560px, calc(100% - 32px));
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -675,6 +677,10 @@ body,
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1165,4 +1171,27 @@ body,
   width: 8px;
   height: 8px;
   border-radius: 50%;
+}
+
+.comparison-toggle {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  border: 1px solid #ede8d0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #3e3020;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  z-index: 10;
+  animation: fadeInUp 0.25s ease;
+}
+
+.comparison-toggle:hover {
+  background: #fcf0af;
 }
