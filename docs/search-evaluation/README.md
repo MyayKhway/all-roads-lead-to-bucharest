@@ -841,7 +841,7 @@ they are not allowed to earn favorable performance comparisons.
 Use the graph and road costs from `src/data/graph.ts`.
 
 The positions in `src/data/cities.ts` are 3D scene coordinates. They are not
-kilometres. Do not mix scene positions and road costs unless the conversion is
+road costs. Do not mix scene positions and road costs unless the conversion is
 intentional and agreed upon.
 
 ### Use the probe consistently

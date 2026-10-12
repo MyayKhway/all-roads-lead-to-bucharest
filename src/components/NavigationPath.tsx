@@ -181,7 +181,7 @@ export default function NavigationPath({ path, cities, animProgress }: Navigatio
               anchorX="center"
               anchorY="middle"
             >
-              {`${distance} km`}
+              {String(distance)}
             </Text>
           </Billboard>
         )

@@ -80,7 +80,7 @@ function ResultCard({ pathResult, onExplain }: ResultCardProps) {
 
       <div className="result-stats">
         {[
-          { label: 'Total Distance', value: `${pathCost} km` },
+          { label: 'Total Distance', value: String(pathCost) },
           { label: 'Cities in Route', value: String(path.length) },
           { label: 'Nodes Expanded', value: String(metrics.nodesExpanded) },
           { label: 'Peak Frontier', value: String(metrics.peakFrontierEntries) },

@@ -254,7 +254,7 @@ export default function ExplainPage({
             </div>
             <div>
               <span className="explain-summary-label">Distance</span>
-              <span>{run.pathCost} km</span>
+              <span>{run.pathCost}</span>
             </div>
             <div>
               <span className="explain-summary-label">Cities expanded</span>

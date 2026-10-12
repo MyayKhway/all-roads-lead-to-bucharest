@@ -103,7 +103,7 @@ src/
 ├── data/
 │   ├── cities.ts          20 cities, 3D positions, landmark metadata
 │   ├── cityIds.ts         Canonical city identifiers
-│   └── graph.ts           Weighted edges (km) + adjacency builder
+│   └── graph.ts           Weighted edges (road costs) + adjacency builder
 ├── search/
 │   ├── contracts.ts       Algorithm, heuristic, probe, result, and event types
 │   ├── variant.ts         Variant definition, validation, and lookup
@@ -132,8 +132,8 @@ docs/search-evaluation/
 
 ### How the graph is defined
 
-`src/data/graph.ts` holds the road network as undirected weighted edges, in
-kilometres, matching the standard textbook figures:
+`src/data/graph.ts` holds the road network as undirected weighted edges, using
+the road costs from the standard textbook map:
 
 ```ts
 { from: 'arad', to: 'sibiu', distance: 140 }
@@ -141,8 +141,8 @@ kilometres, matching the standard textbook figures:
 
 `src/data/cities.ts` holds each city's position on the 3D map plane as
 `[x, y, z]`, where `y` is always `0`. These are **scene units for layout, not
-kilometres** — the whole country spans about 17 units corner to corner, while
-edge weights run 70–211 km. Keep that distinction in mind when working on
+road costs** — the whole country spans about 17 units corner to corner, while
+edge weights run 70–211. Keep that distinction in mind when working on
 heuristics.
 
 ---

@@ -144,9 +144,9 @@ A few conventions the tooling can't enforce:
   ```tsx
   // biome-ignore lint/a11y/noStaticElementInteractions: <group> is a three.js object, not DOM
   ```
-- **Positions are scene units, distances are kilometres.** `src/data/cities.ts`
+- **Positions are scene units, edge weights are road costs.** `src/data/cities.ts`
   holds `[x, y, z]` layout coordinates spanning ~17 units; `src/data/graph.ts`
-  holds real road distances of 70–211 km. Don't mix the two in one calculation
+  holds road costs of 70–211. Don't mix the two in one calculation
   without converting.
 
 ---

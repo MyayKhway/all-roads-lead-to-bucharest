@@ -1,5 +1,5 @@
 // Canonical Romanian road network used by search, diagnostics, and presentation.
-// Weights are the road distances in km from the assignment map.
+// Weights are the road costs from the assignment map.
 
 import { CITY_IDS, type CityId } from './cityIds.js'
 
