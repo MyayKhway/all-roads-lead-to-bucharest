@@ -340,6 +340,17 @@ export default function ExplainPage({
                 {HEURISTIC_NOTES[variant.id] && <p>{HEURISTIC_NOTES[variant.id]}</p>}
               </>
             )}
+            <div className="explain-key">
+              <span>
+                <i style={{ background: 'var(--explain-current)' }} /> expanding now
+              </span>
+              <span>
+                <i style={{ background: 'var(--explain-frontier)' }} /> waiting in the queue
+              </span>
+              <span>
+                <i style={{ background: 'var(--explain-explored)' }} /> already expanded
+              </span>
+            </div>
           </section>
 
           {variant.id === 'astar-ntb' && (
