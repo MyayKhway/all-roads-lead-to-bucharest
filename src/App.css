@@ -1843,6 +1843,45 @@ body,
   font-size: 0.7em;
 }
 
+.explain-sum-formula {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.explain-sum-operator {
+  display: inline-grid;
+  grid-template-areas:
+    "upper"
+    "symbol"
+    "lower";
+  justify-items: center;
+  line-height: 1;
+}
+
+.explain-sum-symbol {
+  grid-area: symbol;
+  font-size: 1.5em;
+  line-height: 0.72;
+}
+
+.explain-sum-limit {
+  font-size: 0.58em;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.explain-sum-limit--upper {
+  grid-area: upper;
+  margin-bottom: 2px;
+}
+
+.explain-sum-limit--lower {
+  grid-area: lower;
+  margin-top: 2px;
+}
+
+.explain-definitions,
 .explain-process-part ul {
   margin: 6px 0 0;
   padding-left: 20px;

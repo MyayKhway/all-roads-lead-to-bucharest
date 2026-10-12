@@ -264,65 +264,92 @@ export default function ExplainPage({
 
           <section className="explain-how">
             <h2>How {variant.name} picks the next city</h2>
-            <p>{HOW_IT_PICKS[queueOrderOf(variant)]}</p>
-            {HEURISTIC_NOTES[variant.id] && <p>{HEURISTIC_NOTES[variant.id]}</p>}
-            <div className="explain-key">
-              <span>
-                <i style={{ background: 'var(--explain-current)' }} /> expanding now
-              </span>
-              <span>
-                <i style={{ background: 'var(--explain-frontier)' }} /> waiting in the queue
-              </span>
-              <span>
-                <i style={{ background: 'var(--explain-explored)' }} /> already expanded
-              </span>
-            </div>
-            {variant.id === 'astar-ntb' && (
-              <details className="explain-heuristic-details">
-                <summary>Heuristics detail</summary>
-                <div className="explain-process-part">
-                  <h3>1. Build the rings</h3>
-                  <p>First, NTB runs BFS from the goal.</p>
-                  <p>For every city v, it calculates:</p>
-                  <p className="explain-formula">
-                    d<sub>t</sub>(v) = minimum road hops from v to goal t
-                  </p>
-                  <p>Cities with the same hop distance form nested rings around the goal:</p>
-                  <ul>
-                    <li>goal = hop 0</li>
-                    <li>direct neighbors = hop 1</li>
-                    <li>the next cities = hop 2, and so on</li>
-                  </ul>
-                </div>
+            {variant.id === 'astar-ntb' ? (
+              <div className="explain-ntb-process">
+                <p>A* chooses the next city using:</p>
+                <p className="explain-formula">
+                  f(n) = g(n) + h<sub>NTB</sub>(n)
+                </p>
+                <ul className="explain-definitions">
+                  <li>
+                    <strong>g(n)</strong> = road cost already travelled
+                  </li>
+                  <li>
+                    <strong>
+                      h<sub>NTB</sub>(n)
+                    </strong>{' '}
+                    = estimated remaining cost to the goal
+                  </li>
+                  <li>
+                    <strong>f(n)</strong> = estimated total path cost
+                  </li>
+                </ul>
+                <p>
+                  A* expands the city with the smallest <strong>f(n)</strong>.
+                </p>
 
-                <div className="explain-process-part">
-                  <h3>2. Find the toll for each ring</h3>
-                  <p>For each ring:</p>
-                  <ul>
-                    <li>
-                      Starting from the current city, use BFS to find its connected region without
-                      crossing inward past that ring.
-                    </li>
-                    <li>Check the roads that cross from inside that region to outside.</li>
-                    <li>Choose the cheapest crossing road.</li>
-                  </ul>
-                  <p>That cheapest crossing cost is the toll for the ring.</p>
-                  <p className="explain-formula">
-                    b<sub>k</sub>(n) = min w(u,v)
-                  </p>
-                  <p>where the road (u,v) crosses the boundary of ring k.</p>
-                </div>
+                <details className="explain-heuristic-details">
+                  <summary>Heuristics detail</summary>
+                  <div className="explain-process-part">
+                    <h3>1. Build the rings</h3>
+                    <p>First, NTB runs BFS from the goal.</p>
+                    <p>For every city v, it calculates:</p>
+                    <p className="explain-formula">
+                      d<sub>t</sub>(v) = minimum road hops from v to goal t
+                    </p>
+                    <p>Cities with the same hop distance form nested rings around the goal:</p>
+                    <ul>
+                      <li>goal = hop 0</li>
+                      <li>direct neighbors = hop 1</li>
+                      <li>the next cities = hop 2, and so on</li>
+                    </ul>
+                  </div>
 
-                <div className="explain-process-part">
-                  <h3>3. Sum the tolls</h3>
-                  <p>NTB adds the minimum toll for every required ring:</p>
-                  <p className="explain-formula">
-                    h<sub>NTB</sub>(n) = ∑<sub>k=1</sub>
-                    <sup>dₜ(n)</sup> b<sub>k</sub>(n)
-                  </p>
-                  <p>This estimates the remaining cost from the current city to the goal.</p>
-                </div>
-              </details>
+                  <div className="explain-process-part">
+                    <h3>2. Find the toll for each ring</h3>
+                    <p>For each ring:</p>
+                    <ul>
+                      <li>
+                        Starting from the current city, use BFS to find its connected region without
+                        crossing inward past that ring.
+                      </li>
+                      <li>Check the roads that cross from inside that region to outside.</li>
+                      <li>Choose the cheapest crossing road.</li>
+                    </ul>
+                    <p>That cheapest crossing cost is the toll for the ring.</p>
+                    <p className="explain-formula">
+                      b<sub>k</sub>(n) = min w(u,v)
+                    </p>
+                    <p>where the road (u,v) crosses the boundary of ring k.</p>
+                  </div>
+
+                  <div className="explain-process-part">
+                    <h3>3. Sum the tolls</h3>
+                    <p>NTB adds the minimum toll for every required ring:</p>
+                    <p className="explain-formula explain-sum-formula">
+                      <span>
+                        h<sub>NTB</sub>(n) =
+                      </span>
+                      <span className="explain-sum-operator">
+                        <span className="explain-sum-limit explain-sum-limit--upper">
+                          d<sub>t</sub>(n)
+                        </span>
+                        <span className="explain-sum-symbol">∑</span>
+                        <span className="explain-sum-limit explain-sum-limit--lower">k = 1</span>
+                      </span>
+                      <span>
+                        b<sub>k</sub>(n)
+                      </span>
+                    </p>
+                    <p>This estimates the remaining cost from the current city to the goal.</p>
+                  </div>
+                </details>
+              </div>
+            ) : (
+              <>
+                <p>{HOW_IT_PICKS[queueOrderOf(variant)]}</p>
+                {HEURISTIC_NOTES[variant.id] && <p>{HEURISTIC_NOTES[variant.id]}</p>}
+              </>
             )}
           </section>
 
