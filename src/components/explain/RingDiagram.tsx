@@ -11,6 +11,7 @@ import { cities } from '../../data/cities'
 import type { CityId } from '../../data/cityIds'
 import { edges, romaniaGraph } from '../../data/graph'
 import { ringColor, STATUS_COLOR } from '../../lib/theme'
+import { referenceDijkstra } from '../../search/evaluation/referenceDijkstra'
 import { explainNtb } from '../../search/heuristics/ntbBreakdown'
 
 interface RingDiagramProps {
@@ -143,6 +144,10 @@ export default function RingDiagram({ start, goal }: RingDiagramProps) {
   const city = selected === goal ? start : selected
 
   const breakdown = useMemo(() => explainNtb(romaniaGraph, city, goal), [city, goal])
+  const trueDistance = useMemo(() => {
+    const result = referenceDijkstra({ graph: romaniaGraph, start: city, goal }, {})
+    return result.status === 'success' ? result.pathCost : null
+  }, [city, goal])
 
   const layout = useMemo(() => {
     const { hops } = breakdown
@@ -298,6 +303,12 @@ export default function RingDiagram({ start, goal }: RingDiagramProps) {
           </ol>
           <p className="ring-sum">
             {breakdown.tolls.map((t) => t.road.distance).join(' + ')} = {breakdown.total} km
+            {trueDistance !== null && (
+              <>
+                {' '}
+                ≤ true distance <strong>{trueDistance} km</strong>
+              </>
+            )}
           </p>
           <p className="ring-note">
             A real route may use different roads, but it must cross every one of these boundaries,
