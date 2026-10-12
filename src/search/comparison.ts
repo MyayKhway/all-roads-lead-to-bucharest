@@ -27,13 +27,13 @@ export interface VariantComparison {
   readonly timeP25Us: number | null
   readonly timeP75Us: number | null
   /**
-   * Entries held by the search's data structures: the frontier at its peak, plus the closed set
-   * and every cost table at the end. Closed sets and cost tables only grow, so their final size
-   * is their peak; the sum is an upper bound on entries held at once. A* and UCS keep two
-   * tables (best cost and parent), BFS keeps two (reached cost and parent), so methods compare
-   * like for like.
+   * The harness's structural memory estimate, the same figure the benchmark CLI reports: entries
+   * held by the frontier at its peak plus the closed set and every cost table at the end, each
+   * weighted by an assumed entry size. Closed sets and cost tables only grow, so their final size
+   * is their peak. A* and UCS keep two tables (best cost and parent), BFS keeps two (reached cost
+   * and parent), so methods compare like for like. Not measured JavaScript heap usage.
    */
-  readonly memoryEntries: number
+  readonly estimatedBytes: number
   readonly peakFrontierEntries: number
   readonly closedSetEntries: number
   readonly costTableEntries: number
@@ -63,6 +63,8 @@ export interface AllPairsVariantComparison {
   readonly averagePeakFrontierEntries: number
   readonly averageClosedSetEntries: number
   readonly averageCostTableEntries: number
+  /** Mean structural memory estimate per route; see `VariantComparison.estimatedBytes`. */
+  readonly averageEstimatedBytes: number
   /** Mean percentage above the shortest road cost; optimal routes contribute zero. */
   readonly averageCostOverrunPercent: number
   readonly worstCostOverrunPercent: number
@@ -131,8 +133,7 @@ export function compareVariants(
       timeUs: timing?.medianUs ?? null,
       timeP25Us: timing?.p25Us ?? null,
       timeP75Us: timing?.p75Us ?? null,
-      memoryEntries:
-        metrics.peakFrontierEntries + metrics.closedSetEntries + metrics.costTableEntries,
+      estimatedBytes: metrics.estimatedBytes,
       peakFrontierEntries: metrics.peakFrontierEntries,
       closedSetEntries: metrics.closedSetEntries,
       costTableEntries: metrics.costTableEntries,
@@ -190,6 +191,7 @@ function collectAllPairResults(
   let peakFrontierEntries = 0
   let closedSetEntries = 0
   let costTableEntries = 0
+  let estimatedBytes = 0
   let totalCostOverrunPercent = 0
   let worstCostOverrunPercent = 0
 
@@ -218,6 +220,7 @@ function collectAllPairResults(
     peakFrontierEntries += metrics.peakFrontierEntries
     closedSetEntries += metrics.closedSetEntries
     costTableEntries += metrics.costTableEntries
+    estimatedBytes += metrics.estimatedBytes
   }
 
   const pairCount = pairs.length
@@ -236,6 +239,7 @@ function collectAllPairResults(
     averagePeakFrontierEntries: peakFrontierEntries / pairCount,
     averageClosedSetEntries: closedSetEntries / pairCount,
     averageCostTableEntries: costTableEntries / pairCount,
+    averageEstimatedBytes: estimatedBytes / pairCount,
     averageCostOverrunPercent: validRoutes === 0 ? 0 : totalCostOverrunPercent / validRoutes,
     worstCostOverrunPercent,
     medianSuiteTimeUs: timing.medianUs,
