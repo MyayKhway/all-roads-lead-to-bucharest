@@ -856,7 +856,8 @@ body,
   transition: opacity 0.2s;
 }
 
-.comparison-table--stale {
+.comparison-table--stale,
+.report--stale {
   opacity: 0.5;
 }
 
