@@ -7,7 +7,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
-import type { CityMap, Position3D } from '../data/cities'
+import type { CityMap } from '../data/cities'
 import { positionOf } from '../data/cities'
 import { ROMANIA_OUTLINE } from '../scenery/geography'
 
@@ -35,8 +35,6 @@ function fovOf(camera: THREE.Camera): number {
 
 /** How much of the screen (normalised device coordinates) framed points may fill. */
 const COUNTRY_FILL = 0.94 / OVERVIEW_MARGIN
-// A route's cities carry landmarks and labels beyond their centre points, so leave more room.
-const ROUTE_FILL = 0.72
 // The opening shot of a journey frames just its first leg, close enough to read the cities.
 const OPENING_FILL = 0.52
 // How far into the journey (in legs) the camera hands over from the opening shot to following.
@@ -109,6 +107,11 @@ function framePoints(
   return { position: cameraFor(target, range, fov, aspect, heading).position.clone(), target }
 }
 
+/** The whole country, north up: the view whenever no journey is being driven. */
+function countryView(fov: number, aspect: number) {
+  return framePoints(ROMANIA_POINTS, fov, aspect, COUNTRY_FILL)
+}
+
 export default function NavigationCamera({
   path,
   cities,
@@ -124,20 +127,16 @@ export default function NavigationCamera({
   // Framing of the journey's first leg, glided to as the journey starts.
   const opening = useRef<{ position: THREE.Vector3; target: THREE.Vector3 } | null>(null)
 
-  // No route on screen: show the whole country. Glide there when a route is cleared;
-  // jump there at startup and on resize, where a glide would only look like lag.
+  // Outside a journey the camera shows the whole country, north up, at one fixed zoom.
+  // Glide there when a route is cleared or finishes drawing; jump there at startup and on
+  // resize, where a glide would only look like lag.
   const hadRoute = useRef(false)
   useEffect(() => {
     const hasRoute = path !== null && path.length > 0
     const cleared = hadRoute.current && !hasRoute
     hadRoute.current = hasRoute
     if (hasRoute) return
-    const home = framePoints(
-      ROMANIA_POINTS,
-      fovOf(camera),
-      size.width / Math.max(1, size.height),
-      COUNTRY_FILL,
-    )
+    const home = countryView(fovOf(camera), size.width / Math.max(1, size.height))
     targetPos.current.copy(home.position)
     targetLookAt.current.copy(home.target)
     if (cleared) {
@@ -173,26 +172,14 @@ export default function NavigationCamera({
     )
   }, [isAnimating, path, cities, camera, size.width, size.height])
 
+  // A route on screen but not being driven (searching, or finished): the same country view.
   useEffect(() => {
-    if (!path || path.length === 0) return
-    if (!isAnimating) {
-      const pts = path
-        .map((id) => positionOf(cities, id))
-        .filter((p): p is Position3D => p !== undefined)
-        .map((p) => new THREE.Vector3(...p))
-      if (pts.length === 0) return
-      const overview = framePoints(
-        pts,
-        fovOf(camera),
-        size.width / Math.max(1, size.height),
-        ROUTE_FILL,
-        ROUTE_MIN_RANGE,
-      )
-      targetPos.current.copy(overview.position)
-      targetLookAt.current.copy(overview.target)
-      settling.current = true
-    }
-  }, [isAnimating, path, cities, camera, size.width, size.height])
+    if (!path || path.length === 0 || isAnimating) return
+    const home = countryView(fovOf(camera), size.width / Math.max(1, size.height))
+    targetPos.current.copy(home.position)
+    targetLookAt.current.copy(home.target)
+    settling.current = true
+  }, [isAnimating, path, camera, size.width, size.height])
 
   useFrame(() => {
     if (!isAnimating || !path || path.length === 0) {
