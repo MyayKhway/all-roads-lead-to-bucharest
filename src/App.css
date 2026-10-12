@@ -8,18 +8,18 @@
   --bg-app: #e8ede3;
   --bg-page: #e6e9e1;
   --bg-panel: #ffffff;
-  --bg-panel-alt: #b2cfbc;
+  --bg-panel-alt: #c4dccb;
   --bg-input: #faf9f4;
   --bg-hover: #f0f3e8;
   --bg-hover-alt: #e3e9da;
-  --bg-hover-strong: #e6e9e1;
+  --bg-hover-strong: #d5ddcc;
   --bg-overlay: rgba(250, 249, 244, 0.96);
   --bg-canvas-fog: rgba(232, 237, 227, 0.6);
   --bg-chip: #e5e9dc;
   --diagram-bg: #f5f2e8;
 
   --text-primary: #28372c;
-  --text-secondary: #627260;
+  --text-secondary: #4f5f4e;
   --text-faint: #8d9988;
   --text-legend: #435543;
 
