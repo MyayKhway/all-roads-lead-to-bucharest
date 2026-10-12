@@ -26,7 +26,13 @@ export interface VariantComparison {
   /** Interquartile range of the timing trials, so overlapping spreads are visible. */
   readonly timeP25Us: number | null
   readonly timeP75Us: number | null
-  /** Structural entry count: peak frontier plus final closed-set and cost-table entries. */
+  /**
+   * Entries held by the search's data structures: the frontier at its peak, plus the closed set
+   * and every cost table at the end. Closed sets and cost tables only grow, so their final size
+   * is their peak; the sum is an upper bound on entries held at once. A* and UCS keep two
+   * tables (best cost and parent), BFS keeps two (reached cost and parent), so methods compare
+   * like for like.
+   */
   readonly memoryEntries: number
   readonly peakFrontierEntries: number
   readonly closedSetEntries: number
