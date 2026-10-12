@@ -213,20 +213,25 @@ function collectAllPairResults(
   }
 }
 
-/** Compare one heuristic with its blind baseline across every ordered pair of distinct cities. */
+/**
+ * Compare one heuristic with its blind baseline across every ordered pair of distinct cities.
+ * Extra variants are measured the same way and follow the focus and baseline in `rows`.
+ */
 export function compareAllPairs(
   focusVariant: SearchVariant,
   baselineVariant: SearchVariant,
   timingOptions?: TimingOptions,
+  extraVariants: readonly SearchVariant[] = [],
 ): AllPairsComparison {
   const pairs = prepareAllPairs()
-  const focus = collectAllPairResults(focusVariant, pairs, timingOptions)
-  const baseline = collectAllPairResults(baselineVariant, pairs, timingOptions)
+  const rows = [focusVariant, baselineVariant, ...extraVariants].map((variant) =>
+    collectAllPairResults(variant, pairs, timingOptions),
+  )
 
   return {
     pairCount: pairs.length,
     focusVariantId: focusVariant.id,
     baselineVariantId: baselineVariant.id,
-    rows: [focus, baseline],
+    rows,
   }
 }

@@ -6,10 +6,13 @@ import {
   compareVariants,
   type RouteComparison,
 } from '@/search/comparison'
+import {
+  COMPARISON_BASELINE,
+  COMPARISON_EXTRAS,
+  COMPARISON_FOCUS,
+  COMPARISON_VARIANTS,
+} from '@/search/comparisonVariants'
 import { precomputeNtbEstimates } from '@/search/heuristics/ntb'
-import type { SearchVariant } from '@/search/variant'
-import { bfsVariant } from '@/search/variants/bfs'
-import { ntbAstarVariant } from '@/search/variants/ntbAstar'
 
 export interface ComparisonRequest {
   readonly type: 'route'
@@ -31,9 +34,6 @@ export interface AllPairsComparisonResponse {
 
 export type ComparisonResponse = RouteComparisonResponse | AllPairsComparisonResponse
 
-// The presentation compares the project's NTB heuristic with a blind-search baseline.
-const PRESENTATION_VARIANTS: readonly SearchVariant[] = [ntbAstarVariant, bfsVariant]
-
 // Prepare every goal table once when the worker loads, before any timed search can begin.
 precomputeNtbEstimates(romaniaGraph)
 
@@ -45,13 +45,18 @@ let cachedAllPairsComparison: AllPairsComparison | undefined
 // Timing runs here so repeated searches never stall the map animation.
 self.onmessage = (event: MessageEvent<ComparisonRequest>) => {
   const { requestId, start, goal } = event.data
-  const comparison = compareVariants(PRESENTATION_VARIANTS, start, goal, UI_TIMING)
+  const comparison = compareVariants(COMPARISON_VARIANTS, start, goal, UI_TIMING)
   const response: RouteComparisonResponse = { type: 'route', requestId, comparison }
   self.postMessage(response)
 
   // Fill the reusable aggregate result after the selected route has been returned.
   if (cachedAllPairsComparison === undefined) {
-    cachedAllPairsComparison = compareAllPairs(ntbAstarVariant, bfsVariant, UI_TIMING)
+    cachedAllPairsComparison = compareAllPairs(
+      COMPARISON_FOCUS,
+      COMPARISON_BASELINE,
+      UI_TIMING,
+      COMPARISON_EXTRAS,
+    )
     const allPairsResponse: AllPairsComparisonResponse = {
       type: 'all-pairs',
       comparison: cachedAllPairsComparison,

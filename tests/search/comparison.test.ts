@@ -38,11 +38,15 @@ test('compares blind and heuristic search on one pair', () => {
 })
 
 test('compares NTB and blind search across every ordered city pair', () => {
-  const comparison = compareAllPairs(ntbAstarVariant, bfsVariant, FAST_TIMING)
-  const [ntb, bfs] = comparison.rows
-  assert.ok(ntb && bfs)
+  const comparison = compareAllPairs(ntbAstarVariant, ucsVariant, FAST_TIMING, [bfsVariant])
+  const [ntb, ucs, bfs] = comparison.rows
+  assert.ok(ntb && ucs && bfs)
 
   assert.equal(comparison.pairCount, 380)
+  assert.equal(comparison.focusVariantId, 'astar-ntb')
+  assert.equal(comparison.baselineVariantId, 'ucs')
+  assert.equal(ucs.optimalRoutes, 380)
+  assert.ok(ntb.averageNodesExpanded < ucs.averageNodesExpanded)
   assert.equal(ntb.validRoutes, 380)
   assert.equal(bfs.validRoutes, 380)
   assert.equal(ntb.optimalRoutes, 380)
