@@ -2,7 +2,7 @@
  * HelpPanel — a modal explaining how to use the map and the controls.
  */
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 interface HelpPanelProps {
   onClose: () => void
@@ -67,27 +67,36 @@ const SECTIONS: HelpSection[] = [
 ]
 
 export default function HelpPanel({ onClose }: HelpPanelProps) {
+  const dialogRef = useRef<HTMLDialogElement>(null)
+
+  // showModal() puts the panel in the top layer: it traps focus, closes on Escape,
+  // and hands focus back to the ? button when it closes.
   useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [onClose])
+    dialogRef.current?.showModal()
+  }, [])
+
+  function close() {
+    dialogRef.current?.close()
+  }
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: backdrop click-to-close, not a control itself
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Escape is handled globally above
-    <div className="help-backdrop" onClick={onClose}>
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: not a control, just stops propagation to the backdrop */}
-      <section
-        className="help-panel"
-        aria-label="How to use this map"
-        onClick={(e) => e.stopPropagation()}
-      >
+    // The content fills the dialog, so a click landing on the dialog itself is on its backdrop.
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Escape already closes a modal dialog
+    <dialog
+      ref={dialogRef}
+      className="help-panel"
+      aria-labelledby="help-title"
+      onClose={onClose}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) close()
+      }}
+    >
+      <div className="help-content">
         <header className="help-header">
-          <h2 className="help-title">How to use this map</h2>
-          <button type="button" className="help-close" onClick={onClose} aria-label="Close">
+          <h2 id="help-title" className="help-title">
+            How to use this map
+          </h2>
+          <button type="button" className="help-close" onClick={close} aria-label="Close">
             ×
           </button>
         </header>
@@ -107,7 +116,7 @@ export default function HelpPanel({ onClose }: HelpPanelProps) {
             </div>
           ))}
         </div>
-      </section>
-    </div>
+      </div>
+    </dialog>
   )
 }
