@@ -66,6 +66,10 @@ export const SCENE_COLOR_LIGHT = {
   sun: '#fff2dc',
   hemiSky: '#eef6ff',
   hemiGround: '#b9c99c',
+  roadLabel: '#5a5242',
+  roadLabelOutline: '#f5efe1',
+  routeLabel: '#1b5e20',
+  routeLabelOutline: '#ffffff',
 } as const
 
 /**
@@ -86,6 +90,10 @@ export const SCENE_COLOR_DARK = {
   sun: '#aebfe0',
   hemiSky: '#1b2740',
   hemiGround: '#425339',
+  roadLabel: '#c9c1ae',
+  roadLabelOutline: '#1d2733',
+  routeLabel: COLOR.emerald,
+  routeLabelOutline: '#0b1220',
 } as const
 
 export type SceneColor = Record<keyof typeof SCENE_COLOR_LIGHT, string>
