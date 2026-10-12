@@ -864,8 +864,7 @@ function QualityTable<Row extends { variantId: string; name: string }>({
               className="quality-table__cell quality-table__method"
               scope="col"
             >
-              <i className={`method-dot method-dot--${methodRole(row.variantId)}`} />{' '}
-              {row.name}
+              <i className={`method-dot method-dot--${methodRole(row.variantId)}`} /> {row.name}
             </th>
           ))}
         </tr>
