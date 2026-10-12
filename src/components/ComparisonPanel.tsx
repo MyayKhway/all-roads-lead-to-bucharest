@@ -11,6 +11,7 @@ import type {
   VariantComparison,
 } from '../search/comparison'
 import { COMPARISON_BASELINE, COMPARISON_FOCUS } from '../search/comparisonVariants'
+import { BYTE_ESTIMATES } from '../search/evaluation/metrics'
 
 interface ComparisonPanelProps {
   comparison: RouteComparison | null
@@ -56,10 +57,10 @@ const COLUMNS: Column[] = [
   },
   {
     key: 'memory',
-    label: 'Entries held',
-    unit: 'frontier + tables',
-    value: (row) => row.memoryEntries,
-    format: (v) => String(v),
+    label: 'Memory',
+    unit: 'bytes, estimated',
+    value: (row) => row.estimatedBytes,
+    format: (v) => v.toLocaleString(),
     title: (row) =>
       `${row.peakFrontierEntries} peak frontier + ${row.closedSetEntries} closed set + ${row.costTableEntries} cost table entries`,
   },
@@ -73,8 +74,7 @@ const COLUMNS: Column[] = [
   },
 ]
 
-const MEMORY_EXPLANATION =
-  'Entries held by the search: the frontier at its largest, plus the closed set and cost tables (best cost and parent per city) when it finishes. Shorter bars are better.'
+const MEMORY_EXPLANATION = `Estimated from what the search holds: the frontier at its largest, plus the closed set and cost tables (best cost and parent per city) when it finishes, at an assumed ${BYTE_ESTIMATES.frontierEntry}, ${BYTE_ESTIMATES.closedSetEntry} and ${BYTE_ESTIMATES.costTableEntry} bytes per entry. This is the same estimate the benchmark CLI reports, not measured browser memory. Shorter bars are better.`
 
 function cityName(id: string): string {
   return cities[id]?.name ?? id
@@ -280,9 +280,9 @@ interface ReportMethod {
 
 const WORK_LABELS = ['Nodes expanded', 'Nodes generated', 'Roads examined']
 const MEMORY_PARTS = [
-  { key: 'frontier', label: 'Peak frontier' },
-  { key: 'closed', label: 'Closed set' },
-  { key: 'cost', label: 'Cost tables' },
+  { key: 'frontier', label: 'Peak frontier', bytesPerEntry: BYTE_ESTIMATES.frontierEntry },
+  { key: 'closed', label: 'Closed set', bytesPerEntry: BYTE_ESTIMATES.closedSetEntry },
+  { key: 'cost', label: 'Cost tables', bytesPerEntry: BYTE_ESTIMATES.costTableEntry },
 ]
 
 function routeMethod(row: VariantComparison): ReportMethod {
@@ -578,6 +578,10 @@ function AllPairsSection({
                   <span className="comparison-unit">average entries</span>
                 </th>
                 <th scope="col">
+                  Memory
+                  <span className="comparison-unit">bytes, estimated, average</span>
+                </th>
+                <th scope="col">
                   All {comparison.pairCount} routes
                   <span className="comparison-unit">ms, median</span>
                 </th>
@@ -603,6 +607,7 @@ function AllPairsSection({
                     row.averagePeakFrontierEntries.toFixed(2),
                     row.averageClosedSetEntries.toFixed(2),
                     row.averageCostTableEntries.toFixed(2),
+                    Math.round(row.averageEstimatedBytes).toLocaleString(),
                   ].map((value, index) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: the columns are fixed
                     <td key={index}>
@@ -668,8 +673,13 @@ function ReportCards({
 }) {
   const methods = [focus, baseline]
   const timeMax = Math.max(...methods.map((method) => method.timing?.medianUs ?? 0))
-  const memoryTotals = methods.map((method) => method.memory.reduce((sum, value) => sum + value, 0))
-  const memoryMax = Math.max(...memoryTotals)
+  const bytesOf = (method: ReportMethod, partIndex: number) =>
+    (method.memory[partIndex] ?? 0) * (MEMORY_PARTS[partIndex]?.bytesPerEntry ?? 0)
+  const byteTotals = methods.map((method) =>
+    MEMORY_PARTS.reduce((sum, _, partIndex) => sum + bytesOf(method, partIndex), 0),
+  )
+  const entryTotals = methods.map((method) => method.memory.reduce((sum, value) => sum + value, 0))
+  const memoryMax = Math.max(...byteTotals)
 
   return (
     <>
@@ -746,17 +756,21 @@ function ReportCards({
             <div className="memory-row" key={method.role}>
               <div className="memory-row__heading">
                 <strong>{method.name}</strong>
-                <span>{formatMemory(memoryTotals[index] ?? 0)} entries held</span>
+                <span>
+                  ≈ {Math.round(byteTotals[index] ?? 0).toLocaleString()} bytes ·{' '}
+                  {formatMemory(entryTotals[index] ?? 0)} entries
+                </span>
               </div>
               <div className="memory-track">
                 {MEMORY_PARTS.map((part, partIndex) => {
-                  const value = method.memory[partIndex] ?? 0
+                  const entries = method.memory[partIndex] ?? 0
+                  const bytes = bytesOf(method, partIndex)
                   return (
                     <span
                       className={`memory-segment memory-segment--${part.key}`}
                       key={part.key}
-                      style={{ width: `${memoryMax === 0 ? 0 : (value / memoryMax) * 100}%` }}
-                      title={`${part.label}: ${formatMemory(value)}`}
+                      style={{ width: `${memoryMax === 0 ? 0 : (bytes / memoryMax) * 100}%` }}
+                      title={`${part.label}: ${formatMemory(entries)} entries × ${part.bytesPerEntry} B ≈ ${Math.round(bytes).toLocaleString()} B`}
                     />
                   )
                 })}
