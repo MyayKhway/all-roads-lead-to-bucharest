@@ -12,8 +12,8 @@ import { useAppTheme } from '../lib/ThemeContext'
 import { lightIntensityFor, sceneColorFor } from '../lib/theme'
 import { explainNtb } from '../search/heuristics/ntbBreakdown'
 import type { RouteRun } from '../search/presentation'
+import CelestialFlare from './CelestialFlare'
 import type { CityStatus } from './CityNode'
-
 import CityNode from './CityNode'
 import NavigationCamera from './NavigationCamera'
 import NavigationPath from './NavigationPath'
@@ -143,6 +143,9 @@ export default function RomaniaMap({
         shadow-normalBias={0.02}
         shadow-radius={3}
       />
+
+      {/* A sun or moon briefly rises when the theme switches */}
+      <CelestialFlare />
 
       {/* Ground, relief and vegetation (decorative only) */}
       <Terrain />
