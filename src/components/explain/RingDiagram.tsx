@@ -171,9 +171,6 @@ export default function RingDiagram({ start, goal }: RingDiagramProps) {
   }, [breakdown, goal])
 
   const tollKeys = new Set(breakdown.tolls.map((t) => `${t.road.from}-${t.road.to}`))
-  const displayedTolls = [...breakdown.tolls].sort(
-    (left, right) => left.threshold - right.threshold,
-  )
   const at = (id: CityId) => layout.points.get(id)
 
   return (
@@ -284,7 +281,7 @@ export default function RingDiagram({ start, goal }: RingDiagramProps) {
             h({cityName(city)}) = {breakdown.total}
           </h3>
           <ol>
-            {displayedTolls.map((toll) => (
+            {breakdown.tolls.map((toll) => (
               <li key={toll.threshold}>
                 <span
                   className="ring-swatch"
@@ -300,7 +297,7 @@ export default function RingDiagram({ start, goal }: RingDiagramProps) {
             ))}
           </ol>
           <p className="ring-sum">
-            {displayedTolls.map((t) => t.road.distance).join(' + ')} = {breakdown.total}
+            {breakdown.tolls.map((t) => t.road.distance).join(' + ')} = {breakdown.total}
           </p>
           <p className="ring-note">
             A real route may use different roads, but it must cross every one of these boundaries,

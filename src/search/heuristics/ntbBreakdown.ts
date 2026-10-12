@@ -14,7 +14,7 @@ export interface NtbBreakdown {
   readonly goal: CityId
   /** Roads (hops) from every reachable city to the goal. */
   readonly hops: ReadonlyMap<CityId, number>
-  /** Tolls in the order a route crosses them: outermost boundary first. */
+  /** Tolls from the innermost boundary (around the goal) outward. */
   readonly tolls: readonly NtbToll[]
   readonly total: number
 }
@@ -25,7 +25,7 @@ export function explainNtb(graph: WeightedGraph, city: CityId, goal: CityId): Nt
   const cityHops = hops.get(city) ?? 0
   const tolls: NtbToll[] = []
 
-  for (let threshold = cityHops; threshold >= 1; threshold -= 1) {
+  for (let threshold = 1; threshold <= cityHops; threshold += 1) {
     const { byCity } = componentsAtThreshold(graph, hops, threshold)
     const region = byCity.get(city)
     let cheapest: Edge | undefined

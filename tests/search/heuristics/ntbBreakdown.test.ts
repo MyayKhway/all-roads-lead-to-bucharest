@@ -11,9 +11,9 @@ test('breaks h(Arad → Bucharest) into one toll per ring boundary', () => {
   assert.deepEqual(
     breakdown.tolls.map((t) => [t.threshold, t.road.from, t.road.to, t.road.distance]),
     [
-      [3, 'drobeta', 'craiova', 120],
-      [2, 'rimnicu', 'pitesti', 97],
       [1, 'pitesti', 'bucharest', 101],
+      [2, 'rimnicu', 'pitesti', 97],
+      [3, 'drobeta', 'craiova', 120],
     ],
   )
   assert.equal(breakdown.total, 318)
