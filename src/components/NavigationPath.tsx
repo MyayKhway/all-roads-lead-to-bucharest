@@ -134,33 +134,38 @@ export default function NavigationPath({ path, cities, animProgress }: Navigatio
 
   if (!isDrawable) return null
 
-  const segments: { id: string; posA: Position3D; posB: Position3D; progress: number }[] = []
+  const segments: {
+    id: string
+    posA: Position3D
+    posB: Position3D
+    progress: number
+    distance: number | undefined
+  }[] = []
   for (let i = 0; i < path.length - 1; i++) {
-    const posA = positionOf(cities, path[i])
-    const posB = positionOf(cities, path[i + 1])
-    if (posA === undefined || posB === undefined) continue
+    const from = path[i]
+    const to = path[i + 1]
+    const posA = positionOf(cities, from)
+    const posB = positionOf(cities, to)
+    if (from === undefined || posA === undefined || posB === undefined) continue
     segments.push({
-      id: `${path[i]}-${path[i + 1]}`,
+      id: `${from}-${to}`,
       posA,
       posB,
       progress: Math.max(0, Math.min(1, animProgress - i)),
+      // Looked up here, not by array index later: skipped segments would desync it.
+      distance: romaniaGraph.adjacency[from]?.find((road) => road.city === to)?.distance,
     })
   }
 
   return (
     <group>
-      {segments.map(({ id, posA, posB }, index) => {
+      {segments.map(({ id, posA, posB, distance }) => {
+        if (distance === undefined) return null
         const midpoint: Position3D = [
           (posA[0] + posB[0]) / 2,
           (posA[1] + posB[1]) / 2 + 0.5,
           (posA[2] + posB[2]) / 2,
         ]
-        const from = path[index]
-        const to = path[index + 1]
-        const distance = romaniaGraph.adjacency[from ?? '']?.find(
-          (road) => road.city === to,
-        )?.distance
-        if (distance === undefined) return null
         return (
           <Billboard key={`cost-${id}`} position={midpoint}>
             <Text
