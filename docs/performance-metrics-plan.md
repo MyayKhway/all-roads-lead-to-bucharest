@@ -257,7 +257,7 @@ Assertions here rest on the **graph**, which is fixed, rather than on any
 algorithm, which is not.
 
 1. **Reference correctness** — reference Dijkstra returns
-   Arad → Sibiu → Rimnicu Vilcea → Pitesti → Bucharest at 418 km, the standard
+   Arad → Sibiu → Rimnicu Vilcea → Pitesti → Bucharest at cost 418, the standard
    textbook result for this graph.
 2. **Path validation catches bad output** — feed the harness a deliberately
    broken algorithm (returns a path with a non-adjacent hop, or a path that skips
