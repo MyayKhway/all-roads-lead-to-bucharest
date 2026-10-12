@@ -63,7 +63,7 @@
   --shadow-md: rgba(40, 55, 44, 0.12);
   --shadow-lg: rgba(40, 55, 44, 0.17);
 
-  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237A6840' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234F5F4E' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
 }
 
 :root[data-theme="dark"] {
