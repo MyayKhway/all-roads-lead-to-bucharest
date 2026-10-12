@@ -6,6 +6,8 @@ import { Billboard, Text } from '@react-three/drei'
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import type { Position3D } from '../data/cities'
+import { useAppTheme } from '../lib/ThemeContext'
+import { sceneColorFor } from '../lib/theme'
 
 export type RoadStatus = 'normal' | 'path' | 'explored' | 'toll'
 
@@ -34,6 +36,7 @@ export default function Road({
   showDistance = true,
   status = 'normal',
 }: RoadProps) {
+  const sceneColor = sceneColorFor(useAppTheme())
   const { position, rotation, length } = useMemo(() => {
     const a = new THREE.Vector3(...from)
     const b = new THREE.Vector3(...to)
@@ -80,9 +83,9 @@ export default function Road({
         <Billboard position={[position[0], ROAD_Y + 0.22, position[2]]}>
           <Text
             fontSize={0.22}
-            color="#302B22"
+            color={sceneColor.roadLabel}
             outlineWidth={0.025}
-            outlineColor="#ffffff"
+            outlineColor={sceneColor.roadLabelOutline}
             anchorX="center"
             anchorY="middle"
           >

@@ -8,6 +8,8 @@ import * as THREE from 'three'
 import type { CityMap, Position3D } from '../data/cities'
 import { positionOf } from '../data/cities'
 import { romaniaGraph } from '../data/graph'
+import { useAppTheme } from '../lib/ThemeContext'
+import { sceneColorFor } from '../lib/theme'
 
 interface NavigationPathProps {
   path: readonly string[]
@@ -111,6 +113,7 @@ function NavigationHead({ position }: NavigationHeadProps) {
 
 export default function NavigationPath({ path, cities, animProgress }: NavigationPathProps) {
   const isDrawable = path.length >= 2
+  const sceneColor = sceneColorFor(useAppTheme())
 
   // Computed unconditionally: a hook must not sit behind an early return.
   const headPos = useMemo<Position3D | null>(() => {
@@ -172,9 +175,9 @@ export default function NavigationPath({ path, cities, animProgress }: Navigatio
           <Billboard key={`cost-${id}`} position={midpoint}>
             <Text
               fontSize={0.26}
-              color="#1B5E20"
+              color={sceneColor.routeLabel}
               outlineWidth={0.03}
-              outlineColor="#ffffff"
+              outlineColor={sceneColor.routeLabelOutline}
               anchorX="center"
               anchorY="middle"
             >
