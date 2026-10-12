@@ -22,6 +22,10 @@ interface RoadProps {
 const ROAD_WIDTH = 0.06
 const ROAD_HEIGHT = 0.025
 const ROAD_Y = 0.04
+// Map-wide costs stay small and a little faded so the route's costs stand out.
+const LABEL_Y = ROAD_Y + 0.32
+const LABEL_SIZE = 0.17
+const LABEL_OPACITY = 0.8
 
 const NORMAL_COLOR = '#A09880'
 const PATH_COLOR = '#43A047'
@@ -80,12 +84,14 @@ export default function Road({
         />
       </mesh>
       {showDistance && (
-        <Billboard position={[position[0], ROAD_Y + 0.22, position[2]]}>
+        <Billboard position={[position[0], LABEL_Y, position[2]]}>
           <Text
-            fontSize={0.22}
+            fontSize={LABEL_SIZE}
             color={sceneColor.roadLabel}
-            outlineWidth={0.025}
+            fillOpacity={LABEL_OPACITY}
+            outlineWidth={0.02}
             outlineColor={sceneColor.roadLabelOutline}
+            outlineOpacity={LABEL_OPACITY}
             anchorX="center"
             anchorY="middle"
           >
