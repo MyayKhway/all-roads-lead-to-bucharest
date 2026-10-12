@@ -130,7 +130,8 @@ export default function ControlPanel({
       </div>
 
       <p className="map-tip">
-        On the map: click a city for the destination, Shift+click for a new start.
+        On the map: click a city to set the start, then the destination. Shift+click sets a new
+        start.
       </p>
 
       {/* Search method: one registered algorithm-and-heuristic variant */}
