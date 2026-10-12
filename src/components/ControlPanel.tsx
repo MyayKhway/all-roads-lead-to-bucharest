@@ -23,6 +23,7 @@ interface ControlPanelProps {
   onFindPath: () => void
   onReset: () => void
   onToggleTheme: () => void
+  onHelp: () => void
 }
 
 export default function ControlPanel({
@@ -38,6 +39,7 @@ export default function ControlPanel({
   onFindPath,
   onReset,
   onToggleTheme,
+  onHelp,
 }: ControlPanelProps) {
   const canFind = startCity && goalCity && startCity !== goalCity && !isAnimating
 
@@ -45,6 +47,15 @@ export default function ControlPanel({
     <div className="control-panel">
       {/* Header */}
       <div className="panel-header">
+        <button
+          type="button"
+          className="help-toggle"
+          onClick={onHelp}
+          aria-label="How to use this map"
+          title="How to use this map"
+        >
+          ?
+        </button>
         <button
           type="button"
           className="theme-toggle"
