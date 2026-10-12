@@ -288,7 +288,7 @@ export default function RingDiagram({ start, goal }: RingDiagramProps) {
                   style={{ background: ringColor(toll.threshold) }}
                   aria-hidden="true"
                 />
-                Leave ring {toll.threshold}: {toll.road.distance} ({''}
+                Leave the {toll.threshold}+ ring: {toll.road.distance} (
                 <strong>
                   {cityName(toll.road.from)}–{cityName(toll.road.to)}
                 </strong>
