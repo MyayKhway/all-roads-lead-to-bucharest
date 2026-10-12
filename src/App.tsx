@@ -330,7 +330,7 @@ export default function App() {
               className="comparison-toggle"
               onClick={() => setComparisonOpen(true)}
             >
-              📊 Compare all methods
+              📊 See Comparison Results
             </button>
           )}
           {phase === 'done' && comparisonOpen && (
