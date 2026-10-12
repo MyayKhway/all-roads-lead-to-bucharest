@@ -28,7 +28,7 @@ import type { AllPairsComparisonResponse } from './search/allPairsComparison.wor
 import type { AllPairsComparison, RouteComparison } from './search/comparison'
 import type { ComparisonRequest, ComparisonResponse } from './search/comparison.worker'
 import { type RouteRun, runRoute } from './search/presentation'
-import { searchVariantRegistry } from './search/registry'
+import { presentationVariants, searchVariantRegistry } from './search/registry'
 import { findSearchVariant } from './search/variant'
 
 import './App.css'
@@ -56,7 +56,7 @@ export default function App() {
   // ── form state ──────────────────────────────────────────────────────────────
   const [startCity, setStartCity] = useState<string>('arad')
   const [goalCity, setGoalCity] = useState<string>('bucharest')
-  const [variantId, setVariantId] = useState<string>(searchVariantRegistry[0]?.id ?? '')
+  const [variantId, setVariantId] = useState<string>(presentationVariants[0]?.id ?? '')
   const [explainOpen, setExplainOpen] = useExplainRoute()
   const [helpOpen, setHelpOpen] = useState<boolean>(false)
 

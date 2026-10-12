@@ -15,7 +15,7 @@ import {
 } from '../../search/explanation'
 import { explainNtb } from '../../search/heuristics/ntbBreakdown'
 import { runRoute } from '../../search/presentation'
-import { searchVariantRegistry } from '../../search/registry'
+import { presentationVariants } from '../../search/registry'
 import type { SearchVariant } from '../../search/variant'
 import RingDiagram from './RingDiagram'
 import StepMap from './StepMap'
@@ -200,7 +200,7 @@ export default function ExplainPage({
   onBack,
 }: ExplainPageProps) {
   const [variantId, setVariantId] = useState(initialVariantId)
-  const variant = searchVariantRegistry.find((v) => v.id === variantId) ?? searchVariantRegistry[0]
+  const variant = presentationVariants.find((v) => v.id === variantId) ?? presentationVariants[0]
 
   const pair = useMemo(
     () =>
@@ -230,7 +230,7 @@ export default function ExplainPage({
       </header>
 
       <nav className="explain-tabs" aria-label="Search method">
-        {searchVariantRegistry.map((v) => (
+        {presentationVariants.map((v) => (
           <button
             key={v.id}
             type="button"

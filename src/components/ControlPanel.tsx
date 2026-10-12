@@ -6,7 +6,7 @@ import { cityList } from '../data/cities'
 import type { Phase } from '../lib/searchView'
 import { STATUS_COLOR } from '../lib/theme'
 import type { ThemeName } from '../lib/useTheme'
-import { searchVariantRegistry } from '../search/registry'
+import { presentationVariants } from '../search/registry'
 
 const REPO_URL = 'https://github.com/MyayKhway/all-roads-lead-to-bucharest'
 
@@ -161,7 +161,7 @@ export default function ControlPanel({
           onChange={(e) => onVariant(e.target.value)}
           disabled={isAnimating}
         >
-          {searchVariantRegistry.map((v) => (
+          {presentationVariants.map((v) => (
             <option key={v.id} value={v.id}>
               {v.name}
             </option>
