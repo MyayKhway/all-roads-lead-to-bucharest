@@ -3,6 +3,7 @@ import test from 'node:test'
 
 import {
   measureExecutionTime,
+  measureInterleavedExecutionTimes,
   type TimingOptions,
   timingSink,
 } from '@/search/evaluation/benchmark/timer'
@@ -87,4 +88,40 @@ test('fails when calibration reaches its iteration limit', () => {
       }),
     RangeError,
   )
+})
+
+function busyWait(ms: number): void {
+  const startedAt = performance.now()
+  while (performance.now() - startedAt < ms) {}
+}
+
+test('times interleaved operations in rotating order', () => {
+  const order: string[] = []
+  // Each call outlasts minTrialMs, so calibration settles on one iteration per batch.
+  const record = (name: string) => () => {
+    busyWait(0.01)
+    order.push(name)
+  }
+  const results = measureInterleavedExecutionTimes([record('a'), record('b'), record('c')], {
+    warmupMs: 0,
+    minTrialMs: 0.001,
+    trials: 3,
+  })
+
+  assert.equal(results.length, 3)
+  for (const result of results) {
+    assert.equal(result.trials, 3)
+    assert.equal(result.iterations, 1)
+  }
+  // Each operation runs once to calibrate, then each trial starts one operation later.
+  assert.deepEqual(order, ['a', 'b', 'c', 'a', 'b', 'c', 'b', 'c', 'a', 'c', 'a', 'b'])
+})
+
+test('slower interleaved operations report larger medians', () => {
+  const [fast, slow] = measureInterleavedExecutionTimes(
+    [() => busyWait(0.05), () => busyWait(0.5)],
+    FAST_TEST_OPTIONS,
+  )
+  assert.ok(fast && slow)
+  assert.ok(slow.medianUs > fast.medianUs)
 })
