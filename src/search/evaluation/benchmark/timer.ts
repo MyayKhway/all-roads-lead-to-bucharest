@@ -117,28 +117,8 @@ function calibrateIterationsPerTrial<T>(
   return iterations
 }
 
-/** Measures a synchronous operation after warm-up and automatic batch calibration. */
-export function measureExecutionTime<T>(
-  operation: () => T,
-  options: TimingOptions = {},
-): TimingResult {
-  const warmupMs = options.warmupMs ?? DEFAULT_WARMUP_MS
-  const minTrialMs = options.minTrialMs ?? DEFAULT_MIN_TRIAL_MS
-  const trials = options.trials ?? DEFAULT_TRIALS
-  const maxIterations = options.maxIterations ?? DEFAULT_MAX_ITERATIONS
-
-  validateTimingOptions(warmupMs, minTrialMs, trials, maxIterations)
-
-  runWarmup(operation, warmupMs)
-  const iterations = calibrateIterationsPerTrial(operation, minTrialMs, maxIterations)
-
-  // Every trial uses the same calibrated batch size and produces one per-call sample.
-  const samplesUs: number[] = []
-  for (let trial = 0; trial < trials; trial += 1) {
-    const elapsedMs = measureBatchDuration(operation, iterations)
-    samplesUs.push((elapsedMs * 1_000) / iterations)
-  }
-
+/** Summarises one operation's per-call samples. */
+function summarizeSamples(samplesUs: readonly number[], iterations: number): TimingResult {
   // Percentiles require ordered samples, so sort a copy of the collected results.
   const sortedSamples = [...samplesUs].sort((left, right) => left - right)
   const minimum = sortedSamples[0]
@@ -162,6 +142,53 @@ export function measureExecutionTime<T>(
     meanUs: mean,
     stdDevUs: Math.sqrt(squaredDifferenceTotal / samplesUs.length),
     iterations,
-    trials,
+    trials: samplesUs.length,
   }
+}
+
+/**
+ * Measures several synchronous operations against each other. Every trial times each
+ * operation once, rotating which goes first, so clock and JIT drift affect them all evenly.
+ */
+export function measureInterleavedExecutionTimes(
+  operations: readonly (() => unknown)[],
+  options: TimingOptions = {},
+): TimingResult[] {
+  const warmupMs = options.warmupMs ?? DEFAULT_WARMUP_MS
+  const minTrialMs = options.minTrialMs ?? DEFAULT_MIN_TRIAL_MS
+  const trials = options.trials ?? DEFAULT_TRIALS
+  const maxIterations = options.maxIterations ?? DEFAULT_MAX_ITERATIONS
+
+  validateTimingOptions(warmupMs, minTrialMs, trials, maxIterations)
+
+  for (const operation of operations) runWarmup(operation, warmupMs)
+  const iterations = operations.map((operation) =>
+    calibrateIterationsPerTrial(operation, minTrialMs, maxIterations),
+  )
+
+  // Every trial uses each operation's calibrated batch size and produces one per-call sample.
+  const samplesUs = operations.map((): number[] => [])
+  for (let trial = 0; trial < trials; trial += 1) {
+    for (let offset = 0; offset < operations.length; offset += 1) {
+      const index = (trial + offset) % operations.length
+      const operation = operations[index]
+      const batchSize = iterations[index]
+      const samples = samplesUs[index]
+      if (operation === undefined || batchSize === undefined || samples === undefined) continue
+      const elapsedMs = measureBatchDuration(operation, batchSize)
+      samples.push((elapsedMs * 1_000) / batchSize)
+    }
+  }
+
+  return samplesUs.map((samples, index) => summarizeSamples(samples, iterations[index] ?? 1))
+}
+
+/** Measures a synchronous operation after warm-up and automatic batch calibration. */
+export function measureExecutionTime<T>(
+  operation: () => T,
+  options: TimingOptions = {},
+): TimingResult {
+  const [result] = measureInterleavedExecutionTimes([operation], options)
+  if (result === undefined) throw new Error('Timing produced no samples')
+  return result
 }
