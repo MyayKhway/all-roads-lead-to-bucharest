@@ -15,9 +15,16 @@ interface ResultsPanelProps {
   view: SearchView
   pathResult: RouteRun | null
   onExplain: () => void
+  onExplainSample: () => void
 }
 
-export default function ResultsPanel({ phase, view, pathResult, onExplain }: ResultsPanelProps) {
+export default function ResultsPanel({
+  phase,
+  view,
+  pathResult,
+  onExplain,
+  onExplainSample,
+}: ResultsPanelProps) {
   return (
     <aside className="control-panel results-panel" aria-label="Search results">
       <div className="results-header">
@@ -36,6 +43,13 @@ export default function ResultsPanel({ phase, view, pathResult, onExplain }: Res
           Pick a start and a destination on the left, then press Find Path. Each step of the search
           is explained here.
         </p>
+      )}
+
+      {/* The step and result cards carry their own "Explain every step" link. */}
+      {!(pathResult && (phase === 'searching' || phase === 'done')) && (
+        <button type="button" className="results-sample-explain" onClick={onExplainSample}>
+          Algorithm Explanation
+        </button>
       )}
     </aside>
   )
