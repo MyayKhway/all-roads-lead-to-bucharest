@@ -25,7 +25,11 @@ const SECTIONS: HelpSection[] = [
   {
     title: 'Choosing a route',
     items: [
-      { term: 'Click a city', description: 'Set it as the destination.' },
+      {
+        term: 'Click a city',
+        description:
+          'The first click sets the start, after that it sets the destination. Clicking the start again clears it.',
+      },
       {
         term: 'Shift+click a city',
         description: 'Set it as a new start, without affecting the destination.',
@@ -51,7 +55,7 @@ const SECTIONS: HelpSection[] = [
     title: 'Digging deeper',
     items: [
       {
-        term: 'Compare all methods',
+        term: 'See Comparison Results',
         description: 'After a route is found, see every algorithm side by side.',
       },
       {
