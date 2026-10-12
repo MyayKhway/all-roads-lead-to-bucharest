@@ -58,6 +58,8 @@ export default function App() {
   const [goalCity, setGoalCity] = useState<string>('bucharest')
   const [variantId, setVariantId] = useState<string>(presentationVariants[0]?.id ?? '')
   const [explainOpen, setExplainOpen] = useExplainRoute()
+  // The sample explain link walks Arad → Bucharest without touching the form.
+  const [explainSample, setExplainSample] = useState<boolean>(false)
   const [helpOpen, setHelpOpen] = useState<boolean>(false)
 
   // ── result / animation state ─────────────────────────────────────────────────
@@ -407,13 +409,20 @@ export default function App() {
           phase={phase}
           view={view}
           pathResult={pathResult}
-          onExplain={() => setExplainOpen(true)}
+          onExplain={() => {
+            setExplainSample(false)
+            setExplainOpen(true)
+          }}
+          onExplainSample={() => {
+            setExplainSample(true)
+            setExplainOpen(true)
+          }}
         />
 
         {explainOpen && (
           <ExplainPage
-            startCity={startCity}
-            goalCity={goalCity}
+            startCity={explainSample ? 'arad' : startCity}
+            goalCity={explainSample ? 'bucharest' : goalCity}
             initialVariantId={variantId}
             onBack={() => setExplainOpen(false)}
           />

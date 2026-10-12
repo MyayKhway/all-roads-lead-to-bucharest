@@ -220,7 +220,7 @@ export default function ExplainPage({
           ← Back to map
         </button>
         <div>
-          <h1>How the search chose this route</h1>
+          <h1>Algorithm Explanation</h1>
           <p>
             {cityName(startCity)} → {cityName(goalCity)}
           </p>
