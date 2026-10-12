@@ -13,6 +13,7 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import ComparisonPanel from './components/ComparisonPanel'
 import ControlPanel from './components/ControlPanel'
 import ExplainPage from './components/explain/ExplainPage'
+import HelpPanel from './components/HelpPanel'
 import ReplayControls, { type ReplaySpeed } from './components/ReplayControls'
 import ResultsPanel from './components/ResultsPanel'
 import RomaniaMap from './components/RomaniaMap'
@@ -56,6 +57,7 @@ export default function App() {
   const [goalCity, setGoalCity] = useState<string>('bucharest')
   const [variantId, setVariantId] = useState<string>(searchVariantRegistry[0]?.id ?? '')
   const [explainOpen, setExplainOpen] = useExplainRoute()
+  const [helpOpen, setHelpOpen] = useState<boolean>(false)
 
   // ── result / animation state ─────────────────────────────────────────────────
   const [pathResult, setPathResult] = useState<RouteRun | null>(null)
@@ -284,6 +286,7 @@ export default function App() {
           onFindPath={handleFindPath}
           onReset={handleReset}
           onToggleTheme={toggleTheme}
+          onHelp={() => setHelpOpen(true)}
         />
 
         {/* 3D canvas */}
@@ -369,6 +372,8 @@ export default function App() {
             onBack={() => setExplainOpen(false)}
           />
         )}
+
+        {helpOpen && <HelpPanel onClose={() => setHelpOpen(false)} />}
       </div>
     </ThemeContext.Provider>
   )
