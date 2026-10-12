@@ -11,7 +11,6 @@ import { cities } from '../../data/cities'
 import type { CityId } from '../../data/cityIds'
 import { edges, romaniaGraph } from '../../data/graph'
 import { ringColor, STATUS_COLOR } from '../../lib/theme'
-import { referenceDijkstra } from '../../search/evaluation/referenceDijkstra'
 import { explainNtb } from '../../search/heuristics/ntbBreakdown'
 
 interface RingDiagramProps {
@@ -144,10 +143,6 @@ export default function RingDiagram({ start, goal }: RingDiagramProps) {
   const city = selected === goal ? start : selected
 
   const breakdown = useMemo(() => explainNtb(romaniaGraph, city, goal), [city, goal])
-  const trueDistance = useMemo(() => {
-    const result = referenceDijkstra({ graph: romaniaGraph, start: city, goal }, {})
-    return result.status === 'success' ? result.pathCost : null
-  }, [city, goal])
 
   const layout = useMemo(() => {
     const { hops } = breakdown
@@ -176,6 +171,9 @@ export default function RingDiagram({ start, goal }: RingDiagramProps) {
   }, [breakdown, goal])
 
   const tollKeys = new Set(breakdown.tolls.map((t) => `${t.road.from}-${t.road.to}`))
+  const displayedTolls = [...breakdown.tolls].sort(
+    (left, right) => left.threshold - right.threshold,
+  )
   const at = (id: CityId) => layout.points.get(id)
 
   return (
@@ -286,14 +284,14 @@ export default function RingDiagram({ start, goal }: RingDiagramProps) {
             h({cityName(city)}) = {breakdown.total}
           </h3>
           <ol>
-            {breakdown.tolls.map((toll) => (
+            {displayedTolls.map((toll) => (
               <li key={toll.threshold}>
                 <span
                   className="ring-swatch"
                   style={{ background: ringColor(toll.threshold) }}
                   aria-hidden="true"
                 />
-                Leave the {toll.threshold}+ ring: {toll.road.distance} (
+                Leave ring {toll.threshold}: {toll.road.distance} ({''}
                 <strong>
                   {cityName(toll.road.from)}–{cityName(toll.road.to)}
                 </strong>
@@ -302,13 +300,7 @@ export default function RingDiagram({ start, goal }: RingDiagramProps) {
             ))}
           </ol>
           <p className="ring-sum">
-            {breakdown.tolls.map((t) => t.road.distance).join(' + ')} = {breakdown.total}
-            {trueDistance !== null && (
-              <>
-                {' '}
-                ≤ true distance <strong>{trueDistance}</strong>
-              </>
-            )}
+            {displayedTolls.map((t) => t.road.distance).join(' + ')} = {breakdown.total}
           </p>
           <p className="ring-note">
             A real route may use different roads, but it must cross every one of these boundaries,

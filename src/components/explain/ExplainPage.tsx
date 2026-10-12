@@ -292,17 +292,6 @@ export default function ExplainPage({
                 {HEURISTIC_NOTES[variant.id] && <p>{HEURISTIC_NOTES[variant.id]}</p>}
               </>
             )}
-            <div className="explain-key">
-              <span>
-                <i style={{ background: 'var(--explain-current)' }} /> expanding now
-              </span>
-              <span>
-                <i style={{ background: 'var(--explain-frontier)' }} /> waiting in the queue
-              </span>
-              <span>
-                <i style={{ background: 'var(--explain-explored)' }} /> already expanded
-              </span>
-            </div>
             {variant.id === 'astar-ntb' && (
               <details className="explain-heuristic-details">
                 <summary>Heuristics detail</summary>
@@ -342,9 +331,20 @@ export default function ExplainPage({
                 <div className="explain-process-part">
                   <h3>3. Sum the tolls</h3>
                   <p>NTB adds the minimum toll for every required ring:</p>
-                  <p className="explain-formula">
-                    h<sub>NTB</sub>(n) = ∑<sub>k=1</sub>
-                    <sup>dₜ(n)</sup> b<sub>k</sub>(n)
+                  <p className="explain-formula explain-sum-formula">
+                    <span>
+                      h<sub>NTB</sub>(n) =
+                    </span>
+                    <span className="explain-sum-operator">
+                      <span className="explain-sum-limit explain-sum-limit--upper">
+                        d<sub>t</sub>(n)
+                      </span>
+                      <span className="explain-sum-symbol">∑</span>
+                      <span className="explain-sum-limit explain-sum-limit--lower">k = 1</span>
+                    </span>
+                    <span>
+                      b<sub>k</sub>(n)
+                    </span>
                   </p>
                   <p>This estimates the remaining cost from the current city to the goal.</p>
                 </div>
