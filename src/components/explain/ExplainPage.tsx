@@ -37,8 +37,6 @@ const HOW_IT_PICKS: Record<QueueOrder, string> = {
 }
 
 const HEURISTIC_NOTES: Record<string, string> = {
-  'astar-ntb':
-    'NTB (nested toll barriers): cities are grouped into rings by how many roads they are from the goal. A route from a city k roads away must cross every ring boundary between it and the goal, and each crossing costs at least the cheapest road leaving that ring. h is the sum of those cheapest tolls, so it never overestimates.',
   'astar-alt':
     'ALT (landmarks and the triangle inequality): shortest distances from three far-apart landmark cities are computed once. For any landmark L, the triangle inequality gives d(n, goal) ≥ |d(L, goal) − d(L, n)|. h is the largest of these bounds, so it never overestimates.',
 }
@@ -264,8 +262,36 @@ export default function ExplainPage({
 
           <section className="explain-how">
             <h2>How {variant.name} picks the next city</h2>
-            <p>{HOW_IT_PICKS[queueOrderOf(variant)]}</p>
-            {HEURISTIC_NOTES[variant.id] && <p>{HEURISTIC_NOTES[variant.id]}</p>}
+            {variant.id === 'astar-ntb' ? (
+              <>
+                <p>A* chooses the next city using:</p>
+                <p className="explain-formula">
+                  f(n) = g(n) + h<sub>NTB</sub>(n)
+                </p>
+                <ul className="explain-definitions">
+                  <li>
+                    <strong>g(n)</strong> = road cost already travelled
+                  </li>
+                  <li>
+                    <strong>
+                      h<sub>NTB</sub>(n)
+                    </strong>{' '}
+                    = estimated remaining cost to the goal
+                  </li>
+                  <li>
+                    <strong>f(n)</strong> = estimated total path cost
+                  </li>
+                </ul>
+                <p>
+                  A* expands the city with the smallest <strong>f(n)</strong>.
+                </p>
+              </>
+            ) : (
+              <>
+                <p>{HOW_IT_PICKS[queueOrderOf(variant)]}</p>
+                {HEURISTIC_NOTES[variant.id] && <p>{HEURISTIC_NOTES[variant.id]}</p>}
+              </>
+            )}
             <div className="explain-key">
               <span>
                 <i style={{ background: 'var(--explain-current)' }} /> expanding now
