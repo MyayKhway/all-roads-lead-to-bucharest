@@ -16,3 +16,9 @@ const variants: SearchVariant[] = [ntbAstarVariant, altAstarVariant, ucsVariant,
 validateSearchVariants(variants)
 
 export const searchVariantRegistry: readonly SearchVariant[] = Object.freeze(variants)
+
+/** Search methods currently exposed by the map and explanation interfaces. */
+export const presentationVariants: readonly SearchVariant[] = Object.freeze([
+  ntbAstarVariant,
+  ucsVariant,
+])
