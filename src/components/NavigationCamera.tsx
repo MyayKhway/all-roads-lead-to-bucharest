@@ -21,7 +21,7 @@ interface NavigationCameraProps {
 const LERP_SPEED = 0.04
 const FOLLOW_HEIGHT = 5.5
 const FOLLOW_DIST = 4.5
-// Overviews sit due south of what they frame, looking north (−z).
+// Overviews sit due south of what they frame, looking north (−z), unless given a heading.
 const OVERVIEW_TILT = 0.95 // radians above the horizon
 const OVERVIEW_MARGIN = 1.03
 const ROUTE_MIN_RANGE = 9
@@ -89,7 +89,8 @@ function framePoints(
       minY = Math.min(minY, ndc.y)
       maxY = Math.max(maxY, ndc.y)
     }
-    // Shift the target so the projected bounds are centred (screen up is north, −z)…
+    // Shift the target so the projected bounds are centred (screen up points away from
+    // the camera along −heading, screen right along heading turned clockwise)…
     const centerX = (minX + maxX) / 2
     const centerY = (minY + maxY) / 2
     const rightX = heading.y
