@@ -2,8 +2,8 @@
  * NavigationPath — animates the green route line step-by-step.
  */
 
-import { useMemo } from 'react'
 import { Billboard, Text } from '@react-three/drei'
+import { useMemo } from 'react'
 import * as THREE from 'three'
 import type { CityMap, Position3D } from '../data/cities'
 import { positionOf } from '../data/cities'
@@ -108,11 +108,7 @@ function NavigationHead({ position }: NavigationHeadProps) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function NavigationPath({
-  path,
-  cities,
-  animProgress,
-}: NavigationPathProps) {
+export default function NavigationPath({ path, cities, animProgress }: NavigationPathProps) {
   const isDrawable = path.length >= 2
 
   // Computed unconditionally: a hook must not sit behind an early return.
@@ -161,7 +157,9 @@ export default function NavigationPath({
         ]
         const from = path[index]
         const to = path[index + 1]
-        const distance = romaniaGraph.adjacency[from ?? '']?.find((road) => road.city === to)?.distance
+        const distance = romaniaGraph.adjacency[from ?? '']?.find(
+          (road) => road.city === to,
+        )?.distance
         if (distance === undefined) return null
         return (
           <Billboard key={`cost-${id}`} position={midpoint}>

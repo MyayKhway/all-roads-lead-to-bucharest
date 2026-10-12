@@ -2,8 +2,8 @@
  * Road — draws a 3D road segment between two cities.
  */
 
-import { useMemo } from 'react'
 import { Billboard, Text } from '@react-three/drei'
+import { useMemo } from 'react'
 import * as THREE from 'three'
 import type { Position3D } from '../data/cities'
 
