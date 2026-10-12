@@ -1,7 +1,7 @@
 import type { CityId } from '@/data/cityIds'
 import { romaniaGraph } from '@/data/graph'
 import { compareVariants, type RouteComparison } from '@/search/comparison'
-import { COMPARISON_VARIANTS } from '@/search/comparisonVariants'
+import { ROUTE_COMPARISON_VARIANTS } from '@/search/comparisonVariants'
 import { precomputeNtbEstimates } from '@/search/heuristics/ntb'
 
 export interface ComparisonRequest {
@@ -25,7 +25,7 @@ self.onmessage = (event: MessageEvent<ComparisonRequest>) => {
   const { requestId, start, goal } = event.data
   let response: ComparisonResponse
   try {
-    const comparison = compareVariants(COMPARISON_VARIANTS, start, goal, ROUTE_TIMING)
+    const comparison = compareVariants(ROUTE_COMPARISON_VARIANTS, start, goal, ROUTE_TIMING)
     response = { type: 'route', requestId, comparison }
   } catch (error) {
     response = { type: 'error', requestId, message: String(error) }

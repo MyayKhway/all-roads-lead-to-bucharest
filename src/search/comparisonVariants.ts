@@ -9,11 +9,11 @@ export const COMPARISON_FOCUS: SearchVariant = ntbAstarVariant
 /** The blind search the focus is measured against: like A*, it always finds the shortest route. */
 export const COMPARISON_BASELINE: SearchVariant = ucsVariant
 
-/** Reported alongside for solution quality only: BFS minimises roads taken, not distance. */
+/** Added to the all-routes benchmark only: BFS minimises roads taken, not road cost. */
 export const COMPARISON_EXTRAS: readonly SearchVariant[] = [bfsVariant]
 
-export const COMPARISON_VARIANTS: readonly SearchVariant[] = [
+/** The selected-route comparison is the focus against its baseline alone. */
+export const ROUTE_COMPARISON_VARIANTS: readonly SearchVariant[] = [
   COMPARISON_FOCUS,
   COMPARISON_BASELINE,
-  ...COMPARISON_EXTRAS,
 ]
