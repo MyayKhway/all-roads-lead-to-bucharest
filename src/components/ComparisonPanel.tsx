@@ -319,16 +319,16 @@ function allPairsMethod(row: AllPairsVariantComparison): ReportMethod {
 }
 
 /** Calls a winner only when the middle halves of the two timing samples don't overlap. */
-function timingVerdict(focus: ReportMethod, baseline: ReportMethod): string {
-  if (focus.timing === null || baseline.timing === null) return ''
-  const difference = Math.abs(percentageReduction(focus.timing.medianUs, baseline.timing.medianUs))
-  if (focus.timing.p75Us < baseline.timing.p25Us) {
-    return `${focus.shortName} is ${difference.toFixed(1)}% faster`
+function timingVerdict(focus: ReportMethod, other: ReportMethod): string {
+  if (focus.timing === null || other.timing === null) return ''
+  const difference = Math.abs(percentageReduction(focus.timing.medianUs, other.timing.medianUs))
+  if (focus.timing.p75Us < other.timing.p25Us) {
+    return `${difference.toFixed(1)}% faster than ${other.shortName}`
   }
-  if (focus.timing.p25Us > baseline.timing.p75Us) {
-    return `${focus.shortName} is ${difference.toFixed(1)}% slower`
+  if (focus.timing.p25Us > other.timing.p75Us) {
+    return `${difference.toFixed(1)}% slower than ${other.shortName}`
   }
-  return 'Within measurement noise'
+  return `within noise of ${other.shortName}`
 }
 
 function SelectedRouteSection({
@@ -353,8 +353,7 @@ function SelectedRouteSection({
     <div className={`selected-route-report${isStale ? ' report--stale' : ''}`}>
       <ReportCards
         idPrefix="selected"
-        focus={routeMethod(focus)}
-        baseline={routeMethod(baseline)}
+        methods={[routeMethod(focus), routeMethod(baseline)]}
         timeDescription="Measured after warm-up for this selected route"
         timeHeading="Median execution time"
         formatTime={(us) => ({ value: us.toFixed(2), unit: 'µs' })}
@@ -428,6 +427,7 @@ function AllPairsSection({
   if (focus === undefined || baseline === undefined) {
     return <div className="all-pairs-loading">The benchmark result is incomplete.</div>
   }
+  const extras = comparison.rows.filter((row) => row !== focus && row !== baseline)
 
   /** Marks the best value of a measure across every method. */
   const bestOf = (
@@ -470,8 +470,7 @@ function AllPairsSection({
 
       <ReportCards
         idPrefix="all-pairs"
-        focus={allPairsMethod(focus)}
-        baseline={allPairsMethod(baseline)}
+        methods={[focus, baseline, ...extras].map(allPairsMethod)}
         timeDescription={`Time for one complete ${comparison.pairCount}-route benchmark pass`}
         timeHeading="Median total time"
         formatTime={(us) => ({
@@ -648,10 +647,10 @@ function percentageReduction(focus: number, baseline: number): number {
 
 // ── report blocks ───────────────────────────────────────────────────────────────
 
+/** The focus method comes first; every other method is compared against it. */
 function ReportCards({
   idPrefix,
-  focus,
-  baseline,
+  methods,
   timeDescription,
   timeHeading,
   formatTime,
@@ -661,8 +660,7 @@ function ReportCards({
   formatMemory,
 }: {
   idPrefix: string
-  focus: ReportMethod
-  baseline: ReportMethod
+  methods: readonly ReportMethod[]
   timeDescription: string
   timeHeading: string
   formatTime: (us: number) => { value: string; unit: string; detail?: string }
@@ -671,7 +669,8 @@ function ReportCards({
   memoryDescription: string
   formatMemory: (value: number) => string
 }) {
-  const methods = [focus, baseline]
+  const [focus, ...others] = methods
+  if (focus === undefined) return null
   const timeMax = Math.max(...methods.map((method) => method.timing?.medianUs ?? 0))
   const bytesOf = (method: ReportMethod, partIndex: number) =>
     (method.memory[partIndex] ?? 0) * (MEMORY_PARTS[partIndex]?.bytesPerEntry ?? 0)
@@ -691,14 +690,16 @@ function ReportCards({
         />
         <div className="suite-time-heading">
           <strong>{timeHeading}</strong>
-          <span>{timingVerdict(focus, baseline)}</span>
+          <span>
+            {focus.shortName}: {others.map((other) => timingVerdict(focus, other)).join(' · ')}
+          </span>
         </div>
         <div className="suite-time-comparison">
           {methods.map((method) => {
             const timing = method.timing
             const median = timing === null ? null : formatTime(timing.medianUs)
             return (
-              <div className="suite-time-row" key={method.role}>
+              <div className="suite-time-row" key={method.name}>
                 <strong className="suite-time-method">{method.name}</strong>
                 <div className="suite-time-track">
                   <span
@@ -729,12 +730,7 @@ function ReportCards({
             )
           })}
         </div>
-        <SearchWorkComparison
-          title={workTitle}
-          focus={focus}
-          baseline={baseline}
-          format={formatWork}
-        />
+        <SearchWorkComparison title={workTitle} methods={methods} format={formatWork} />
       </section>
 
       <section className="report-card" aria-labelledby={`${idPrefix}-memory-title`}>
@@ -753,7 +749,7 @@ function ReportCards({
         </div>
         <div className="memory-comparison">
           {methods.map((method, index) => (
-            <div className="memory-row" key={method.role}>
+            <div className="memory-row" key={method.name}>
               <div className="memory-row__heading">
                 <strong>{method.name}</strong>
                 <span>
@@ -785,15 +781,15 @@ function ReportCards({
 
 function SearchWorkComparison({
   title,
-  focus,
-  baseline,
+  methods,
   format,
 }: {
   title: string
-  focus: ReportMethod
-  baseline: ReportMethod
+  methods: readonly ReportMethod[]
   format: (value: number) => string
 }) {
+  const [focus, ...others] = methods
+  if (focus === undefined) return null
   return (
     <>
       <div className="search-work-heading">
@@ -802,24 +798,19 @@ function SearchWorkComparison({
       </div>
       <div className="search-work-grid">
         {WORK_LABELS.map((label, index) => {
-          const focusValue = focus.work[index] ?? 0
-          const baselineValue = baseline.work[index] ?? 0
-          const max = Math.max(focusValue, baselineValue)
-          const reduction = percentageReduction(focusValue, baselineValue)
+          const workOf = (method: ReportMethod) => method.work[index] ?? 0
+          const max = Math.max(...methods.map(workOf))
           return (
             <figure className="search-work-item" key={label}>
               <figcaption>{label}</figcaption>
               <div className="search-work-chart">
-                {[
-                  { method: focus, value: focusValue },
-                  { method: baseline, value: baselineValue },
-                ].map(({ method, value }) => (
-                  <div className="search-work-column" key={method.role}>
-                    <strong>{format(value)}</strong>
+                {methods.map((method) => (
+                  <div className="search-work-column" key={method.name}>
+                    <strong>{format(workOf(method))}</strong>
                     <div className="search-work-bar-track">
                       <span
                         className={`search-work-bar search-work-bar--${method.role}`}
-                        style={{ height: `${max === 0 ? 0 : (value / max) * 100}%` }}
+                        style={{ height: `${max === 0 ? 0 : (workOf(method) / max) * 100}%` }}
                       />
                     </div>
                     <span>{method.shortName}</span>
@@ -827,8 +818,13 @@ function SearchWorkComparison({
                 ))}
               </div>
               <small className="search-work-difference">
-                {Math.abs(reduction).toFixed(1)}% {reduction >= 0 ? 'fewer' : 'more'} with{' '}
-                {focus.shortName}
+                {focus.shortName}:{' '}
+                {others
+                  .map((other) => {
+                    const reduction = percentageReduction(workOf(focus), workOf(other))
+                    return `${Math.abs(reduction).toFixed(1)}% ${reduction >= 0 ? 'fewer' : 'more'} than ${other.shortName}`
+                  })
+                  .join(' · ')}
               </small>
             </figure>
           )
