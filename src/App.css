@@ -1129,11 +1129,11 @@ body,
   border-radius: inherit;
 }
 
-.suite-time-fill--ntb {
+.suite-time-fill--focus {
   background: var(--accent);
 }
 
-.suite-time-fill--bfs {
+.suite-time-fill--baseline {
   background: var(--ring-accent);
 }
 
@@ -1228,11 +1228,11 @@ body,
   border-radius: 3px 3px 0 0;
 }
 
-.search-work-bar--ntb {
+.search-work-bar--focus {
   background: var(--accent);
 }
 
-.search-work-bar--bfs {
+.search-work-bar--baseline {
   background: var(--ring-accent);
 }
 
@@ -1345,12 +1345,16 @@ body,
   text-align: right;
 }
 
-.method-dot--ntb {
+.method-dot--focus {
   background: var(--accent);
 }
 
-.method-dot--bfs {
+.method-dot--baseline {
   background: var(--ring-accent);
+}
+
+.method-dot--extra {
+  background: var(--text-faint);
 }
 
 .quality-table__row + .quality-table__row {
@@ -1419,12 +1423,16 @@ body,
   border-radius: inherit;
 }
 
-.quality-fill--ntb {
+.quality-fill--focus {
   background: var(--accent);
 }
 
-.quality-fill--bfs {
+.quality-fill--baseline {
   background: var(--ring-accent);
+}
+
+.quality-fill--extra {
+  background: var(--text-faint);
 }
 
 .all-pairs-details > .comparison-scroll {
