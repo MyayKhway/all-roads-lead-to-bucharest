@@ -37,6 +37,8 @@ function fovOf(camera: THREE.Camera): number {
 const COUNTRY_FILL = 0.94 / OVERVIEW_MARGIN
 // A route's cities carry landmarks and labels beyond their centre points, so leave more room.
 const ROUTE_FILL = 0.72
+// The opening shot of a journey frames just its first leg, close enough to read the cities.
+const OPENING_FILL = 0.52
 
 function cameraFor(
   target: THREE.Vector3,
@@ -165,7 +167,7 @@ export default function NavigationCamera({
       [new THREE.Vector3(...first), new THREE.Vector3(...second)],
       fovOf(camera),
       size.width / Math.max(1, size.height),
-      0.52,
+      OPENING_FILL,
       ROUTE_MIN_RANGE,
       heading,
     )
