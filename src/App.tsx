@@ -243,8 +243,16 @@ export default function App() {
 
   // ── city click ───────────────────────────────────────────────────────────────
   const handleCityClick = useCallback(
-    (cityId: string) => {
+    (cityId: string, shiftKey: boolean) => {
       if (isAnimating) return
+      // Shift+click always sets the start directly, without first clearing it —
+      // a plain click can't do this unambiguously once both ends are already set,
+      // since it's also how you pick a new destination.
+      if (shiftKey) {
+        setStartCity(cityId)
+        if (cityId === goalCity) setGoalCity('')
+        return
+      }
       if (!startCity) {
         setStartCity(cityId)
         return

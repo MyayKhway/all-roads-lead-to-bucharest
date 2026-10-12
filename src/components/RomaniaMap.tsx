@@ -30,7 +30,7 @@ interface RomaniaMapProps {
   phase: Phase
   view: SearchView
   animProgress: number
-  onCityClick: (cityId: string) => void
+  onCityClick: (cityId: string, shiftKey: boolean) => void
 }
 
 function getCityStatus(
