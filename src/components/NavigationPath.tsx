@@ -18,6 +18,7 @@ interface NavigationPathProps {
 const LINE_RADIUS = 0.045
 const LINE_SEGMENTS = 12
 const PATH_Y = 0.12
+const LABEL_REVEAL_PROGRESS = 0.5
 
 function makeSegmentCurve(posA: Position3D, posB: Position3D): THREE.CatmullRomCurve3 {
   const a = new THREE.Vector3(posA[0], PATH_Y, posA[2])
@@ -159,8 +160,9 @@ export default function NavigationPath({ path, cities, animProgress }: Navigatio
 
   return (
     <group>
-      {segments.map(({ id, posA, posB, distance }) => {
-        if (distance === undefined) return null
+      {segments.map(({ id, posA, posB, progress, distance }) => {
+        // Reveal each cost once the drawn line reaches its label at the road's midpoint.
+        if (distance === undefined || progress < LABEL_REVEAL_PROGRESS) return null
         const midpoint: Position3D = [
           (posA[0] + posB[0]) / 2,
           (posA[1] + posB[1]) / 2 + 0.5,
