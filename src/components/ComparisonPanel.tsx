@@ -4,7 +4,13 @@
 
 import { useState } from 'react'
 import { cities } from '../data/cities'
-import type { AllPairsComparison, RouteComparison, VariantComparison } from '../search/comparison'
+import type {
+  AllPairsComparison,
+  AllPairsVariantComparison,
+  RouteComparison,
+  VariantComparison,
+} from '../search/comparison'
+import { COMPARISON_BASELINE, COMPARISON_FOCUS } from '../search/comparisonVariants'
 
 interface ComparisonPanelProps {
   comparison: RouteComparison | null
@@ -66,6 +72,25 @@ function cityName(id: string): string {
   return cities[id]?.name ?? id
 }
 
+type MethodRole = 'focus' | 'baseline' | 'extra'
+
+function methodRole(variantId: string): MethodRole {
+  if (variantId === COMPARISON_FOCUS.id) return 'focus'
+  if (variantId === COMPARISON_BASELINE.id) return 'baseline'
+  return 'extra'
+}
+
+/** A label short enough for chart columns: the heuristic's name, or the method's initials. */
+function shortName(row: { name: string; heuristicName: string | null }): string {
+  return (
+    row.heuristicName ??
+    row.name
+      .split(/[\s-]+/)
+      .map((word) => word[0]?.toUpperCase() ?? '')
+      .join('')
+  )
+}
+
 export default function ComparisonPanel({
   comparison,
   isMeasuring,
@@ -90,7 +115,9 @@ export default function ComparisonPanel({
       <header className="comparison-header">
         <div>
           <h2 className="comparison-title">
-            {expanded ? 'NTB vs Breadth-First Search' : 'Selected Route'}
+            {expanded
+              ? `${COMPARISON_FOCUS.name} vs ${COMPARISON_BASELINE.name}`
+              : 'Selected Route'}
             {!expanded &&
               comparison &&
               ` · ${cityName(comparison.start)} → ${cityName(comparison.goal)}`}
@@ -197,7 +224,7 @@ export default function ComparisonPanel({
               className={reportSection === 'all-routes' ? 'is-active' : undefined}
               onClick={() => setReportSection('all-routes')}
             >
-              All 380 routes
+              {allPairsComparison ? `All ${allPairsComparison.pairCount} routes` : 'All routes'}
             </button>
           </div>
           {reportSection === 'selected-route' && comparison && (
@@ -213,8 +240,8 @@ export default function ComparisonPanel({
 }
 
 function SelectedRouteSection({ comparison }: { comparison: RouteComparison }) {
-  const focus = comparison.rows.find((row) => row.heuristicName !== null)
-  const baseline = comparison.rows.find((row) => row.heuristicName === null)
+  const focus = comparison.rows.find((row) => row.variantId === COMPARISON_FOCUS.id)
+  const baseline = comparison.rows.find((row) => row.variantId === COMPARISON_BASELINE.id)
   if (focus === undefined || baseline === undefined) {
     return <div className="all-pairs-loading">The selected-route result is incomplete.</div>
   }
@@ -266,14 +293,30 @@ function SelectedRouteSection({ comparison }: { comparison: RouteComparison }) {
   const baselineTime = baseline.timeUs ?? 0
   const timeMax = Math.max(focusTime, baselineTime)
   const timeDifference = percentageReduction(focusTime, baselineTime)
-  const focusCostOverMinimum =
-    focus.pathCost === null || comparison.optimalCost === null
+  const costAboveMinimum = (row: VariantComparison) =>
+    row.pathCost === null || comparison.optimalCost === null
       ? null
-      : Math.max(0, focus.pathCost - comparison.optimalCost)
-  const baselineCostOverMinimum =
-    baseline.pathCost === null || comparison.optimalCost === null
-      ? null
-      : Math.max(0, baseline.pathCost - comparison.optimalCost)
+      : Math.max(0, row.pathCost - comparison.optimalCost)
+  const qualityRows = [
+    {
+      label: 'Returned path cost',
+      direction: 'Lower is better',
+      format: (row: VariantComparison) => String(row.pathCost ?? '—'),
+    },
+    {
+      label: 'Cost above minimum',
+      direction: 'Zero means optimal',
+      format: (row: VariantComparison) => {
+        const overrun = costAboveMinimum(row)
+        return overrun === null ? '—' : overrun === 0 ? '0' : `+${overrun}`
+      },
+    },
+    {
+      label: 'Result',
+      direction: 'Compared with the reference',
+      format: (row: VariantComparison) => (row.optimal ? 'Optimal' : 'Suboptimal'),
+    },
+  ]
   return (
     <div className="selected-route-report">
       <section className="report-card" aria-labelledby="selected-execution-title">
@@ -285,14 +328,14 @@ function SelectedRouteSection({ comparison }: { comparison: RouteComparison }) {
         <div className="suite-time-heading">
           <strong>Median execution time</strong>
           <span>
-            NTB is {Math.abs(timeDifference).toFixed(1)}%{' '}
+            {shortName(focus)} is {Math.abs(timeDifference).toFixed(1)}%{' '}
             {timeDifference >= 0 ? 'faster' : 'slower'}
           </span>
         </div>
         <div className="suite-time-comparison">
           {[
-            { name: 'A* + NTB', variant: 'ntb', time: focusTime },
-            { name: 'BFS', variant: 'bfs', time: baselineTime },
+            { name: focus.name, variant: 'focus', time: focusTime },
+            { name: baseline.name, variant: 'baseline', time: baselineTime },
           ].map(({ name, variant, time }) => (
             <div className="suite-time-row" key={variant}>
               <strong className="suite-time-method">{name}</strong>
@@ -308,7 +351,12 @@ function SelectedRouteSection({ comparison }: { comparison: RouteComparison }) {
             </div>
           ))}
         </div>
-        <SearchWorkComparison title="Search work" metrics={searchWorkMetrics} />
+        <SearchWorkComparison
+          title="Search work"
+          metrics={searchWorkMetrics}
+          focusName={shortName(focus)}
+          baselineName={shortName(baseline)}
+        />
       </section>
 
       <section className="report-card" aria-labelledby="selected-memory-title">
@@ -327,8 +375,13 @@ function SelectedRouteSection({ comparison }: { comparison: RouteComparison }) {
         </div>
         <div className="memory-comparison">
           {[
-            { name: 'A* + NTB', variant: 'ntb', total: focusMemoryTotal, useFocus: true },
-            { name: 'BFS', variant: 'bfs', total: baselineMemoryTotal, useFocus: false },
+            { name: focus.name, variant: 'focus', total: focusMemoryTotal, useFocus: true },
+            {
+              name: baseline.name,
+              variant: 'baseline',
+              total: baselineMemoryTotal,
+              useFocus: false,
+            },
           ].map(({ name, variant, total, useFocus }) => (
             <div className="memory-row" key={variant}>
               <div className="memory-row__heading">
@@ -365,73 +418,35 @@ function SelectedRouteSection({ comparison }: { comparison: RouteComparison }) {
               <th className="quality-table__cell quality-table__measure" scope="col">
                 Measure
               </th>
-              <th className="quality-table__cell quality-table__method" scope="col">
-                <i className="method-dot method-dot--ntb" />
-                A* + NTB
-              </th>
-              <th className="quality-table__cell quality-table__method" scope="col">
-                <i className="method-dot method-dot--bfs" />
-                BFS
-              </th>
+              {comparison.rows.map((row) => (
+                <th
+                  key={row.variantId}
+                  className="quality-table__cell quality-table__method"
+                  scope="col"
+                >
+                  <i className={`method-dot method-dot--${methodRole(row.variantId)}`} />
+                  {row.name}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            <tr className="quality-table__row">
-              <th className="quality-table__cell quality-table__measure" scope="row">
-                <strong className="quality-table__label">Returned path cost</strong>
-                <small className="quality-table__direction">Lower is better</small>
-              </th>
-              <td
-                className={`quality-table__cell quality-table__value${focus.optimal ? ' quality-value--best' : ''}`}
-              >
-                {focus.pathCost ?? '—'}
-              </td>
-              <td
-                className={`quality-table__cell quality-table__value${baseline.optimal ? ' quality-value--best' : ''}`}
-              >
-                {baseline.pathCost ?? '—'}
-              </td>
-            </tr>
-            <tr className="quality-table__row">
-              <th className="quality-table__cell quality-table__measure" scope="row">
-                <strong className="quality-table__label">Cost above minimum</strong>
-                <small className="quality-table__direction">Zero means optimal</small>
-              </th>
-              <td
-                className={`quality-table__cell quality-table__value${focusCostOverMinimum === 0 ? ' quality-value--best' : ''}`}
-              >
-                {focusCostOverMinimum === null
-                  ? '—'
-                  : focusCostOverMinimum === 0
-                    ? '0'
-                    : `+${focusCostOverMinimum}`}
-              </td>
-              <td
-                className={`quality-table__cell quality-table__value${baselineCostOverMinimum === 0 ? ' quality-value--best' : ''}`}
-              >
-                {baselineCostOverMinimum === null
-                  ? '—'
-                  : baselineCostOverMinimum === 0
-                    ? '0'
-                    : `+${baselineCostOverMinimum}`}
-              </td>
-            </tr>
-            <tr className="quality-table__row">
-              <th className="quality-table__cell quality-table__measure" scope="row">
-                <strong className="quality-table__label">Result</strong>
-                <small className="quality-table__direction">Compared with the reference</small>
-              </th>
-              <td
-                className={`quality-table__cell quality-table__value${focus.optimal ? ' quality-value--best' : ''}`}
-              >
-                {focus.optimal ? 'Optimal' : 'Suboptimal'}
-              </td>
-              <td
-                className={`quality-table__cell quality-table__value${baseline.optimal ? ' quality-value--best' : ''}`}
-              >
-                {baseline.optimal ? 'Optimal' : 'Suboptimal'}
-              </td>
-            </tr>
+            {qualityRows.map((measure) => (
+              <tr className="quality-table__row" key={measure.label}>
+                <th className="quality-table__cell quality-table__measure" scope="row">
+                  <strong className="quality-table__label">{measure.label}</strong>
+                  <small className="quality-table__direction">{measure.direction}</small>
+                </th>
+                {comparison.rows.map((row) => (
+                  <td
+                    key={row.variantId}
+                    className={`quality-table__cell quality-table__value${row.optimal ? ' quality-value--best' : ''}`}
+                  >
+                    {measure.format(row)}
+                  </td>
+                ))}
+              </tr>
+            ))}
           </tbody>
         </table>
       </section>
@@ -449,7 +464,7 @@ function AllPairsSection({
   if (comparison === null) {
     return (
       <div className="all-pairs-loading" role="status">
-        {isMeasuring ? 'Benchmarking 380 routes…' : 'Preparing the all-routes benchmark…'}
+        {isMeasuring ? 'Benchmarking every route…' : 'Preparing the all-routes benchmark…'}
       </div>
     )
   }
@@ -512,32 +527,28 @@ function AllPairsSection({
     {
       label: 'Average path cost',
       direction: 'Lower is better',
-      focusValue: focus.averagePathCost,
-      baselineValue: baseline.averagePathCost,
+      value: (row: AllPairsVariantComparison) => row.averagePathCost,
       format: (value: number) => value.toFixed(2),
       better: 'lower' as const,
     },
     {
       label: 'Optimal routes',
       direction: 'Higher is better',
-      focusValue: focus.optimalRoutes,
-      baselineValue: baseline.optimalRoutes,
+      value: (row: AllPairsVariantComparison) => row.optimalRoutes,
       format: (value: number) => `${value}/${comparison.pairCount}`,
       better: 'higher' as const,
     },
     {
       label: 'Average cost overrun',
       direction: 'Lower is better',
-      focusValue: focus.averageCostOverrunPercent,
-      baselineValue: baseline.averageCostOverrunPercent,
+      value: (row: AllPairsVariantComparison) => row.averageCostOverrunPercent,
       format: (value: number) => `${value.toFixed(2)}%`,
       better: 'lower' as const,
     },
     {
       label: 'Worst cost overrun',
       direction: 'Lower is better',
-      focusValue: focus.worstCostOverrunPercent,
-      baselineValue: baseline.worstCostOverrunPercent,
+      value: (row: AllPairsVariantComparison) => row.worstCostOverrunPercent,
       format: (value: number) => `${value.toFixed(2)}%`,
       better: 'lower' as const,
     },
@@ -559,18 +570,15 @@ function AllPairsSection({
             </div>
             <span>higher is better</span>
           </div>
-          <QualityProgress
-            name="A* + NTB"
-            value={focus.validRoutes}
-            total={comparison.pairCount}
-            variant="ntb"
-          />
-          <QualityProgress
-            name="Breadth-First Search"
-            value={baseline.validRoutes}
-            total={comparison.pairCount}
-            variant="bfs"
-          />
+          {comparison.rows.map((row) => (
+            <QualityProgress
+              key={row.variantId}
+              name={row.name}
+              value={row.validRoutes}
+              total={comparison.pairCount}
+              variant={methodRole(row.variantId)}
+            />
+          ))}
         </div>
       </section>
 
@@ -578,19 +586,19 @@ function AllPairsSection({
         <ReportHeading
           id="execution-title"
           title="Execution performance"
-          description="Time for one complete 380-route benchmark pass"
+          description={`Time for one complete ${comparison.pairCount}-route benchmark pass`}
         />
         <div className="suite-time-heading">
           <strong>Median total time</strong>
           <span>
-            NTB is {Math.abs(suiteTimeDifference).toFixed(1)}%{' '}
+            {shortName(focus)} is {Math.abs(suiteTimeDifference).toFixed(1)}%{' '}
             {suiteTimeDifference >= 0 ? 'faster' : 'slower'}
           </span>
         </div>
         <div className="suite-time-comparison">
           {[
-            { name: 'A* + NTB', variant: 'ntb', row: focus },
-            { name: 'BFS', variant: 'bfs', row: baseline },
+            { name: focus.name, variant: 'focus', row: focus },
+            { name: baseline.name, variant: 'baseline', row: baseline },
           ].map(({ name, variant, row }) => (
             <div className="suite-time-row" key={variant}>
               <strong className="suite-time-method">{name}</strong>
@@ -613,7 +621,12 @@ function AllPairsSection({
             </div>
           ))}
         </div>
-        <SearchWorkComparison title="Average search work per route" metrics={searchWorkMetrics} />
+        <SearchWorkComparison
+          title="Average search work per route"
+          metrics={searchWorkMetrics}
+          focusName={shortName(focus)}
+          baselineName={shortName(baseline)}
+        />
       </section>
 
       <section className="report-card" aria-labelledby="memory-title">
@@ -632,8 +645,13 @@ function AllPairsSection({
         </div>
         <div className="memory-comparison">
           {[
-            { name: 'A* + NTB', variant: 'ntb', total: focusMemoryTotal, useFocus: true },
-            { name: 'BFS', variant: 'bfs', total: baselineMemoryTotal, useFocus: false },
+            { name: focus.name, variant: 'focus', total: focusMemoryTotal, useFocus: true },
+            {
+              name: baseline.name,
+              variant: 'baseline',
+              total: baselineMemoryTotal,
+              useFocus: false,
+            },
           ].map(({ name, variant, total, useFocus }) => (
             <div className="memory-row" key={variant}>
               <div className="memory-row__heading">
@@ -670,42 +688,39 @@ function AllPairsSection({
               <th className="quality-table__cell quality-table__measure" scope="col">
                 Measure
               </th>
-              <th className="quality-table__cell quality-table__method" scope="col">
-                <i className="method-dot method-dot--ntb" />
-                A* + NTB
-              </th>
-              <th className="quality-table__cell quality-table__method" scope="col">
-                <i className="method-dot method-dot--bfs" />
-                BFS
-              </th>
+              {comparison.rows.map((row) => (
+                <th
+                  key={row.variantId}
+                  className="quality-table__cell quality-table__method"
+                  scope="col"
+                >
+                  <i className={`method-dot method-dot--${methodRole(row.variantId)}`} />
+                  {row.name}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {qualityRows.map((row) => {
-              const focusIsBest =
-                row.better === 'lower'
-                  ? row.focusValue <= row.baselineValue
-                  : row.focusValue >= row.baselineValue
-              const baselineIsBest =
-                row.better === 'lower'
-                  ? row.baselineValue <= row.focusValue
-                  : row.baselineValue >= row.focusValue
+            {qualityRows.map((measure) => {
+              const values = comparison.rows.map(measure.value)
+              const best = measure.better === 'lower' ? Math.min(...values) : Math.max(...values)
               return (
-                <tr className="quality-table__row" key={row.label}>
+                <tr className="quality-table__row" key={measure.label}>
                   <th className="quality-table__cell quality-table__measure" scope="row">
-                    <strong className="quality-table__label">{row.label}</strong>
-                    <small className="quality-table__direction">{row.direction}</small>
+                    <strong className="quality-table__label">{measure.label}</strong>
+                    <small className="quality-table__direction">{measure.direction}</small>
                   </th>
-                  <td
-                    className={`quality-table__cell quality-table__value${focusIsBest ? ' quality-value--best' : ''}`}
-                  >
-                    {row.format(row.focusValue)}
-                  </td>
-                  <td
-                    className={`quality-table__cell quality-table__value${baselineIsBest ? ' quality-value--best' : ''}`}
-                  >
-                    {row.format(row.baselineValue)}
-                  </td>
+                  {comparison.rows.map((row) => {
+                    const value = measure.value(row)
+                    return (
+                      <td
+                        key={row.variantId}
+                        className={`quality-table__cell quality-table__value${value === best ? ' quality-value--best' : ''}`}
+                      >
+                        {measure.format(value)}
+                      </td>
+                    )
+                  })}
                 </tr>
               )
             })}
@@ -720,7 +735,7 @@ function AllPairsSection({
         <ReportHeading
           id="all-pairs-details-title"
           title="Complete benchmark"
-          description="Exact averages across all 380 routes"
+          description={`Exact averages across all ${comparison.pairCount} routes`}
         />
         <div className="comparison-scroll">
           <table className="comparison-table all-pairs-table">
@@ -768,7 +783,7 @@ function AllPairsSection({
                   <span className="comparison-unit">average entries</span>
                 </th>
                 <th scope="col">
-                  All 380 routes
+                  All {comparison.pairCount} routes
                   <span className="comparison-unit">ms, median</span>
                 </th>
               </tr>
@@ -840,10 +855,11 @@ function AllPairsSection({
       </section>
 
       <p className="all-pairs-note">
-        One timing pass runs all 380 routes. The benchmark repeats that pass and reports its median;
-        average time per route is the median divided by 380. Both methods use the same warm-up and
-        trial settings. Timing excludes the one-time NTB lookup-table preprocessing, which runs when
-        the comparison worker loads. Browser timing can vary slightly between runs.
+        One timing pass runs all {comparison.pairCount} routes. The benchmark repeats that pass and
+        reports its median; average time per route is the median divided by {comparison.pairCount}.
+        Every method uses the same warm-up and trial settings. Timing excludes the one-time NTB
+        lookup-table preprocessing, which runs when the comparison worker loads. Browser timing can
+        vary slightly between runs.
       </p>
     </div>
   )
@@ -863,9 +879,13 @@ interface SearchWorkMetric {
 function SearchWorkComparison({
   title,
   metrics,
+  focusName,
+  baselineName,
 }: {
   title: string
   metrics: readonly SearchWorkMetric[]
+  focusName: string
+  baselineName: string
 }) {
   return (
     <>
@@ -878,8 +898,8 @@ function SearchWorkComparison({
           const max = Math.max(metric.focusValue, metric.baselineValue)
           const reduction = percentageReduction(metric.focusValue, metric.baselineValue)
           const columns = [
-            { name: 'NTB', value: metric.focusValue, variant: 'ntb' },
-            { name: 'BFS', value: metric.baselineValue, variant: 'bfs' },
+            { name: focusName, value: metric.focusValue, variant: 'focus' },
+            { name: baselineName, value: metric.baselineValue, variant: 'baseline' },
           ]
           return (
             <figure className="search-work-item" key={metric.label}>
@@ -899,7 +919,8 @@ function SearchWorkComparison({
                 ))}
               </div>
               <small className="search-work-difference">
-                {Math.abs(reduction).toFixed(1)}% {reduction >= 0 ? 'fewer' : 'more'} with NTB
+                {Math.abs(reduction).toFixed(1)}% {reduction >= 0 ? 'fewer' : 'more'} with{' '}
+                {focusName}
               </small>
             </figure>
           )
@@ -935,7 +956,7 @@ function QualityProgress({
   name: string
   value: number
   total: number
-  variant: 'ntb' | 'bfs'
+  variant: MethodRole
 }) {
   const percent = total === 0 ? 0 : (value / total) * 100
   return (
