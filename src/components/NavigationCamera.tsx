@@ -39,6 +39,8 @@ const COUNTRY_FILL = 0.94 / OVERVIEW_MARGIN
 const ROUTE_FILL = 0.72
 // The opening shot of a journey frames just its first leg, close enough to read the cities.
 const OPENING_FILL = 0.52
+// How far into the journey (in legs) the camera hands over from the opening shot to following.
+const OPENING_HANDOFF = 0.5
 
 function cameraFor(
   target: THREE.Vector3,
@@ -119,7 +121,8 @@ export default function NavigationCamera({
   const controlsRef = useRef<OrbitControlsImpl>(null)
   // True while flying to the overview; once there, the user has the camera.
   const settling = useRef(false)
-  const wasAnimating = useRef(false)
+  // Framing of the journey's first leg, glided to as the journey starts.
+  const opening = useRef<{ position: THREE.Vector3; target: THREE.Vector3 } | null>(null)
 
   // No route on screen: show the whole country. Glide there when a route is cleared;
   // jump there at startup and on resize, where a glide would only look like lag.
@@ -153,18 +156,14 @@ export default function NavigationCamera({
   }, [path, camera, size.width, size.height])
 
   useEffect(() => {
-    if (!isAnimating) {
-      wasAnimating.current = false
-      return
-    }
-    if (wasAnimating.current || !path || path.length < 2) return
-    wasAnimating.current = true
-
+    opening.current = null
+    if (!isAnimating || !path || path.length < 2) return
     const first = positionOf(cities, path[0])
     const second = positionOf(cities, path[1])
     if (!first || !second) return
+    // Look along the first leg, from behind its starting city.
     const heading = new THREE.Vector2(first[0] - second[0], first[2] - second[2]).normalize()
-    const opening = framePoints(
+    opening.current = framePoints(
       [new THREE.Vector3(...first), new THREE.Vector3(...second)],
       fovOf(camera),
       size.width / Math.max(1, size.height),
@@ -172,10 +171,6 @@ export default function NavigationCamera({
       ROUTE_MIN_RANGE,
       heading,
     )
-    camera.position.copy(opening.position)
-    controlsRef.current?.target.copy(opening.target)
-    controlsRef.current?.update()
-    if (!controlsRef.current) camera.lookAt(opening.target)
   }, [isAnimating, path, cities, camera, size.width, size.height])
 
   useEffect(() => {
@@ -242,6 +237,12 @@ export default function NavigationCamera({
       cityPos.z - travelDirection.y * FOLLOW_DIST,
     )
     targetLookAt.current.copy(lookTarget)
+    // Start from the opening shot and blend into following as the journey gets going.
+    if (opening.current) {
+      const follow = THREE.MathUtils.smoothstep(clamped, 0, OPENING_HANDOFF)
+      targetPos.current.lerpVectors(opening.current.position, targetPos.current, follow)
+      targetLookAt.current.lerpVectors(opening.current.target, targetLookAt.current, follow)
+    }
 
     camera.position.lerp(targetPos.current, LERP_SPEED * 1.5)
     const currentDir = new THREE.Vector3()
