@@ -1482,7 +1482,6 @@ body,
   box-shadow: 0 4px 14px var(--shadow-lg);
   cursor: pointer;
   z-index: 10;
-  animation: fadeInUp 0.25s ease;
 }
 
 .comparison-toggle:hover {
