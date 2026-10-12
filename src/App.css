@@ -1147,6 +1147,10 @@ body,
   background: var(--ring-accent);
 }
 
+.suite-time-fill--extra {
+  background: var(--text-faint);
+}
+
 .suite-time-value__total,
 .suite-time-value__route {
   display: block;
@@ -1244,6 +1248,10 @@ body,
 
 .search-work-bar--baseline {
   background: var(--ring-accent);
+}
+
+.search-work-bar--extra {
+  background: var(--text-faint);
 }
 
 .search-work-difference {
