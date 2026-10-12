@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import { compareAllPairs, compareVariants } from '@/search/comparison'
+import { BYTE_ESTIMATES } from '@/search/evaluation/metrics'
 import { bfsVariant } from '@/search/variants/bfs'
 import { ntbAstarVariant } from '@/search/variants/ntbAstar'
 import { ucsVariant } from '@/search/variants/ucs'
@@ -29,9 +30,12 @@ test('compares blind and heuristic search on one pair', () => {
   )
   assert.ok(astar.nodesExpanded < ucs.nodesExpanded)
   assert.equal(
-    astar.memoryEntries,
-    astar.peakFrontierEntries + astar.closedSetEntries + astar.costTableEntries,
+    astar.estimatedBytes,
+    astar.peakFrontierEntries * BYTE_ESTIMATES.frontierEntry +
+      astar.closedSetEntries * BYTE_ESTIMATES.closedSetEntry +
+      astar.costTableEntries * BYTE_ESTIMATES.costTableEntry,
   )
+  assert.ok(astar.estimatedBytes < ucs.estimatedBytes)
   for (const row of comparison.rows) {
     assert.ok(row.timeUs !== null && row.timeUs > 0)
   }
@@ -62,6 +66,8 @@ test('compares NTB and blind search across every ordered city pair', () => {
   assert.ok(ntb.averageClosedSetEntries > 0)
   assert.ok(bfs.averageClosedSetEntries > 0)
   assert.ok(ntb.averageCostTableEntries > 0)
+  assert.ok(ntb.averageEstimatedBytes > 0)
+  assert.ok(ntb.averageEstimatedBytes < ucs.averageEstimatedBytes)
   assert.ok(bfs.averageCostTableEntries > 0)
   assert.ok(ntb.medianSuiteTimeUs > 0)
   assert.ok(bfs.medianSuiteTimeUs > 0)
