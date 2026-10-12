@@ -698,7 +698,7 @@ body,
   right: 16px;
   bottom: 16px;
   max-width: 760px;
-  height: 196px;
+  height: 204px;
   margin: 0 auto;
   overflow: hidden;
   background: var(--bg-overlay);
@@ -854,7 +854,7 @@ body,
 }
 
 .comparison-scroll--compact {
-  padding-bottom: 7px;
+  padding-bottom: 15px;
 }
 
 .comparison-table {
