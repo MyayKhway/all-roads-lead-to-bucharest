@@ -22,7 +22,7 @@ export type CityStatus = 'normal' | 'start' | 'goal' | 'explored' | 'path' | 'fr
 interface CityNodeProps {
   city: City
   status?: CityStatus
-  onClick?: (cityId: string) => void
+  onClick?: (cityId: string, shiftKey: boolean) => void
   onPointerOver?: (cityId: string) => void
   onPointerOut?: (cityId: string) => void
 }
@@ -92,7 +92,7 @@ export default function CityNode({
 
   function handleClick(e: ThreeEvent<MouseEvent>) {
     e.stopPropagation()
-    onClick?.(city.id)
+    onClick?.(city.id, e.shiftKey)
   }
 
   const handleHeight = useCallback((h: number) => setModelHeight(h), [])

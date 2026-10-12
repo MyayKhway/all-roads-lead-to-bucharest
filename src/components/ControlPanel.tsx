@@ -118,6 +118,10 @@ export default function ControlPanel({
         </select>
       </div>
 
+      <p className="map-tip">
+        On the map: click a city for the destination, Shift+click for a new start.
+      </p>
+
       {/* Search method: one registered algorithm-and-heuristic variant */}
       <div className="panel-section">
         <label className="field-label" htmlFor="variant">
