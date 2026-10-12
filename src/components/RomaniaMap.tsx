@@ -94,6 +94,18 @@ export default function RomaniaMap({
   const route = pathResult && phase !== 'searching' ? pathResult.path : null
   const goal = pathResult?.path.at(-1)
 
+  // Roads on the route get their cost from NavigationPath instead.
+  const routeRoads = useMemo(() => {
+    const roads = new Set<string>()
+    if (!route) return roads
+    for (let i = 0; i < route.length - 1; i++) {
+      const from = route[i]
+      const to = route[i + 1]
+      if (from !== undefined && to !== undefined) roads.add(roadKey(from, to))
+    }
+    return roads
+  }, [route])
+
   // While A* + NTB replays, show its rings and the tolls behind the current city's h.
   const showRings = phase === 'searching' && pathResult?.variant.id === 'astar-ntb'
   const tollRoads = useMemo(() => {
@@ -146,13 +158,7 @@ export default function RomaniaMap({
           to={cities[to]?.position ?? [0, 0, 0]}
           distance={distance}
           status={getEdgeStatus(from, to, pathResult, phase, view, tollRoads)}
-          showDistance={
-            !route?.some(
-              (city, index) =>
-                (city === from && route[index + 1] === to) ||
-                (city === to && route[index + 1] === from),
-            )
-          }
+          showDistance={!routeRoads.has(roadKey(from, to))}
         />
       ))}
 
