@@ -24,6 +24,7 @@ import { deriveSearchView, type Phase, stepDurationMs } from './lib/searchView'
 import { ThemeContext } from './lib/ThemeContext'
 import { sceneColorFor } from './lib/theme'
 import { useTheme } from './lib/useTheme'
+import type { AllPairsComparisonResponse } from './search/allPairsComparison.worker'
 import type { AllPairsComparison, RouteComparison } from './search/comparison'
 import type { ComparisonRequest, ComparisonResponse } from './search/comparison.worker'
 import { type RouteRun, runRoute } from './search/presentation'
@@ -78,6 +79,8 @@ export default function App() {
   const [isMeasuring, setIsMeasuring] = useState<boolean>(false)
   const [allPairsComparison, setAllPairsComparison] = useState<AllPairsComparison | null>(null)
   const [isMeasuringAllPairs, setIsMeasuringAllPairs] = useState<boolean>(false)
+  const [comparisonError, setComparisonError] = useState<string | null>(null)
+  const [allPairsError, setAllPairsError] = useState<string | null>(null)
   // Hidden until asked for, so the finished route stays visible.
   const [comparisonOpen, setComparisonOpen] = useState<boolean>(false)
 
@@ -85,23 +88,53 @@ export default function App() {
   const workerRef = useRef<Worker | null>(null)
   const latestRequestRef = useRef<number>(0)
 
-  // One worker for the app's lifetime; only the newest request's answer is shown.
+  // Two workers for the app's lifetime: one answers route requests (only the newest is
+  // shown), the other runs the all-routes benchmark once, after the first route answer.
   useEffect(() => {
     const worker = new Worker(new URL('./search/comparison.worker.ts', import.meta.url), {
       type: 'module',
     })
+    const allPairsWorker = new Worker(
+      new URL('./search/allPairsComparison.worker.ts', import.meta.url),
+      { type: 'module' },
+    )
+    let allPairsStarted = false
+
     worker.onmessage = (event: MessageEvent<ComparisonResponse>) => {
-      if (event.data.type === 'all-pairs') {
-        setAllPairsComparison(event.data.comparison)
-        setIsMeasuringAllPairs(false)
-        return
+      if (!allPairsStarted) {
+        allPairsStarted = true
+        setIsMeasuringAllPairs(true)
+        allPairsWorker.postMessage(null)
       }
       if (event.data.requestId !== latestRequestRef.current) return
-      setComparison(event.data.comparison)
+      if (event.data.type === 'error') {
+        setComparisonError(event.data.message)
+      } else {
+        setComparison(event.data.comparison)
+        setComparisonError(null)
+      }
       setIsMeasuring(false)
     }
+    worker.onerror = () => {
+      setComparisonError('The comparison worker failed to start.')
+      setIsMeasuring(false)
+    }
+
+    allPairsWorker.onmessage = (event: MessageEvent<AllPairsComparisonResponse>) => {
+      if (event.data.type === 'error') setAllPairsError(event.data.message)
+      else setAllPairsComparison(event.data.comparison)
+      setIsMeasuringAllPairs(false)
+    }
+    allPairsWorker.onerror = () => {
+      setAllPairsError('The all-routes benchmark worker failed to start.')
+      setIsMeasuringAllPairs(false)
+    }
+
     workerRef.current = worker
-    return () => worker.terminate()
+    return () => {
+      worker.terminate()
+      allPairsWorker.terminate()
+    }
   }, [])
 
   // ── run one variant, then replay its search ─────────────────────────────────
@@ -209,16 +242,14 @@ export default function App() {
 
     latestRequestRef.current += 1
     const request: ComparisonRequest = {
-      type: 'route',
       requestId: latestRequestRef.current,
       start: startCity,
       goal: goalCity,
     }
     setIsMeasuring(true)
-    if (allPairsComparison === null) setIsMeasuringAllPairs(true)
     setComparisonOpen(false)
     workerRef.current?.postMessage(request)
-  }, [startCity, goalCity, variantId, animateRoute, allPairsComparison])
+  }, [startCity, goalCity, variantId, animateRoute])
 
   const handleSelectComparedVariant = useCallback(
     (selectedVariantId: string) => {
@@ -344,21 +375,25 @@ export default function App() {
           )}
 
           {/* Measured from Find Path, but only shown once the route has drawn */}
-          {phase === 'done' && !comparisonOpen && (comparison || isMeasuring) && (
-            <button
-              type="button"
-              className="comparison-toggle"
-              onClick={() => setComparisonOpen(true)}
-            >
-              📊 See Comparison Results
-            </button>
-          )}
+          {phase === 'done' &&
+            !comparisonOpen &&
+            (comparison || isMeasuring || comparisonError) && (
+              <button
+                type="button"
+                className="comparison-toggle"
+                onClick={() => setComparisonOpen(true)}
+              >
+                📊 See Comparison Results
+              </button>
+            )}
           {phase === 'done' && comparisonOpen && (
             <ComparisonPanel
               comparison={comparison}
               isMeasuring={isMeasuring}
+              error={comparisonError}
               allPairsComparison={allPairsComparison}
               isMeasuringAllPairs={isMeasuringAllPairs}
+              allPairsError={allPairsError}
               selectedVariantId={variantId}
               disabled={isAnimating}
               onSelect={handleSelectComparedVariant}
