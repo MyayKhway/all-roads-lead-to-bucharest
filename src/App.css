@@ -314,7 +314,9 @@ body,
   border: 1px solid var(--border-strong);
   background: var(--bg-hover-strong);
   cursor: pointer;
-  transition: background-color 220ms ease, border-color 220ms ease;
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease;
 }
 
 .theme-toggle[aria-checked="true"] {
