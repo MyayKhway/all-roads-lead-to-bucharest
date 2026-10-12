@@ -231,9 +231,7 @@ export default function NavigationCamera({
         ? new THREE.Vector2(cityPos.x - previousPos[0], cityPos.z - previousPos[2])
         : new THREE.Vector2(0, -1)
     travelDirection.normalize()
-    const lookTarget = nextPos
-      ? cityPos.clone().lerp(new THREE.Vector3(...nextPos), 0.55)
-      : cityPos
+    const lookTarget = nextPos ? cityPos.clone().lerp(new THREE.Vector3(...nextPos), 0.55) : cityPos
 
     targetPos.current.set(
       cityPos.x - travelDirection.x * FOLLOW_DIST,
