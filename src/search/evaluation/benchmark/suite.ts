@@ -62,18 +62,26 @@ function createProblem(graph: WeightedGraph, pair: BenchmarkCityPair): SearchPro
 }
 
 /** Measures only algorithm execution while retaining the standardized search structures. */
-export function measureVariantExecutionTime(
+/** One timed search: a fresh probe per call, with no diagnostic events or validation. */
+export function createVariantOperation(
   variant: SearchVariant,
   problem: SearchProblem,
-  timingOptions: TimingOptions | undefined,
-): TimingResult {
-  return measureExecutionTime(() => {
+): () => SearchResult {
+  return () => {
     const context: SearchAlgorithmContext = {
       probe: createSearchProbe(),
       ...(variant.heuristic === undefined ? {} : { heuristic: variant.heuristic }),
     }
     return variant.algorithm(problem, context)
-  }, timingOptions)
+  }
+}
+
+export function measureVariantExecutionTime(
+  variant: SearchVariant,
+  problem: SearchProblem,
+  timingOptions: TimingOptions | undefined,
+): TimingResult {
+  return measureExecutionTime(createVariantOperation(variant, problem), timingOptions)
 }
 
 /** Runs selected search variants against the same precomputed reference results. */

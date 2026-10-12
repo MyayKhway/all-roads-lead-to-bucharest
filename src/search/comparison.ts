@@ -1,8 +1,12 @@
 import type { CityId } from '@/data/cityIds'
 import { romaniaGraph } from '@/data/graph'
 import type { SearchProblem, SearchResult } from '@/search/contracts'
-import { measureVariantExecutionTime } from '@/search/evaluation/benchmark/suite'
-import { measureExecutionTime, type TimingOptions } from '@/search/evaluation/benchmark/timer'
+import { createVariantOperation } from '@/search/evaluation/benchmark/suite'
+import {
+  measureInterleavedExecutionTimes,
+  type TimingOptions,
+  type TimingResult,
+} from '@/search/evaluation/benchmark/timer'
 import { executeSearch } from '@/search/evaluation/execution'
 import { createSearchProbe } from '@/search/evaluation/probe'
 import { referenceDijkstra } from '@/search/evaluation/referenceDijkstra'
@@ -19,6 +23,9 @@ export interface VariantComparison {
   readonly optimal: boolean
   /** Median microseconds per search, measured without diagnostic events. */
   readonly timeUs: number | null
+  /** Interquartile range of the timing trials, so overlapping spreads are visible. */
+  readonly timeP25Us: number | null
+  readonly timeP75Us: number | null
   /** Structural entry count: peak frontier plus final closed-set and cost-table entries. */
   readonly memoryEntries: number
   readonly peakFrontierEntries: number
@@ -55,6 +62,8 @@ export interface AllPairsVariantComparison {
   readonly worstCostOverrunPercent: number
   /** Median microseconds for one complete pass over every ordered city pair. */
   readonly medianSuiteTimeUs: number
+  readonly p25SuiteTimeUs: number
+  readonly p75SuiteTimeUs: number
   readonly averageTimeUs: number
 }
 
@@ -70,7 +79,10 @@ interface PreparedAllPair {
   readonly optimalCost: number | null
 }
 
-/** Runs every variant on one pair with the same instrumentation and timing as the benchmark. */
+/**
+ * Runs every variant on one pair with the same instrumentation as the benchmark, then times
+ * the variants that found a route against each other in alternating order.
+ */
 export function compareVariants(
   variants: readonly SearchVariant[],
   start: CityId,
@@ -81,14 +93,28 @@ export function compareVariants(
   const reference = referenceDijkstra(problem, {})
   const optimalCost = reference.status === 'success' ? reference.pathCost : null
 
-  const rows = variants.map((variant): VariantComparison => {
+  const runs = variants.map((variant) => {
     const { metrics } = executeSearch({
       problem,
       algorithm: variant.algorithm,
       ...(variant.heuristic === undefined ? {} : { heuristic: variant.heuristic }),
     })
-    const pathCost = metrics.resultValid ? metrics.calculatedPathCost : null
+    return { variant, metrics, pathCost: metrics.resultValid ? metrics.calculatedPathCost : null }
+  })
 
+  const timedRuns = runs.filter((run) => run.pathCost !== null)
+  const timings = measureInterleavedExecutionTimes(
+    timedRuns.map((run) => createVariantOperation(run.variant, problem)),
+    timingOptions,
+  )
+  const timingByVariant = new Map<string, TimingResult>()
+  timedRuns.forEach((run, index) => {
+    const timing = timings[index]
+    if (timing !== undefined) timingByVariant.set(run.variant.id, timing)
+  })
+
+  const rows = runs.map(({ variant, metrics, pathCost }): VariantComparison => {
+    const timing = timingByVariant.get(variant.id)
     return {
       variantId: variant.id,
       name: variant.name,
@@ -96,10 +122,9 @@ export function compareVariants(
       heuristicName: variant.heuristicName,
       pathCost,
       optimal: pathCost !== null && pathCost === optimalCost,
-      timeUs:
-        pathCost === null
-          ? null
-          : measureVariantExecutionTime(variant, problem, timingOptions).medianUs,
+      timeUs: timing?.medianUs ?? null,
+      timeP25Us: timing?.p25Us ?? null,
+      timeP75Us: timing?.p75Us ?? null,
       memoryEntries:
         metrics.peakFrontierEntries + metrics.closedSetEntries + metrics.costTableEntries,
       peakFrontierEntries: metrics.peakFrontierEntries,
@@ -147,7 +172,7 @@ function runTimedSuite(variant: SearchVariant, pairs: readonly PreparedAllPair[]
 function collectAllPairResults(
   variant: SearchVariant,
   pairs: readonly PreparedAllPair[],
-  timingOptions: TimingOptions | undefined,
+  timing: TimingResult,
 ): AllPairsVariantComparison {
   let validRoutes = 0
   let optimalRoutes = 0
@@ -191,7 +216,6 @@ function collectAllPairResults(
 
   const pairCount = pairs.length
   if (pairCount === 0) throw new Error('All-pairs comparison requires at least two cities')
-  const timing = measureExecutionTime(() => runTimedSuite(variant, pairs), timingOptions)
 
   return {
     variantId: variant.id,
@@ -209,6 +233,8 @@ function collectAllPairResults(
     averageCostOverrunPercent: validRoutes === 0 ? 0 : totalCostOverrunPercent / validRoutes,
     worstCostOverrunPercent,
     medianSuiteTimeUs: timing.medianUs,
+    p25SuiteTimeUs: timing.p25Us,
+    p75SuiteTimeUs: timing.p75Us,
     averageTimeUs: timing.medianUs / pairCount,
   }
 }
@@ -224,9 +250,17 @@ export function compareAllPairs(
   extraVariants: readonly SearchVariant[] = [],
 ): AllPairsComparison {
   const pairs = prepareAllPairs()
-  const rows = [focusVariant, baselineVariant, ...extraVariants].map((variant) =>
-    collectAllPairResults(variant, pairs, timingOptions),
+  if (pairs.length === 0) throw new Error('All-pairs comparison requires at least two cities')
+  const variants = [focusVariant, baselineVariant, ...extraVariants]
+  const timings = measureInterleavedExecutionTimes(
+    variants.map((variant) => () => runTimedSuite(variant, pairs)),
+    timingOptions,
   )
+  const rows = variants.map((variant, index) => {
+    const timing = timings[index]
+    if (timing === undefined) throw new Error(`No timing was recorded for ${variant.id}`)
+    return collectAllPairResults(variant, pairs, timing)
+  })
 
   return {
     pairCount: pairs.length,
